@@ -1,0 +1,15 @@
+{
+  "name": "@provost/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./biome.json": "./biome.json",
+    "./tsconfig.base.json": "./tsconfig.base.json",
+    "./tailwind": "./tailwind.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0",
+    "tailwindcss": "^4.1.0"
+  }
+}
