@@ -13,6 +13,7 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "lint": "turbo run lint",
+    "convex:dev": "convex dev",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -25,5 +26,8 @@
     "husky": "^9.1.7",
     "lint-staged": "^15.2.11",
     "turbo": "^2.3.0"
+  },
+  "dependencies": {
+    "convex": "^1.36.0"
   }
 }

@@ -2,6 +2,9 @@ node_modules/
 .turbo/
 .next/
 .convex/
+convex/_generated/*
+!convex/_generated/ai/
+!convex/_generated/ai/**
 dist/
 build/
 .env
