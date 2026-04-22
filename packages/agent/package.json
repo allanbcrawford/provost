@@ -8,11 +8,18 @@
   "exports": {
     ".": "./src/index.ts"
   },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "test": "echo 'no tests yet' && exit 0"
+  },
   "dependencies": {
     "zod": "^3.23.8",
     "openai": "^4.77.0"
   },
   "devDependencies": {
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "@provost/config": "workspace:*",
+    "@biomejs/biome": "^2.3.4"
   }
 }

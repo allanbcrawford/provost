@@ -3,6 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "lint": "biome check .",
+    "test": "echo 'no tests yet' && exit 0"
+  },
   "exports": {
     "./biome.json": "./biome.json",
     "./tsconfig.base.json": "./tsconfig.base.json",
@@ -10,6 +14,7 @@
   },
   "devDependencies": {
     "typescript": "^5.9.0",
-    "tailwindcss": "^4.1.0"
+    "tailwindcss": "^4.1.0",
+    "@biomejs/biome": "^2.3.4"
   }
 }
