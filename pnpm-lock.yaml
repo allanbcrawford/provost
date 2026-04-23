@@ -94,6 +94,9 @@ importers:
 
   packages/agent:
     dependencies:
+      '@provost/schemas':
+        specifier: workspace:*
+        version: link:../schemas
       openai:
         specifier: ^4.77.0
         version: 4.104.0(ws@8.18.0)(zod@3.25.76)

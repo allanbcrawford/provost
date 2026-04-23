@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Providers } from "@/components/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -11,7 +12,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   // (the authenticated shell) so chat tools can push widgets into page slots.
   return (
     <html lang="en">
-      <body className="min-h-dvh bg-white text-neutral-900 antialiased">{children}</body>
+      <body className="min-h-dvh bg-white text-neutral-900 antialiased">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
