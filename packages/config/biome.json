@@ -15,7 +15,8 @@
       "!**/node_modules",
       "!**/.turbo",
       "!**/.convex",
-      "!**/_generated"
+      "!**/_generated",
+      "!**/storybook-static"
     ]
   },
   "formatter": {
