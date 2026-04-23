@@ -55,6 +55,133 @@ export const writeEvent = internalMutation({
       type: args.type,
       data: args.data,
     });
+
+    const auditable = new Set([
+      "run_started",
+      "run_finished",
+      "run_error",
+      "tool_call_started",
+      "tool_call_finished",
+    ]);
+    if (!auditable.has(args.type)) return;
+
+    const run = await ctx.db.get(args.runId);
+    if (!run) return;
+
+    const data = (args.data ?? {}) as Record<string, unknown>;
+    const toolCallId =
+      typeof data.id === "string"
+        ? data.id
+        : typeof data.toolCallId === "string"
+          ? (data.toolCallId as string)
+          : undefined;
+    const toolName =
+      typeof data.name === "string"
+        ? data.name
+        : typeof data.toolName === "string"
+          ? (data.toolName as string)
+          : undefined;
+    const approvalRequired = data.approvalRequired === true;
+
+    if (args.type === "run_started") {
+      await writeAudit(ctx, {
+        familyId: run.family_id,
+        actorUserId: run.user_id,
+        actorKind: "user",
+        category: "run",
+        action: "agent.run.started",
+        resourceType: "thread_runs",
+        resourceId: args.runId,
+        metadata: { runId: args.runId, threadId: args.threadId, tools: run.tools },
+      });
+      return;
+    }
+
+    if (args.type === "run_finished") {
+      const duration_ms =
+        run.started_at && run.finished_at
+          ? run.finished_at - run.started_at
+          : run.started_at
+            ? Date.now() - run.started_at
+            : null;
+      const message_count = Array.isArray(run.history) ? run.history.length : null;
+      await writeAudit(ctx, {
+        familyId: run.family_id,
+        actorUserId: run.user_id,
+        actorKind: "agent",
+        category: "run",
+        action: "agent.run.finished",
+        resourceType: "thread_runs",
+        resourceId: args.runId,
+        metadata: { duration_ms, message_count },
+      });
+      return;
+    }
+
+    if (args.type === "run_error") {
+      await writeAudit(ctx, {
+        familyId: run.family_id,
+        actorUserId: run.user_id,
+        actorKind: "agent",
+        category: "run",
+        action: "agent.run.error",
+        resourceType: "thread_runs",
+        resourceId: args.runId,
+        metadata: { error: data.error ?? data.message ?? null },
+      });
+      return;
+    }
+
+    if (args.type === "tool_call_started") {
+      await writeAudit(ctx, {
+        familyId: run.family_id,
+        actorUserId: run.user_id,
+        actorKind: "agent",
+        category: "tool_call",
+        action: "agent.tool_call.started",
+        resourceType: "thread_runs",
+        resourceId: args.runId,
+        metadata: {
+          runId: args.runId,
+          toolCallId,
+          toolName,
+          arguments: data.arguments ?? data.args ?? null,
+        },
+      });
+      if (approvalRequired) {
+        await writeAudit(ctx, {
+          familyId: run.family_id,
+          actorUserId: run.user_id,
+          actorKind: "agent",
+          category: "approval",
+          action: "agent.approval.requested",
+          resourceType: "thread_runs",
+          resourceId: args.runId,
+          metadata: { runId: args.runId, toolCallId, toolName },
+        });
+      }
+      return;
+    }
+
+    if (args.type === "tool_call_finished") {
+      await writeAudit(ctx, {
+        familyId: run.family_id,
+        actorUserId: run.user_id,
+        actorKind: "agent",
+        category: "tool_call",
+        action: "agent.tool_call.finished",
+        resourceType: "thread_runs",
+        resourceId: args.runId,
+        metadata: {
+          runId: args.runId,
+          toolCallId,
+          toolName,
+          result: data.result ?? null,
+          widget: data.widget ?? null,
+        },
+      });
+      return;
+    }
   },
 });
 
