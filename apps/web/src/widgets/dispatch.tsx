@@ -8,6 +8,7 @@ const WIDGET_SLOT_MAP: Record<string, string> = {
   form: "inline",
   waterfall: "family-page",
   graph: "family-page",
+  "graph-focus": "family-page",
   draft_revision: "inline",
   cite: "inline",
   task: "inline",

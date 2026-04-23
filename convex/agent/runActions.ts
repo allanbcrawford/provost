@@ -34,11 +34,32 @@ const MAX_TURNS = 8;
 
 // TODO(phase-3.7/3.8): replace this switch with dynamic dispatch via
 // ctx.runAction(<handlerRef>) once navigate + form tool handlers exist.
-async function dispatchTool(_ctx: unknown, toolName: string, toolArgs: unknown): Promise<unknown> {
+async function dispatchTool(
+  ctx: { runAction: (ref: unknown, args: unknown) => Promise<unknown> } | unknown,
+  toolName: string,
+  toolArgs: unknown,
+  toolCallId?: string,
+  runId?: unknown,
+): Promise<unknown> {
   switch (toolName) {
     case "navigate":
     case "form":
       return { ok: true, echo: { tool: toolName, args: toolArgs } };
+    case "render_waterfall_simulation":
+      return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
+        internal.agent.tools.renderWaterfallSimulation.handle,
+        { args: toolArgs, toolCallId: toolCallId ?? "", runId },
+      );
+    case "render_family_graph":
+      return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
+        internal.agent.tools.renderFamilyGraph.handle,
+        { args: toolArgs, toolCallId: toolCallId ?? "", runId },
+      );
+    case "generate_signals":
+      return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
+        internal.agent.tools.generateSignals.handle,
+        { args: toolArgs, toolCallId: toolCallId ?? "", runId },
+      );
     default:
       return { ok: false, error: `tool handler not implemented: ${toolName}` };
   }
@@ -258,7 +279,13 @@ export const execute = internalAction({
         }
 
         for (const call of pendingCalls) {
-          const result = await dispatchTool(ctx, call.name, safeParseJson(call.argsJson));
+          const result = await dispatchTool(
+            ctx,
+            call.name,
+            safeParseJson(call.argsJson),
+            call.id,
+            args.runId,
+          );
           messages = [
             ...messages,
             {
@@ -338,7 +365,13 @@ export const resumeAfterApproval = internalAction({
       const decision = decisionByToolCallId.get(call.id);
       let result: unknown;
       if (decision === "approved") {
-        result = await dispatchTool(ctx, call.name, safeParseJson(call.argsJson));
+        result = await dispatchTool(
+          ctx,
+          call.name,
+          safeParseJson(call.argsJson),
+          call.id,
+          args.runId,
+        );
         await ctx.runMutation(internal.agent.runInternal.writeEvent, {
           runId: args.runId,
           threadId: thread._id,
