@@ -35,6 +35,7 @@ export {
   useFormField,
 } from "./form";
 export * from "./graph";
+export { Icon } from "./icon";
 export { Input } from "./input";
 export { Label } from "./label";
 export { Markdown } from "./markdown";
