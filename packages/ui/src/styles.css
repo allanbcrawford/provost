@@ -1,0 +1,364 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,200..700,0..1,0&display=swap");
+@import "tailwindcss";
+
+:root {
+  --radius: 0.65rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: #fffefd;
+  --sidebar-foreground: #2f2c25;
+  --sidebar-primary: #2f2c25;
+  --sidebar-primary-foreground: #fffefd;
+  --sidebar-accent: #f5f5f5;
+  --sidebar-accent-foreground: #2f2c25;
+  --sidebar-border: #eeecea;
+  --sidebar-ring: oklch(0.708 0 0);
+
+  /* Provost backgrounds */
+  --provost-bg-primary: #fffefd;
+  --provost-bg-secondary: #f5f5f5;
+  --provost-bg-card: rgba(255, 255, 255, 0.7);
+  --provost-bg-card-solid: #fffefd;
+  --provost-bg-card-subtle: rgba(223, 221, 220, 0.7);
+  --provost-bg-menu-hover: #f5f4f3;
+
+  /* Provost borders */
+  --provost-border-subtle: #eeecea;
+  --provost-border-light: #f3f0ec;
+
+  /* Provost text */
+  --provost-text-primary: #242424;
+  --provost-text-secondary: #6b6b6b;
+  --provost-text-tertiary: rgba(0, 0, 0, 0.4);
+
+  /* Provost accents */
+  --provost-accent-red: #6f292e;
+  --provost-accent-blue: #0163ad;
+  --provost-accent-blue-hover: #0152a3;
+  --provost-accent-amber: #b45309;
+
+  /* Provost radii + shadow */
+  --provost-radius-card: 12px;
+  --provost-radius-medium: 8px;
+  --provost-radius-small: 6px;
+  --provost-radius-avatar: 10px;
+  --provost-shadow-card: 0px 4px 3px 0px rgba(0, 0, 0, 0.1);
+
+  /* Highlight card colors */
+  --provost-card-purple: #3f3052;
+  --provost-card-purple-light: #dbd4e5;
+  --provost-card-blue-dark: #304452;
+  --provost-card-blue-light: #d3dde5;
+  --provost-card-navy: #202134;
+  --provost-card-navy-light: #d1d1d8;
+  --provost-card-gray: #8891a1;
+  --provost-card-tan: #f2e0c2;
+  --provost-card-tan-dark: #522e1f;
+  --provost-card-teal: #cfdce7;
+  --provost-card-green-light: #e2e2e0;
+  --provost-card-blue-accent: #0261ab;
+  --provost-card-slate: #28303b;
+  --provost-card-green-dark: #292f37;
+
+  /* Neutral gray scale */
+  --provost-neutral-900: #242424;
+  --provost-neutral-700: #6b6b6b;
+  --provost-neutral-600: #6e6e6e;
+  --provost-neutral-550: #747474;
+  --provost-neutral-500: #8b8b8b;
+  --provost-neutral-400: #797979;
+  --provost-neutral-300: #d0d0d0;
+  --provost-neutral-250: #d1d1d1;
+  --provost-neutral-200: #d7d7d7;
+  --provost-neutral-150: #d9d9d9;
+  --provost-neutral-125: #e4e4e4;
+  --provost-neutral-100: #ededed;
+  --provost-neutral-75: #f8f8f8;
+  --provost-neutral-50: #f8f6f4;
+  --provost-neutral-25: #2f2c25;
+
+  /* Semantic text aliases */
+  --provost-text-strong: var(--provost-neutral-900);
+  --provost-text-muted: var(--provost-neutral-700);
+  --provost-text-subtle: var(--provost-neutral-550);
+  --provost-text-faint: var(--provost-neutral-600);
+  --provost-text-disabled: var(--provost-neutral-200);
+  --provost-text-placeholder: var(--provost-neutral-150);
+
+  /* Semantic border aliases */
+  --provost-border-default: var(--provost-neutral-100);
+  --provost-border-lighter: var(--provost-neutral-125);
+  --provost-border-strong: var(--provost-neutral-250);
+  --provost-border-gray: var(--provost-neutral-250);
+  --provost-border-medium: #d3dde5;
+
+  /* Semantic background aliases */
+  --provost-bg-subtle: var(--provost-neutral-75);
+  --provost-bg-muted: var(--provost-neutral-50);
+  --provost-bg-hover: #f9fafb;
+  --provost-bg-hover-light: #f9f9f9;
+  --provost-bg-icon: #e9e9eb;
+  --provost-bg-icon-green: #cae1d7;
+
+  /* UI elements */
+  --provost-dot: var(--provost-neutral-500);
+  --provost-icon-disabled: var(--provost-neutral-300);
+
+  /* Status */
+  --provost-status-success: #22c55e;
+  --provost-status-success-bg: #dcfce7;
+  --provost-status-error: #e54965;
+  --provost-status-error-bg: #fee2e2;
+  --provost-status-active: #59a656;
+  --provost-status-active-bg: #e7f3e7;
+  --provost-status-active-text: #2e7d32;
+  --provost-status-pending: #bf5a05;
+  --provost-status-pending-bg: #fffae0;
+  --provost-status-inactive: var(--provost-neutral-400);
+  --provost-status-inactive-bg: #fff3e0;
+  --provost-status-inactive-text: #e65100;
+
+  /* Special purpose */
+  --provost-highlight-mark: #e8f3e8;
+  --provost-observation-danger: #c94b4b;
+  --provost-observation-info-bg: rgba(211, 221, 229, 0.4);
+
+  /* Gap severity (Phase 2 signal categories) */
+  --provost-gap-missing: #b91c1c;
+  --provost-gap-missing-bg: #fef2f2;
+  --provost-gap-review: #b45309;
+  --provost-gap-review-bg: #fffbeb;
+  --provost-gap-stale: #6b6b6b;
+  --provost-gap-stale-bg: #f5f5f5;
+
+  /* Signal categories */
+  --provost-signal-missing: #b91c1c;
+  --provost-signal-missing-bg: #fef2f2;
+  --provost-signal-conflict: #c2410c;
+  --provost-signal-conflict-bg: #fff7ed;
+  --provost-signal-risk: #b45309;
+  --provost-signal-risk-bg: #fffbeb;
+  --provost-signal-recommendation: #0163ad;
+  --provost-signal-recommendation-bg: #eff6ff;
+}
+
+@theme inline {
+  --breakpoint-3xl: 1600px;
+  --breakpoint-4xl: 2000px;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-inter: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-dm-serif: "DM Serif Display", ui-serif, Georgia, serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Provost palette */
+  --color-provost-bg-primary: var(--provost-bg-primary);
+  --color-provost-bg-secondary: var(--provost-bg-secondary);
+  --color-provost-bg-card: var(--provost-bg-card);
+  --color-provost-bg-card-solid: var(--provost-bg-card-solid);
+  --color-provost-bg-card-subtle: var(--provost-bg-card-subtle);
+  --color-provost-bg-menu-hover: var(--provost-bg-menu-hover);
+  --color-provost-bg-subtle: var(--provost-bg-subtle);
+  --color-provost-bg-muted: var(--provost-bg-muted);
+  --color-provost-bg-hover: var(--provost-bg-hover);
+  --color-provost-bg-hover-light: var(--provost-bg-hover-light);
+  --color-provost-bg-icon: var(--provost-bg-icon);
+  --color-provost-bg-icon-green: var(--provost-bg-icon-green);
+
+  --color-provost-border-subtle: var(--provost-border-subtle);
+  --color-provost-border-light: var(--provost-border-light);
+  --color-provost-border-default: var(--provost-border-default);
+  --color-provost-border-lighter: var(--provost-border-lighter);
+  --color-provost-border-strong: var(--provost-border-strong);
+  --color-provost-border-gray: var(--provost-border-gray);
+  --color-provost-border-medium: var(--provost-border-medium);
+
+  --color-provost-text-primary: var(--provost-text-primary);
+  --color-provost-text-secondary: var(--provost-text-secondary);
+  --color-provost-text-tertiary: var(--provost-text-tertiary);
+  --color-provost-text-strong: var(--provost-text-strong);
+  --color-provost-text-muted: var(--provost-text-muted);
+  --color-provost-text-subtle: var(--provost-text-subtle);
+  --color-provost-text-faint: var(--provost-text-faint);
+  --color-provost-text-disabled: var(--provost-text-disabled);
+  --color-provost-text-placeholder: var(--provost-text-placeholder);
+
+  --color-provost-accent-red: var(--provost-accent-red);
+  --color-provost-accent-blue: var(--provost-accent-blue);
+  --color-provost-accent-blue-hover: var(--provost-accent-blue-hover);
+  --color-provost-accent-amber: var(--provost-accent-amber);
+
+  --color-provost-card-purple: var(--provost-card-purple);
+  --color-provost-card-purple-light: var(--provost-card-purple-light);
+  --color-provost-card-blue-dark: var(--provost-card-blue-dark);
+  --color-provost-card-blue-light: var(--provost-card-blue-light);
+  --color-provost-card-navy: var(--provost-card-navy);
+  --color-provost-card-navy-light: var(--provost-card-navy-light);
+  --color-provost-card-gray: var(--provost-card-gray);
+  --color-provost-card-tan: var(--provost-card-tan);
+  --color-provost-card-tan-dark: var(--provost-card-tan-dark);
+  --color-provost-card-teal: var(--provost-card-teal);
+  --color-provost-card-green-light: var(--provost-card-green-light);
+  --color-provost-card-blue-accent: var(--provost-card-blue-accent);
+  --color-provost-card-slate: var(--provost-card-slate);
+  --color-provost-card-green-dark: var(--provost-card-green-dark);
+
+  --color-provost-neutral-900: var(--provost-neutral-900);
+  --color-provost-neutral-700: var(--provost-neutral-700);
+  --color-provost-neutral-600: var(--provost-neutral-600);
+  --color-provost-neutral-550: var(--provost-neutral-550);
+  --color-provost-neutral-500: var(--provost-neutral-500);
+  --color-provost-neutral-400: var(--provost-neutral-400);
+  --color-provost-neutral-300: var(--provost-neutral-300);
+  --color-provost-neutral-250: var(--provost-neutral-250);
+  --color-provost-neutral-200: var(--provost-neutral-200);
+  --color-provost-neutral-150: var(--provost-neutral-150);
+  --color-provost-neutral-125: var(--provost-neutral-125);
+  --color-provost-neutral-100: var(--provost-neutral-100);
+  --color-provost-neutral-75: var(--provost-neutral-75);
+  --color-provost-neutral-50: var(--provost-neutral-50);
+  --color-provost-neutral-25: var(--provost-neutral-25);
+
+  --color-provost-dot: var(--provost-dot);
+  --color-provost-icon-disabled: var(--provost-icon-disabled);
+
+  --color-provost-status-success: var(--provost-status-success);
+  --color-provost-status-success-bg: var(--provost-status-success-bg);
+  --color-provost-status-error: var(--provost-status-error);
+  --color-provost-status-error-bg: var(--provost-status-error-bg);
+  --color-provost-status-active: var(--provost-status-active);
+  --color-provost-status-active-bg: var(--provost-status-active-bg);
+  --color-provost-status-active-text: var(--provost-status-active-text);
+  --color-provost-status-pending: var(--provost-status-pending);
+  --color-provost-status-pending-bg: var(--provost-status-pending-bg);
+  --color-provost-status-inactive: var(--provost-status-inactive);
+  --color-provost-status-inactive-bg: var(--provost-status-inactive-bg);
+  --color-provost-status-inactive-text: var(--provost-status-inactive-text);
+
+  --color-provost-highlight-mark: var(--provost-highlight-mark);
+  --color-provost-observation-danger: var(--provost-observation-danger);
+  --color-provost-observation-info-bg: var(--provost-observation-info-bg);
+
+  /* Gap severity tokens */
+  --color-provost-gap-missing: var(--provost-gap-missing);
+  --color-provost-gap-missing-bg: var(--provost-gap-missing-bg);
+  --color-provost-gap-review: var(--provost-gap-review);
+  --color-provost-gap-review-bg: var(--provost-gap-review-bg);
+  --color-provost-gap-stale: var(--provost-gap-stale);
+  --color-provost-gap-stale-bg: var(--provost-gap-stale-bg);
+
+  /* Signal category tokens */
+  --color-provost-signal-missing: var(--provost-signal-missing);
+  --color-provost-signal-missing-bg: var(--provost-signal-missing-bg);
+  --color-provost-signal-conflict: var(--provost-signal-conflict);
+  --color-provost-signal-conflict-bg: var(--provost-signal-conflict-bg);
+  --color-provost-signal-risk: var(--provost-signal-risk);
+  --color-provost-signal-risk-bg: var(--provost-signal-risk-bg);
+  --color-provost-signal-recommendation: var(--provost-signal-recommendation);
+  --color-provost-signal-recommendation-bg: var(--provost-signal-recommendation-bg);
+
+  --radius-provost-card: var(--provost-radius-card);
+  --radius-provost-medium: var(--provost-radius-medium);
+  --radius-provost-small: var(--provost-radius-small);
+  --radius-provost-avatar: var(--provost-radius-avatar);
+  --shadow-provost-card: var(--provost-shadow-card);
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--provost-bg-primary);
+  color: var(--provost-text-primary);
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined", sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 300,
+    "GRAD" 0,
+    "opsz" 24;
+}
+
+@keyframes gap-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(185, 28, 28, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(185, 28, 28, 0);
+  }
+}
+.gap-pulse {
+  animation: gap-pulse 2.2s ease-out infinite;
+}
