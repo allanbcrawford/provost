@@ -1,6 +1,8 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { writeAudit } from "./lib/audit";
 import { requireFamilyMember, requireUserRecord } from "./lib/authz";
+import { checkAndIncrement } from "./lib/rateLimit";
 
 const assigneeTypeValidator = v.union(
   v.literal("planner"),
@@ -27,6 +29,7 @@ export const create = mutation({
   handler: async (ctx, args) => {
     await requireFamilyMember(ctx, args.familyId);
     const user = await requireUserRecord(ctx);
+    await checkAndIncrement(ctx, "tool.create_task:family", args.familyId);
     const taskId = await ctx.db.insert("tasks", {
       family_id: args.familyId,
       created_by: user._id,
@@ -36,6 +39,19 @@ export const create = mutation({
       body: args.body,
       status: "open",
       source_signal_id: args.sourceSignalId,
+    });
+    await writeAudit(ctx, {
+      familyId: args.familyId,
+      actorUserId: user._id,
+      actorKind: "user",
+      category: "mutation",
+      action: "tasks.create",
+      resourceType: "tasks",
+      resourceId: taskId,
+      metadata: {
+        assigneeType: args.assigneeType,
+        sourceSignalId: args.sourceSignalId ?? null,
+      },
     });
     return taskId;
   },
@@ -69,8 +85,18 @@ export const updateStatus = mutation({
   handler: async (ctx, { taskId, status }) => {
     const task = await ctx.db.get(taskId);
     if (!task) return null;
-    await requireFamilyMember(ctx, task.family_id);
+    const { user } = await requireFamilyMember(ctx, task.family_id);
     await ctx.db.patch(taskId, { status });
+    await writeAudit(ctx, {
+      familyId: task.family_id,
+      actorUserId: user._id,
+      actorKind: "user",
+      category: "mutation",
+      action: "tasks.update_status",
+      resourceType: "tasks",
+      resourceId: taskId,
+      metadata: { status, previousStatus: task.status },
+    });
     return null;
   },
 });

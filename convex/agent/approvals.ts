@@ -2,6 +2,7 @@ import type { ToolSurface } from "@provost/agent";
 import { ConvexError, v } from "convex/values";
 import { internal } from "../_generated/api";
 import { type MutationCtx, mutation, query } from "../_generated/server";
+import { writeAudit } from "../lib/audit";
 import { requireFamilyMember } from "../lib/authz";
 
 async function findPendingApproval(ctx: MutationCtx, toolCallId: string) {
@@ -28,6 +29,17 @@ export const approve = mutation({
       decided_at: Date.now(),
     });
 
+    await writeAudit(ctx, {
+      familyId: run.family_id,
+      actorUserId: user._id,
+      actorKind: "user",
+      category: "approval",
+      action: "tool.approve",
+      resourceType: "tool_call_approvals",
+      resourceId: approval._id,
+      metadata: { toolName: approval.tool_name, toolCallId },
+    });
+
     await ctx.scheduler.runAfter(0, internal.agent.runActions.resumeAfterApproval, {
       runId: run._id,
       route: (run.route ?? "any") as ToolSurface,
@@ -50,6 +62,17 @@ export const reject = mutation({
       decided_by: user._id,
       decided_at: Date.now(),
       decision_reason: reason,
+    });
+
+    await writeAudit(ctx, {
+      familyId: run.family_id,
+      actorUserId: user._id,
+      actorKind: "user",
+      category: "approval",
+      action: "tool.reject",
+      resourceType: "tool_call_approvals",
+      resourceId: approval._id,
+      metadata: { toolName: approval.tool_name, toolCallId, reason: reason ?? null },
     });
 
     await ctx.scheduler.runAfter(0, internal.agent.runActions.resumeAfterApproval, {

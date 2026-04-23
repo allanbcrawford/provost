@@ -2,6 +2,7 @@ import { ConvexError, v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 
 import { mutation, query } from "./_generated/server";
+import { writeAudit } from "./lib/audit";
 import { requireFamilyMember, requireUserRecord } from "./lib/authz";
 
 export const list = query({
@@ -105,7 +106,7 @@ export const assign = mutation({
   handler: async (ctx, { lessonId, memberIds, dueDate }) => {
     const lesson = await ctx.db.get(lessonId);
     if (!lesson || lesson.deleted_at) throw new ConvexError({ code: "NOT_FOUND" });
-    await requireFamilyMember(ctx, lesson.family_id, ["admin"]);
+    const { user } = await requireFamilyMember(ctx, lesson.family_id, ["admin"]);
 
     const created: Id<"lesson_users">[] = [];
     for (const memberId of memberIds) {
@@ -128,6 +129,16 @@ export const assign = mutation({
       });
       created.push(id);
     }
+    await writeAudit(ctx, {
+      familyId: lesson.family_id,
+      actorUserId: user._id,
+      actorKind: "user",
+      category: "mutation",
+      action: "lessons.assign",
+      resourceType: "lessons",
+      resourceId: lessonId,
+      metadata: { memberCount: memberIds.length, dueDate: dueDate ?? null },
+    });
     return { assignedCount: created.length };
   },
 });
@@ -144,18 +155,30 @@ export const start = mutation({
       .withIndex("by_user", (q) => q.eq("user_id", user._id))
       .filter((q) => q.eq(q.field("lesson_id"), lessonId))
       .unique();
+    let assignmentId: Id<"lesson_users">;
     if (existing) {
       if (existing.status !== "completed") {
         await ctx.db.patch(existing._id, { status: "in_progress" });
       }
-      return existing._id;
+      assignmentId = existing._id;
+    } else {
+      assignmentId = await ctx.db.insert("lesson_users", {
+        lesson_id: lessonId,
+        user_id: user._id,
+        status: "in_progress",
+        slide_index: 0,
+      });
     }
-    return await ctx.db.insert("lesson_users", {
-      lesson_id: lessonId,
-      user_id: user._id,
-      status: "in_progress",
-      slide_index: 0,
+    await writeAudit(ctx, {
+      familyId: lesson.family_id,
+      actorUserId: user._id,
+      actorKind: "user",
+      category: "mutation",
+      action: "lessons.start",
+      resourceType: "lessons",
+      resourceId: lessonId,
     });
+    return assignmentId;
   },
 });
 
@@ -171,16 +194,28 @@ export const complete = mutation({
       .withIndex("by_user", (q) => q.eq("user_id", user._id))
       .filter((q) => q.eq(q.field("lesson_id"), lessonId))
       .unique();
+    let assignmentId: Id<"lesson_users">;
     if (existing) {
       await ctx.db.patch(existing._id, { status: "completed" });
-      return existing._id;
+      assignmentId = existing._id;
+    } else {
+      assignmentId = await ctx.db.insert("lesson_users", {
+        lesson_id: lessonId,
+        user_id: user._id,
+        status: "completed",
+        slide_index: 0,
+      });
     }
-    return await ctx.db.insert("lesson_users", {
-      lesson_id: lessonId,
-      user_id: user._id,
-      status: "completed",
-      slide_index: 0,
+    await writeAudit(ctx, {
+      familyId: lesson.family_id,
+      actorUserId: user._id,
+      actorKind: "user",
+      category: "mutation",
+      action: "lessons.complete",
+      resourceType: "lessons",
+      resourceId: lessonId,
     });
+    return assignmentId;
   },
 });
 
@@ -196,18 +231,31 @@ export const setSlideIndex = mutation({
       .withIndex("by_user", (q) => q.eq("user_id", user._id))
       .filter((q) => q.eq(q.field("lesson_id"), lessonId))
       .unique();
+    let assignmentId: Id<"lesson_users">;
     if (existing) {
       await ctx.db.patch(existing._id, {
         slide_index: slideIndex,
         status: existing.status === "completed" ? existing.status : "in_progress",
       });
-      return existing._id;
+      assignmentId = existing._id;
+    } else {
+      assignmentId = await ctx.db.insert("lesson_users", {
+        lesson_id: lessonId,
+        user_id: user._id,
+        status: "in_progress",
+        slide_index: slideIndex,
+      });
     }
-    return await ctx.db.insert("lesson_users", {
-      lesson_id: lessonId,
-      user_id: user._id,
-      status: "in_progress",
-      slide_index: slideIndex,
+    await writeAudit(ctx, {
+      familyId: lesson.family_id,
+      actorUserId: user._id,
+      actorKind: "user",
+      category: "mutation",
+      action: "lessons.set_slide_index",
+      resourceType: "lessons",
+      resourceId: lessonId,
+      metadata: { slideIndex },
     });
+    return assignmentId;
   },
 });

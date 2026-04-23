@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import type { Doc } from "./_generated/dataModel";
 import { internalQuery, mutation, query } from "./_generated/server";
+import { writeAudit } from "./lib/audit";
 import { requireFamilyMember } from "./lib/authz";
 import { computeSignals } from "./lib/signalRules";
 
@@ -60,8 +61,18 @@ export const updateStatus = mutation({
   handler: async (ctx, { signalId, status }) => {
     const signal = await ctx.db.get(signalId);
     if (!signal) return null;
-    await requireFamilyMember(ctx, signal.family_id);
+    const { user } = await requireFamilyMember(ctx, signal.family_id);
     await ctx.db.patch(signalId, { status });
+    await writeAudit(ctx, {
+      familyId: signal.family_id,
+      actorUserId: user._id,
+      actorKind: "user",
+      category: "mutation",
+      action: "signals.update_status",
+      resourceType: "signals",
+      resourceId: signalId,
+      metadata: { status, previousStatus: signal.status },
+    });
     return null;
   },
 });
@@ -69,7 +80,7 @@ export const updateStatus = mutation({
 export const generateFromRules = mutation({
   args: { familyId: v.id("families") },
   handler: async (ctx, { familyId }) => {
-    await requireFamilyMember(ctx, familyId);
+    const { user } = await requireFamilyMember(ctx, familyId);
 
     const [members, documents, professionals, existing] = await Promise.all([
       ctx.db
@@ -136,6 +147,16 @@ export const generateFromRules = mutation({
         inserted++;
       }
     }
+
+    await writeAudit(ctx, {
+      familyId,
+      actorUserId: user._id,
+      actorKind: "user",
+      category: "mutation",
+      action: "signals.generate_from_rules",
+      resourceType: "signals",
+      metadata: { inserted, updated, total: ruleSignals.length, seen: seenKeys.size },
+    });
 
     return { inserted, updated, total: ruleSignals.length, seen: seenKeys.size };
   },

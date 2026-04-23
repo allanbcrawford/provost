@@ -2,7 +2,9 @@ import { type ToolSurface, toolsForSurface } from "@provost/agent";
 import { v } from "convex/values";
 import { internal } from "../_generated/api";
 import { mutation } from "../_generated/server";
+import { writeAudit } from "../lib/audit";
 import { requireFamilyMember } from "../lib/authz";
+import { checkAndIncrement } from "../lib/rateLimit";
 
 const toolSurfaceValidator = v.union(
   v.literal("family"),
@@ -32,6 +34,9 @@ export const start = mutation({
 
     const { user, membership } = await requireFamilyMember(ctx, thread.family_id);
 
+    await checkAndIncrement(ctx, "run.start:user", user._id);
+    await checkAndIncrement(ctx, "run.start:family", thread.family_id);
+
     const tools = toolsForSurface(args.route as ToolSurface, membership.role);
     const toolNames = tools.map((t) => t.name);
 
@@ -54,6 +59,17 @@ export const start = mutation({
     });
 
     await ctx.db.patch(args.threadId, { current_run_id: runId });
+
+    await writeAudit(ctx, {
+      familyId: thread.family_id,
+      actorUserId: user._id,
+      actorKind: "user",
+      category: "run",
+      action: "agent.run.start",
+      resourceType: "thread_runs",
+      resourceId: runId,
+      metadata: { route: args.route, toolCount: toolNames.length },
+    });
 
     await ctx.scheduler.runAfter(0, internal.agent.runActions.execute, {
       runId,

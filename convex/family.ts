@@ -1,7 +1,9 @@
 import { ConvexError, v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { mutation, type QueryCtx, query } from "./_generated/server";
+import { writeAudit } from "./lib/audit";
 import { requireFamilyMember } from "./lib/authz";
+import { checkAndIncrement } from "./lib/rateLimit";
 
 async function loadFamilyMembers(ctx: QueryCtx, familyId: Id<"families">) {
   const memberships = await ctx.db
@@ -70,13 +72,23 @@ export const updateMember = mutation({
     }),
   },
   handler: async (ctx, { familyId, memberId, patch }) => {
-    await requireFamilyMember(ctx, familyId, ["admin"]);
+    const { user } = await requireFamilyMember(ctx, familyId, ["admin"]);
     const membership = await ctx.db
       .query("family_users")
       .withIndex("by_family_and_user", (q) => q.eq("family_id", familyId).eq("user_id", memberId))
       .unique();
     if (!membership) throw new ConvexError({ code: "NOT_IN_FAMILY" });
     await ctx.db.patch(memberId, patch);
+    await writeAudit(ctx, {
+      familyId,
+      actorUserId: user._id,
+      actorKind: "user",
+      category: "mutation",
+      action: "family.update_member",
+      resourceType: "users",
+      resourceId: memberId,
+      metadata: { fields: Object.keys(patch) },
+    });
   },
 });
 
@@ -105,7 +117,8 @@ export const createMember = mutation({
     spouse_id: v.optional(v.id("users")),
   },
   handler: async (ctx, args) => {
-    await requireFamilyMember(ctx, args.familyId, ["admin"]);
+    const { user: actor } = await requireFamilyMember(ctx, args.familyId, ["admin"]);
+    await checkAndIncrement(ctx, "tool.invite_member:family", args.familyId);
     const userId = await ctx.db.insert("users", {
       first_name: args.first_name,
       middle_name: args.middle_name,
@@ -128,6 +141,16 @@ export const createMember = mutation({
       family_id: args.familyId,
       user_id: userId,
       role: args.familyRole,
+    });
+    await writeAudit(ctx, {
+      familyId: args.familyId,
+      actorUserId: actor._id,
+      actorKind: "user",
+      category: "mutation",
+      action: "family.create_member",
+      resourceType: "users",
+      resourceId: userId,
+      metadata: { familyRole: args.familyRole, role: args.role },
     });
     return userId;
   },

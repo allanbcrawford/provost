@@ -1,6 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { internalQuery, mutation, query } from "./_generated/server";
+import { writeAudit } from "./lib/audit";
 import { requireFamilyMember, requireUserRecord } from "./lib/authz";
 
 export const list = query({
@@ -111,7 +112,7 @@ export const create = mutation({
       });
     }
 
-    return await ctx.db.insert("documents", {
+    const documentId = await ctx.db.insert("documents", {
       family_id: args.familyId,
       file_id: fileId,
       name: args.name,
@@ -123,5 +124,16 @@ export const create = mutation({
       observation_type: args.observationType ?? "observation",
       observation_is_observed: false,
     });
+    await writeAudit(ctx, {
+      familyId: args.familyId,
+      actorUserId: user._id,
+      actorKind: "user",
+      category: "mutation",
+      action: "documents.create",
+      resourceType: "documents",
+      resourceId: documentId,
+      metadata: { category: args.category, type: args.type, hasFile: Boolean(fileId) },
+    });
+    return documentId;
   },
 });
