@@ -14,12 +14,13 @@
     "test": "echo 'no tests yet' && exit 0"
   },
   "dependencies": {
+    "openai": "^4.77.0",
     "zod": "^3.23.8",
-    "openai": "^4.77.0"
+    "zod-to-json-schema": "^3.23.5"
   },
   "devDependencies": {
-    "typescript": "^5.9.0",
+    "@biomejs/biome": "^2.3.4",
     "@provost/config": "workspace:*",
-    "@biomejs/biome": "^2.3.4"
+    "typescript": "^5.9.0"
   }
 }
