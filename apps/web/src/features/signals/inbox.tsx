@@ -44,28 +44,28 @@ export function SignalsInbox() {
   }, [signals]);
 
   if (!family) {
-    return <div className="p-8 text-sm text-neutral-500">Select a family to view the inbox.</div>;
+    return <div className="p-8 text-neutral-500 text-sm">Select a family to view the inbox.</div>;
   }
 
   if (signals === undefined || observations === undefined) {
-    return <div className="p-8 text-sm text-neutral-500">Loading inbox…</div>;
+    return <div className="p-8 text-neutral-500 text-sm">Loading inbox…</div>;
   }
 
   const totalSignals = signals.length;
   const totalObservations = observations.length;
 
   return (
-    <div className="mx-auto max-w-4xl p-8 space-y-8">
+    <div className="mx-auto max-w-4xl space-y-8 p-8">
       <header>
         <h1 className="font-semibold text-2xl text-neutral-900">Signals Inbox</h1>
-        <p className="mt-1 text-sm text-neutral-600">
+        <p className="mt-1 text-neutral-600 text-sm">
           {totalSignals} open signal{totalSignals === 1 ? "" : "s"} · {totalObservations}{" "}
           observation{totalObservations === 1 ? "" : "s"}
         </p>
       </header>
 
       {totalSignals === 0 && totalObservations === 0 ? (
-        <div className="rounded-md border border-neutral-200 bg-white p-6 text-sm text-neutral-600">
+        <div className="rounded-md border border-neutral-200 bg-white p-6 text-neutral-600 text-sm">
           Nothing to review right now.
         </div>
       ) : null}

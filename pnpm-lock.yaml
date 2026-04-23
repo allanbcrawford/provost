@@ -51,6 +51,9 @@ importers:
       '@provost/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@xyflow/react':
+        specifier: ^12.10.0
+        version: 12.10.2(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       convex:
         specifier: ^1.36.0
         version: 1.36.0(@clerk/react@6.4.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)
