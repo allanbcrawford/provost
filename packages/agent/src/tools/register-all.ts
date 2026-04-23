@@ -2,6 +2,7 @@ import {
   AssignLessonArgsSchema,
   AttachFileArgsSchema,
   CreateTaskArgsSchema,
+  DraftRevisionArgsSchema,
   ExplainDocumentArgsSchema,
   FormArgsSchema,
   GenerateSignalsArgsSchema,
@@ -71,6 +72,16 @@ export function registerAllTools(): void {
     approvalRequired: false,
     surfaces: ["signals", "family", "any"],
     handlerRef: "agent/tools/generateSignals:handle",
+  });
+
+  registerTool({
+    name: "draft_revision",
+    description:
+      "Draft a proposed revision to address a specific signal, with citations and professional routing.",
+    argsSchema: DraftRevisionArgsSchema,
+    approvalRequired: true,
+    surfaces: ["signals", "family", "documents", "any"],
+    handlerRef: "agent/tools/draftRevision:handle",
   });
 
   registerTool({

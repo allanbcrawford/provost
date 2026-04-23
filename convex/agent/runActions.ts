@@ -60,6 +60,11 @@ async function dispatchTool(
         internal.agent.tools.generateSignals.handle,
         { args: toolArgs, toolCallId: toolCallId ?? "", runId },
       );
+    case "draft_revision":
+      return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
+        internal.agent.tools.draftRevision.handle,
+        { args: toolArgs, toolCallId: toolCallId ?? "", runId },
+      );
     case "explain_document":
       return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
         internal.agent.tools.explainDocument.handle,

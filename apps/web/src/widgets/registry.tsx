@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useWidgetPortal } from "@/context/widget-portal-context";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { type CiteCitation, CiteWidget } from "./cite-widget";
+import { type DraftRevisionCitation, DraftRevisionWidget } from "./draft-revision-widget";
 import { FormToolWidget, type FormToolWidgetProps } from "./form-tool";
 import { NavigateToolWidget } from "./navigate-tool";
 import { TaskToolWidget, type TaskToolWidgetProps } from "./task-widget";
@@ -142,6 +143,16 @@ export const WIDGET_RENDERERS: Record<string, (props: Record<string, unknown>) =
       />
     ),
     "library-results": (props) => <LibraryResultsInlineCard {...props} />,
+    "draft-revision": (props) => (
+      <DraftRevisionWidget
+        signalId={props.signalId as string}
+        signalTitle={props.signalTitle as string}
+        documentId={props.documentId as string | null | undefined}
+        redlineMarkdown={props.redlineMarkdown as string}
+        targetProfessionalHint={props.targetProfessionalHint as string | null}
+        citations={(props.citations as DraftRevisionCitation[] | undefined) ?? []}
+      />
+    ),
     task: (props) => (
       <TaskToolWidget
         taskId={props.taskId as string}

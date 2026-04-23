@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import type { Doc } from "./_generated/dataModel";
-import { mutation, query } from "./_generated/server";
+import { internalQuery, mutation, query } from "./_generated/server";
 import { requireFamilyMember } from "./lib/authz";
 import { computeSignals } from "./lib/signalRules";
 
@@ -36,6 +36,13 @@ export const listObservations = query({
       .withIndex("by_family", (q) => q.eq("family_id", familyId))
       .collect();
     return rows.filter((o) => !o.deleted_at);
+  },
+});
+
+export const getSignal = internalQuery({
+  args: { signalId: v.id("signals") },
+  handler: async (ctx, { signalId }) => {
+    return await ctx.db.get(signalId);
   },
 });
 
