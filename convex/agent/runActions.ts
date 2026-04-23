@@ -65,6 +65,11 @@ async function dispatchTool(
         internal.agent.tools.explainDocument.handle,
         { args: toolArgs, toolCallId: toolCallId ?? "", runId },
       );
+    case "search_library":
+      return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
+        internal.agent.tools.searchLibrary.handle,
+        { args: toolArgs, toolCallId: toolCallId ?? "", runId },
+      );
     case "invite_member":
       return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
         internal.agent.tools.inviteMember.handle,
@@ -88,6 +93,11 @@ async function dispatchTool(
     case "assign_lesson":
       return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
         internal.agent.tools.assignLesson.handle,
+        { args: toolArgs, toolCallId: toolCallId ?? "", runId },
+      );
+    case "create_task":
+      return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
+        internal.agent.tools.createTask.handle,
         { args: toolArgs, toolCallId: toolCallId ?? "", runId },
       );
     default:
