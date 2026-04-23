@@ -158,6 +158,51 @@ export const WIDGET_RENDERERS: Record<string, (props: Record<string, unknown>) =
         </a>
       </div>
     ),
+    "observations-list": (props) => {
+      const observations =
+        (props.observations as Array<{
+          _id: string;
+          title: string;
+          description: string;
+          status: string;
+        }>) ?? [];
+      if (observations.length === 0) {
+        return (
+          <div className="rounded-[8px] border border-provost-border-subtle bg-provost-bg-muted px-3 py-2.5 text-[12.5px] text-provost-text-secondary">
+            No observations found for this family.
+          </div>
+        );
+      }
+      return (
+        <div className="rounded-[8px] border border-provost-border-subtle bg-provost-bg-muted px-3 py-2.5 text-[12.5px] text-provost-text-secondary">
+          <div className="mb-2 font-semibold text-provost-text-primary">
+            Observations ({observations.length})
+          </div>
+          <ul className="flex flex-col gap-1.5">
+            {observations.map((obs) => (
+              <li
+                key={obs._id}
+                className="rounded-[6px] border border-provost-border-subtle bg-provost-bg-primary px-2.5 py-1.5"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-[12.5px] font-medium text-provost-text-primary">
+                      {obs.title}
+                    </div>
+                    <div className="text-[11.5px] text-provost-text-secondary line-clamp-2">
+                      {obs.description}
+                    </div>
+                  </div>
+                  <span className="shrink-0 rounded px-1.5 py-0.5 text-[10.5px] font-medium capitalize bg-provost-bg-muted text-provost-text-secondary border border-provost-border-subtle">
+                    {obs.status}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    },
   };
 
 export function renderWidget({ kind, props }: WidgetRendererProps): React.ReactNode {
