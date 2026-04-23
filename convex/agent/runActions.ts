@@ -60,6 +60,36 @@ async function dispatchTool(
         internal.agent.tools.generateSignals.handle,
         { args: toolArgs, toolCallId: toolCallId ?? "", runId },
       );
+    case "explain_document":
+      return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
+        internal.agent.tools.explainDocument.handle,
+        { args: toolArgs, toolCallId: toolCallId ?? "", runId },
+      );
+    case "invite_member":
+      return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
+        internal.agent.tools.inviteMember.handle,
+        { args: toolArgs, toolCallId: toolCallId ?? "", runId },
+      );
+    case "attach_file":
+      return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
+        internal.agent.tools.attachFile.handle,
+        { args: toolArgs, toolCallId: toolCallId ?? "", runId },
+      );
+    case "list_observations":
+      return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
+        internal.agent.tools.listObservations.handle,
+        { args: toolArgs, toolCallId: toolCallId ?? "", runId },
+      );
+    case "summarize_lesson":
+      return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
+        internal.agent.tools.summarizeLesson.handle,
+        { args: toolArgs, toolCallId: toolCallId ?? "", runId },
+      );
+    case "assign_lesson":
+      return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
+        internal.agent.tools.assignLesson.handle,
+        { args: toolArgs, toolCallId: toolCallId ?? "", runId },
+      );
     default:
       return { ok: false, error: `tool handler not implemented: ${toolName}` };
   }

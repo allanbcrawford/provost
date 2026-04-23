@@ -1,9 +1,17 @@
 import {
+  AssignLessonArgsSchema,
+  AttachFileArgsSchema,
+  CreateTaskArgsSchema,
+  ExplainDocumentArgsSchema,
   FormArgsSchema,
   GenerateSignalsArgsSchema,
+  InviteMemberArgsSchema,
+  ListObservationsArgsSchema,
   NavigateArgsSchema,
   RenderFamilyGraphArgsSchema,
   RenderWaterfallSimulationArgsSchema,
+  SearchLibraryArgsSchema,
+  SummarizeLessonArgsSchema,
 } from "@provost/schemas/tools";
 import { registerTool } from "./registry";
 
@@ -47,6 +55,15 @@ export function registerAllTools(): void {
   });
 
   registerTool({
+    name: "explain_document",
+    description: "Explain a document (or a specific page) in plain language with page citations.",
+    argsSchema: ExplainDocumentArgsSchema,
+    approvalRequired: false,
+    surfaces: ["documents", "family", "any"],
+    handlerRef: "agent/tools/explainDocument:handle",
+  });
+
+  registerTool({
     name: "generate_signals",
     description:
       "Scan the family's members and documents with the rule engine and refresh the signals inbox.",
@@ -54,5 +71,74 @@ export function registerAllTools(): void {
     approvalRequired: false,
     surfaces: ["signals", "family", "any"],
     handlerRef: "agent/tools/generateSignals:handle",
+  });
+
+  registerTool({
+    name: "create_task",
+    description:
+      "Create a task for a planner, professional, or family member. Use this after drafting a revision or generating actionable recommendations.",
+    argsSchema: CreateTaskArgsSchema,
+    approvalRequired: true,
+    surfaces: ["any"],
+    handlerRef: "agent/tools/createTask:handle",
+  });
+
+  registerTool({
+    name: "search_library",
+    description:
+      "Search the family's knowledge library with optional tag facets (domain, artifact_type, complexity, functional_use, risk).",
+    argsSchema: SearchLibraryArgsSchema,
+    approvalRequired: false,
+    surfaces: ["library", "any"],
+    handlerRef: "agent/tools/searchLibrary:handle",
+  });
+
+  registerTool({
+    name: "summarize_lesson",
+    description:
+      "Summarize a lesson for a given audience (self, family, child) as 3-5 bullet points.",
+    argsSchema: SummarizeLessonArgsSchema,
+    approvalRequired: false,
+    surfaces: ["lessons", "any"],
+    handlerRef: "agent/tools/summarizeLesson:handle",
+  });
+
+  registerTool({
+    name: "assign_lesson",
+    description:
+      "Assign a lesson to one or more family members with an optional due date. Sends a notification and requires approval.",
+    argsSchema: AssignLessonArgsSchema,
+    approvalRequired: true,
+    surfaces: ["lessons", "any"],
+    handlerRef: "agent/tools/assignLesson:handle",
+  });
+
+  registerTool({
+    name: "invite_member",
+    description:
+      "Invite a new family member by email. Creates a provisional account and sends a Clerk invite link. Requires human approval.",
+    argsSchema: InviteMemberArgsSchema,
+    approvalRequired: true,
+    surfaces: ["family", "any"],
+    handlerRef: "agent/tools/inviteMember:handle",
+  });
+
+  registerTool({
+    name: "attach_file",
+    description:
+      "Attach an already-uploaded file to the current conversation run so the agent can reference it.",
+    argsSchema: AttachFileArgsSchema,
+    approvalRequired: false,
+    surfaces: ["any"],
+    handlerRef: "agent/tools/attachFile:handle",
+  });
+
+  registerTool({
+    name: "list_observations",
+    description: "List all active observations (AI-generated insights and alerts) for the family.",
+    argsSchema: ListObservationsArgsSchema,
+    approvalRequired: false,
+    surfaces: ["family", "documents", "signals", "any"],
+    handlerRef: "agent/tools/listObservations:handle",
   });
 }
