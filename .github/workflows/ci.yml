@@ -34,3 +34,115 @@ jobs:
       - run: pnpm -w build
 
       - run: pnpm -w test
+
+  preview-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: verify
+    # Only run on pull requests; skip if Vercel secrets are absent
+    if: |
+      github.event_name == 'pull_request' &&
+      vars.VERCEL_SKIP_PREVIEW != 'true'
+    permissions:
+      pull-requests: write
+    outputs:
+      preview_url: ${{ steps.deploy.outputs.preview_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Check Vercel secrets
+        id: check-secrets
+        run: |
+          if [ -z "${{ secrets.VERCEL_TOKEN }}" ] || \
+             [ -z "${{ secrets.VERCEL_ORG_ID }}" ] || \
+             [ -z "${{ secrets.VERCEL_PROJECT_ID }}" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::VERCEL_TOKEN / VERCEL_ORG_ID / VERCEL_PROJECT_ID not set — skipping preview deploy"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Pull Vercel environment
+        if: steps.check-secrets.outputs.skip == 'false'
+        run: pnpm dlx vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Build for Vercel
+        if: steps.check-secrets.outputs.skip == 'false'
+        run: pnpm dlx vercel build --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Deploy prebuilt to Vercel
+        id: deploy
+        if: steps.check-secrets.outputs.skip == 'false'
+        run: |
+          URL=$(pnpm dlx vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} 2>&1 | tail -1)
+          echo "preview_url=$URL" >> "$GITHUB_OUTPUT"
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Post preview URL as PR comment
+        if: steps.check-secrets.outputs.skip == 'false' && steps.deploy.outputs.preview_url != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const url = '${{ steps.deploy.outputs.preview_url }}';
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `### Preview deployment\n\n${url}`,
+            });
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: preview-deploy
+    # Only run when preview-deploy produced a URL
+    if: needs.preview-deploy.outputs.preview_url != ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      # Install Playwright browser binaries (not cached in pnpm lockfile)
+      - name: Install Playwright browsers
+        run: pnpm --filter @provost/web exec playwright install chromium --with-deps
+
+      - name: Run Playwright smoke tests
+        run: pnpm --filter @provost/web exec playwright test
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ needs.preview-deploy.outputs.preview_url }}
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report/
+          retention-days: 7
