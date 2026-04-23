@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import { AiDisclaimer } from "@/components/ai-disclaimer";
 import { useWidgetPortal } from "@/context/widget-portal-context";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { type CiteCitation, CiteWidget } from "./cite-widget";
@@ -36,6 +37,7 @@ function WaterfallInlineCard(props: Record<string, unknown>) {
       >
         Open Inheritance Waterfall Simulation
       </button>
+      <AiDisclaimer kind="default" />
     </div>
   );
 }
@@ -62,6 +64,7 @@ function GraphFocusInlineCard(props: Record<string, unknown>) {
       >
         Open family graph
       </button>
+      <AiDisclaimer kind="default" />
     </div>
   );
 }
@@ -116,6 +119,7 @@ function LibraryResultsInlineCard(props: Record<string, unknown>) {
           </li>
         ))}
       </ul>
+      <AiDisclaimer kind="default" />
     </div>
   );
 }
@@ -211,6 +215,7 @@ export const WIDGET_RENDERERS: Record<string, (props: Record<string, unknown>) =
               </li>
             ))}
           </ul>
+          <AiDisclaimer kind="default" />
         </div>
       );
     },

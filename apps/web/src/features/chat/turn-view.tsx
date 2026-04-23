@@ -30,10 +30,15 @@ export function TurnView({ turn, onApprove, onReject }: TurnViewProps) {
         return (
           <div key={message.id} className="flex flex-col gap-3">
             {textParts.length > 0 && (
-              // biome-ignore lint/a11y/useValidAriaRole: MessageBubble uses `role` as a component prop, not ARIA
-              <MessageBubble role="assistant">
-                <MessageContent parts={textParts} markdown={true} />
-              </MessageBubble>
+              <div className="flex flex-col gap-1">
+                {/* biome-ignore lint/a11y/useValidAriaRole: MessageBubble uses `role` as a component prop, not ARIA */}
+                <MessageBubble role="assistant">
+                  <MessageContent parts={textParts} markdown={true} />
+                </MessageBubble>
+                <span className="px-1 text-[10.5px] text-provost-text-tertiary">
+                  AI-generated content
+                </span>
+              </div>
             )}
 
             {toolCalls.length > 0 && (

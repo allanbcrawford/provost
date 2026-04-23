@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AiDisclaimer } from "@/components/ai-disclaimer";
 import { DeltaSummary } from "./delta-summary";
 import { NodeEditorDrawer } from "./node-editor-drawer";
 import { RevisionsList } from "./revisions-list";
@@ -159,6 +160,8 @@ export function WaterfallModal({ open, onClose, initialRevisions, initialCustomE
                 onResetCustom={resetCustomKey}
               />
             </section>
+
+            <AiDisclaimer kind="financial" />
           </div>
 
           <NodeEditorDrawer

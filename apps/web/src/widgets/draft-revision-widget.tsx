@@ -4,6 +4,7 @@ import { Markdown } from "@provost/ui";
 import { useMutation } from "convex/react";
 import Link from "next/link";
 import { useState } from "react";
+import { AiDisclaimer } from "@/components/ai-disclaimer";
 import { useSelectedFamily } from "@/context/family-context";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
@@ -137,6 +138,7 @@ export function DraftRevisionWidget({
         )}
       </div>
       {error ? <div className="mt-2 text-[11.5px] text-red-600">{error}</div> : null}
+      <AiDisclaimer kind="legal" />
     </div>
   );
 }

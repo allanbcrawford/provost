@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { AiDisclaimer } from "@/components/ai-disclaimer";
 
 export type CiteCitation = {
   page: number;
@@ -71,6 +72,7 @@ export function CiteWidget({ documentId, page, explanation, citations }: CiteWid
           ))}
         </div>
       ) : null}
+      <AiDisclaimer kind="default" />
     </div>
   );
 }
