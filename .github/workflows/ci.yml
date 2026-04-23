@@ -97,6 +97,34 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+      - name: Check Convex preview secret
+        id: check-convex
+        run: |
+          if [ -z "${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::CONVEX_PREVIEW_DEPLOY_KEY not set — skipping Convex preview deploy"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy Convex preview
+        if: steps.check-convex.outputs.skip == 'false'
+        run: npx convex deploy --cmd 'pnpm -w build'
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
+
+      - name: Enable seeding on Convex preview
+        if: steps.check-convex.outputs.skip == 'false'
+        run: npx convex env set ALLOW_SEED true
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
+
+      - name: Seed Convex preview data
+        if: steps.check-convex.outputs.skip == 'false'
+        run: npx convex run seed:run
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
+
       - name: Post preview URL as PR comment
         if: steps.check-secrets.outputs.skip == 'false' && steps.deploy.outputs.preview_url != ''
         uses: actions/github-script@v7

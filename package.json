@@ -14,6 +14,7 @@
     "test": "turbo run test",
     "lint": "turbo run lint",
     "convex:dev": "convex dev",
+    "deploy:convex:prod": "convex deploy --prod --yes",
     "prepare": "husky"
   },
   "lint-staged": {

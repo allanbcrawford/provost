@@ -25,6 +25,21 @@ Scopes: **Production** (P), **Preview** (V), **Development** (D).
 | `NEXT_PUBLIC_CONVEX_URL` | Y | Y | Y | Deployment URL from Convex dashboard, e.g. `https://happy-animal-123.convex.cloud` |
 | `CONVEX_DEPLOY_KEY` | Y | Y | N | Used by `convex deploy` in CI — generate under Convex Dashboard → Settings → Deploy Keys |
 
+### Convex Deploy Key Split (Preview vs. Production)
+
+Convex uses two separate deploy key types, each scoped to a different environment:
+
+| GitHub Secret | Key Type | Used In | Purpose |
+|---------------|----------|---------|---------|
+| `CONVEX_PREVIEW_DEPLOY_KEY` | **Preview** key | `preview-deploy` CI job (PRs) | Deploys to an isolated per-PR Convex preview deployment and seeds synthetic data |
+| `CONVEX_PROD_DEPLOY_KEY` | **Production** key | Manual or a future `deploy-prod` CI job | Deploys schema and functions to the production Convex deployment |
+
+**Key rules:**
+- Preview keys can only deploy to preview deployments — they cannot touch production.
+- Production keys should be tightly guarded; prefer manual `pnpm deploy:convex:prod` runs or a protected CI environment.
+- `ALLOW_SEED=true` is set automatically on preview deployments by CI. It is **never** set on production.
+- Generate both key types under: Convex Dashboard → your project → Settings → Deploy Keys.
+
 ---
 
 ## OpenAI
