@@ -176,6 +176,13 @@ export const execute = internalAction({
 
       const history = (run.history ?? []) as ChatMessage[];
 
+      const preferences: Record<string, unknown> = await ctx.runQuery(
+        internal.compliance.getPreferencesInternal,
+        { familyId: run.family_id },
+      );
+      const piiRedactionEnabled = preferences["guardrails.pii_redaction"] !== false;
+      const nonAdviceDisclaimerEnabled = preferences["guardrails.non_advice_disclaimer"] !== false;
+
       // --- Guardrails: classify the last user message before the main LLM call ---
       let guardDisclaimer: string | null = null;
       let lastUserIdx = -1;
@@ -188,7 +195,7 @@ export const execute = internalAction({
           break;
         }
       }
-      if (lastUserMsg) {
+      if (lastUserMsg && (piiRedactionEnabled || nonAdviceDisclaimerEnabled)) {
         const raw = lastUserMsg.content;
         const userText = typeof raw === "string" ? raw : "";
         if (userText.trim().length > 0) {
@@ -199,7 +206,7 @@ export const execute = internalAction({
             redactedText?: string | null;
           } = await ctx.runAction(internal.guardrails.classifyMessage, { text: userText });
 
-          if (guard.category === "pii_detected") {
+          if (guard.category === "pii_detected" && piiRedactionEnabled) {
             const redacted =
               guard.redactedText && guard.redactedText.trim().length > 0
                 ? guard.redactedText
@@ -236,7 +243,7 @@ export const execute = internalAction({
             });
             guardDisclaimer =
               "The user's previous message contained sensitive PII which has been redacted as [REDACTED]. Do not ask the user to re-type those identifiers in chat; direct them to use the secure-field widget instead.";
-          } else if (guard.category === "non_advice") {
+          } else if (guard.category === "non_advice" && nonAdviceDisclaimerEnabled) {
             const disclaimer =
               guard.disclaimer && guard.disclaimer.trim().length > 0
                 ? guard.disclaimer

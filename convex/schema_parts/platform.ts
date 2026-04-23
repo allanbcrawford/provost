@@ -89,4 +89,10 @@ export const platformTables = {
     window_start: v.number(),
     count: v.number(),
   }).index("by_key", ["key"]),
+
+  family_preferences: defineTable({
+    family_id: v.id("families"),
+    key: v.string(),
+    value: v.any(),
+  }).index("by_family_and_key", ["family_id", "key"]),
 };
