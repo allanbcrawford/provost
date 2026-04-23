@@ -1,6 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
-import { mutation, query } from "./_generated/server";
+import { internalQuery, mutation, query } from "./_generated/server";
 import { requireFamilyMember, requireUserRecord } from "./lib/authz";
 
 export const list = query({
@@ -55,6 +55,20 @@ export const listPages = query({
       .query("pages")
       .withIndex("by_document_and_index", (q) => q.eq("document_id", documentId))
       .collect();
+  },
+});
+
+export const loadDocumentWithPages = internalQuery({
+  args: { documentId: v.id("documents") },
+  handler: async (ctx, { documentId }) => {
+    const doc = await ctx.db.get(documentId);
+    if (!doc || doc.deleted_at) return null;
+    const pages = await ctx.db
+      .query("pages")
+      .withIndex("by_document_and_index", (q) => q.eq("document_id", documentId))
+      .collect();
+    pages.sort((a, b) => a.index - b.index);
+    return { document: doc, pages };
   },
 });
 
