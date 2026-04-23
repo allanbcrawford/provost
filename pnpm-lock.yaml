@@ -8,9 +8,21 @@ importers:
 
   .:
     dependencies:
+      '@provost/agent':
+        specifier: workspace:^
+        version: link:packages/agent
       convex:
         specifier: ^1.36.0
         version: 1.36.0(@clerk/react@6.4.3(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)
+      openai:
+        specifier: ^4.77.0
+        version: 4.104.0(ws@8.18.0)(zod@3.25.76)
+      zod:
+        specifier: ^3.23.8
+        version: 3.25.76
+      zod-to-json-schema:
+        specifier: ^3.23.5
+        version: 3.25.2(zod@3.25.76)
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.3.4
