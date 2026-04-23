@@ -8,6 +8,7 @@ import { type CiteCitation, CiteWidget } from "./cite-widget";
 import { type DraftRevisionCitation, DraftRevisionWidget } from "./draft-revision-widget";
 import { FormToolWidget, type FormToolWidgetProps } from "./form-tool";
 import { NavigateToolWidget } from "./navigate-tool";
+import { SecureFieldWidget } from "./secure-field-widget";
 import { TaskToolWidget, type TaskToolWidgetProps } from "./task-widget";
 
 type WidgetRendererProps = {
@@ -127,6 +128,12 @@ function LibraryResultsInlineCard(props: Record<string, unknown>) {
 export const WIDGET_RENDERERS: Record<string, (props: Record<string, unknown>) => React.ReactNode> =
   {
     navigate: (props) => <NavigateToolWidget path={props.path as string} />,
+    "secure-field": (props) => (
+      <SecureFieldWidget
+        message={props.message as string | undefined}
+        reason={props.reason as string | null | undefined}
+      />
+    ),
     form: (props) => (
       <FormToolWidget
         title={props.title as string}

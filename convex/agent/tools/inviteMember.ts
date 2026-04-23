@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { api, internal } from "../../_generated/api";
 import type { Id } from "../../_generated/dataModel";
 import { internalAction } from "../../_generated/server";
+import { log } from "../../lib/log";
 
 export const handle = internalAction({
   args: { args: v.any(), toolCallId: v.string(), runId: v.id("thread_runs") },
@@ -25,7 +26,7 @@ export const handle = internalAction({
     });
 
     // Phase 6 will send a real Clerk invite; log the intent for now
-    console.log(`[invite_member] queued Clerk invite for userId=${userId} email=${email}`);
+    log("info", "invite_member.queued", { userId, email });
 
     return {
       success: true,

@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { internalMutation, internalQuery } from "../_generated/server";
+import { writeAudit } from "../lib/audit";
 
 type RunContext = {
   run: Doc<"thread_runs">;
@@ -121,6 +122,67 @@ export const countEvents = internalQuery({
       .withIndex("by_thread_run_and_sequence", (q) => q.eq("thread_run_id", args.runId))
       .collect();
     return events.length;
+  },
+});
+
+export const replaceLastUserMessage = internalMutation({
+  args: {
+    threadId: v.id("threads"),
+    runId: v.id("thread_runs"),
+    newContent: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const thread = await ctx.db.get(args.threadId);
+    if (!thread) throw new Error("thread not found");
+    const messages = [...(thread.messages ?? [])] as Array<{
+      role: string;
+      content: unknown;
+    }>;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i];
+      if (m && m.role === "user") {
+        messages[i] = { role: m.role, content: args.newContent };
+        break;
+      }
+    }
+    await ctx.db.patch(args.threadId, { messages });
+    const run = await ctx.db.get(args.runId);
+    if (run) {
+      const history = [...(run.history ?? [])] as Array<{
+        role: string;
+        content: unknown;
+      }>;
+      for (let i = history.length - 1; i >= 0; i--) {
+        const h = history[i];
+        if (h && h.role === "user") {
+          history[i] = { role: h.role, content: args.newContent };
+          break;
+        }
+      }
+      await ctx.db.patch(args.runId, { history });
+    }
+  },
+});
+
+export const writeGuardrailAudit = internalMutation({
+  args: {
+    runId: v.id("thread_runs"),
+    action: v.string(),
+    metadata: v.any(),
+  },
+  handler: async (ctx, args) => {
+    const run = await ctx.db.get(args.runId);
+    if (!run) return;
+    await writeAudit(ctx, {
+      familyId: run.family_id,
+      actorUserId: run.user_id,
+      actorKind: "agent",
+      category: "auth",
+      action: args.action,
+      resourceType: "thread_run",
+      resourceId: args.runId,
+      metadata: args.metadata ?? {},
+    });
   },
 });
 

@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { api, internal } from "../../_generated/api";
 import type { Id } from "../../_generated/dataModel";
 import { internalAction } from "../../_generated/server";
+import { log } from "../../lib/log";
 
 export const handle = internalAction({
   args: { args: v.any(), toolCallId: v.string(), runId: v.id("thread_runs") },
@@ -47,6 +48,6 @@ export const handle = internalAction({
 export const notify = internalAction({
   args: { taskId: v.id("tasks") },
   handler: async (_ctx, { taskId }) => {
-    console.log(`[createTask.notify] TODO phase-6: send email for task ${taskId}`);
+    log("info", "createTask.notify", { taskId, note: "TODO phase-6: send real email" });
   },
 });

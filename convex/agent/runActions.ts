@@ -32,6 +32,36 @@ type PendingToolCall = {
 
 const MAX_TURNS = 8;
 
+// Source of truth for tool approvalRequired lives in
+// packages/agent/src/tools/register-all.ts. This Convex-side map is a
+// defense-in-depth duplicate so an unknown / newly-added tool still gets
+// gated if someone forgets to mirror the flag. Keep in sync with the
+// registry until Phase 7+ introduces a shared constant.
+const APPROVAL_REQUIRED_TOOLS: Record<string, boolean> = {
+  navigate: false,
+  form: false,
+  render_waterfall_simulation: false,
+  render_family_graph: false,
+  explain_document: false,
+  generate_signals: false,
+  draft_revision: true,
+  create_task: true,
+  search_library: false,
+  summarize_lesson: false,
+  assign_lesson: true,
+  invite_member: true,
+  attach_file: false,
+  list_observations: false,
+};
+
+function requiresApproval(toolName: string, registryFlag: boolean | undefined): boolean {
+  const mapFlag = APPROVAL_REQUIRED_TOOLS[toolName];
+  // If either source marks it as requiring approval, gate it. If the tool is
+  // unknown to both, fail closed and require approval.
+  if (mapFlag === undefined && registryFlag === undefined) return true;
+  return Boolean(mapFlag) || Boolean(registryFlag);
+}
+
 // TODO(phase-3.7/3.8): replace this switch with dynamic dispatch via
 // ctx.runAction(<handlerRef>) once navigate + form tool handlers exist.
 async function dispatchTool(
@@ -144,6 +174,84 @@ export const execute = internalAction({
         data: { route: args.route },
       });
 
+      const history = (run.history ?? []) as ChatMessage[];
+
+      // --- Guardrails: classify the last user message before the main LLM call ---
+      let guardDisclaimer: string | null = null;
+      let lastUserIdx = -1;
+      let lastUserMsg: ChatMessage | undefined;
+      for (let i = history.length - 1; i >= 0; i--) {
+        const m = history[i];
+        if (m && m.role === "user") {
+          lastUserIdx = i;
+          lastUserMsg = m;
+          break;
+        }
+      }
+      if (lastUserMsg) {
+        const raw = lastUserMsg.content;
+        const userText = typeof raw === "string" ? raw : "";
+        if (userText.trim().length > 0) {
+          const guard: {
+            category: "safe" | "non_advice" | "pii_detected";
+            reason?: string;
+            disclaimer?: string | null;
+            redactedText?: string | null;
+          } = await ctx.runAction(internal.guardrails.classifyMessage, { text: userText });
+
+          if (guard.category === "pii_detected") {
+            const redacted =
+              guard.redactedText && guard.redactedText.trim().length > 0
+                ? guard.redactedText
+                : userText.replace(/\b\d{3}-?\d{2}-?\d{4}\b/g, "[REDACTED]");
+            history[lastUserIdx] = {
+              ...(lastUserMsg as ChatMessage),
+              content: redacted,
+            } as ChatMessage;
+            await ctx.runMutation(internal.agent.runInternal.replaceLastUserMessage, {
+              threadId: thread._id,
+              runId: args.runId,
+              newContent: redacted,
+            });
+            await ctx.runMutation(internal.agent.runInternal.writeGuardrailAudit, {
+              runId: args.runId,
+              action: "guardrail.pii_redacted",
+              metadata: { reason: guard.reason ?? "pii_detected" },
+            });
+            await ctx.runMutation(internal.agent.runInternal.writeEvent, {
+              runId: args.runId,
+              threadId: thread._id,
+              sequence: nextSeq(),
+              type: "content_finished",
+              data: {
+                widget: {
+                  kind: "secure-field",
+                  props: {
+                    message:
+                      "I detected personal information (SSN, account, or card number). I've redacted it. For secure entry, use the field below.",
+                    reason: guard.reason ?? null,
+                  },
+                },
+              },
+            });
+            guardDisclaimer =
+              "The user's previous message contained sensitive PII which has been redacted as [REDACTED]. Do not ask the user to re-type those identifiers in chat; direct them to use the secure-field widget instead.";
+          } else if (guard.category === "non_advice") {
+            const disclaimer =
+              guard.disclaimer && guard.disclaimer.trim().length > 0
+                ? guard.disclaimer
+                : "Provost provides educational information only and does not give licensed legal, tax, or investment advice. For specific guidance, consult a qualified professional.";
+            guardDisclaimer = `Guardrail notice: this message may be asking for licensed professional advice. You MUST prepend the following disclaimer verbatim before answering:\n\n"${disclaimer}"`;
+            await ctx.runMutation(internal.agent.runInternal.writeGuardrailAudit, {
+              runId: args.runId,
+              action: "guardrail.non_advice",
+              metadata: { reason: guard.reason ?? "non_advice", disclaimer },
+            });
+          }
+        }
+      }
+      // --- end guardrails ---
+
       const systemPrompt = buildSystemPrompt({
         route: args.route,
         familyName: familyName ?? undefined,
@@ -151,8 +259,11 @@ export const execute = internalAction({
         visibleState: args.visibleState,
       });
 
-      const history = (run.history ?? []) as ChatMessage[];
-      let messages: ChatMessage[] = [{ role: "system", content: systemPrompt }, ...history];
+      const systemContent = guardDisclaimer
+        ? `${systemPrompt}\n\n${guardDisclaimer}`
+        : systemPrompt;
+
+      let messages: ChatMessage[] = [{ role: "system", content: systemContent }, ...history];
 
       const toolDefs = toolsForSurface(args.route as ToolSurface);
       const toolsByName = new Map(toolDefs.map((t) => [t.name, t]));
@@ -285,13 +396,13 @@ export const execute = internalAction({
               id: call.id,
               name: call.name,
               arguments: safeParseJson(call.argsJson),
-              approvalRequired: def?.approvalRequired ?? false,
+              approvalRequired: requiresApproval(call.name, def?.approvalRequired),
             },
           });
         }
 
-        const approvalNeeded = pendingCalls.filter(
-          (c) => toolsByName.get(c.name)?.approvalRequired === true,
+        const approvalNeeded = pendingCalls.filter((c) =>
+          requiresApproval(c.name, toolsByName.get(c.name)?.approvalRequired),
         );
         if (approvalNeeded.length > 0) {
           for (const call of approvalNeeded) {
@@ -404,7 +515,8 @@ export const resumeAfterApproval = internalAction({
     });
     const decisionByToolCallId = new Map(
       approvals.map(
-        (a: { tool_call_id: string; status: string }) => [a.tool_call_id, a.status] as const,
+        (a: { tool_call_id: string; status: string; decision_reason?: string }) =>
+          [a.tool_call_id, { status: a.status, reason: a.decision_reason }] as const,
       ),
     );
 
@@ -412,15 +524,16 @@ export const resumeAfterApproval = internalAction({
 
     for (const call of pending) {
       const decision = decisionByToolCallId.get(call.id);
-      let result: unknown;
-      if (decision === "approved") {
-        result = await dispatchTool(
+      let toolContent: string;
+      if (decision?.status === "approved") {
+        const result = await dispatchTool(
           ctx,
           call.name,
           safeParseJson(call.argsJson),
           call.id,
           args.runId,
         );
+        toolContent = JSON.stringify(result);
         await ctx.runMutation(internal.agent.runInternal.writeEvent, {
           runId: args.runId,
           threadId: thread._id,
@@ -429,13 +542,14 @@ export const resumeAfterApproval = internalAction({
           data: { id: call.id, name: call.name },
         });
       } else {
-        result = { ok: false, error: "rejected_by_user" };
+        const reason = decision?.reason?.trim() || "no reason provided";
+        toolContent = `Approval denied. Reason: ${reason}`;
         await ctx.runMutation(internal.agent.runInternal.writeEvent, {
           runId: args.runId,
           threadId: thread._id,
           sequence: nextSeq(),
           type: "tool_call_rejected",
-          data: { id: call.id, name: call.name },
+          data: { id: call.id, name: call.name, reason },
         });
       }
       messages = [
@@ -443,7 +557,7 @@ export const resumeAfterApproval = internalAction({
         {
           role: "tool",
           tool_call_id: call.id,
-          content: JSON.stringify(result),
+          content: toolContent,
         },
       ];
     }
