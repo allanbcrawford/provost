@@ -6,6 +6,7 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import { type CiteCitation, CiteWidget } from "./cite-widget";
 import { FormToolWidget, type FormToolWidgetProps } from "./form-tool";
 import { NavigateToolWidget } from "./navigate-tool";
+import { TaskToolWidget, type TaskToolWidgetProps } from "./task-widget";
 
 type WidgetRendererProps = {
   kind: string;
@@ -138,6 +139,15 @@ export const WIDGET_RENDERERS: Record<string, (props: Record<string, unknown>) =
         page={props.page as number | null | undefined}
         explanation={props.explanation as string}
         citations={(props.citations as CiteCitation[] | undefined) ?? []}
+      />
+    ),
+    "library-results": (props) => <LibraryResultsInlineCard {...props} />,
+    task: (props) => (
+      <TaskToolWidget
+        taskId={props.taskId as string}
+        title={props.title as string}
+        assigneeType={props.assigneeType as TaskToolWidgetProps["assigneeType"]}
+        status={props.status as TaskToolWidgetProps["status"]}
       />
     ),
     "signals-refreshed": (props) => (
