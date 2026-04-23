@@ -25,10 +25,10 @@ function GovernancePage() {
         {!family ? (
           <div className="text-provost-text-secondary text-sm">Select a family to continue.</div>
         ) : (
-          <Tabs defaultValue="audit" className="flex flex-col gap-6">
+          <Tabs defaultValue="approvals" className="flex flex-col gap-6">
             <TabsList>
-              <TabsTrigger value="audit">Audit</TabsTrigger>
               <TabsTrigger value="approvals">Approvals</TabsTrigger>
+              <TabsTrigger value="audit">Audit</TabsTrigger>
               <TabsTrigger value="tasks">Tasks</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
