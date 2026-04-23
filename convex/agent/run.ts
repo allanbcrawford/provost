@@ -47,6 +47,9 @@ export const start = mutation({
       state: { pending_tool_calls: [] },
       tools: toolNames,
       status: "running",
+      route: args.route,
+      selection: args.selection ?? null,
+      visible_state: args.visibleState,
       started_at: Date.now(),
     });
 

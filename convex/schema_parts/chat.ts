@@ -30,11 +30,15 @@ export const chatTables = {
       v.literal("completed"),
       v.literal("failed"),
     ),
+    route: v.optional(v.string()),
+    selection: v.optional(v.union(v.null(), v.object({ kind: v.string(), id: v.string() }))),
+    visible_state: v.optional(v.any()),
     started_at: v.number(),
     finished_at: v.optional(v.number()),
   })
     .index("by_thread", ["thread_id"])
-    .index("by_user", ["user_id"]),
+    .index("by_user", ["user_id"])
+    .index("by_family", ["family_id"]),
 
   thread_run_attachments: defineTable({
     thread_run_id: v.id("thread_runs"),
