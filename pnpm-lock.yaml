@@ -177,6 +177,9 @@ importers:
       d3-force:
         specifier: ^3.0.0
         version: 3.0.0
+      pdfjs-dist:
+        specifier: ^5.4.296
+        version: 5.4.296
       react:
         specifier: ^19.2.0
         version: 19.2.5
