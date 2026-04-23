@@ -3,6 +3,7 @@
 import { useQuery } from "convex/react";
 import { useMemo, useState } from "react";
 import { useSelectedFamily } from "@/context/family-context";
+import type { LessonListItem } from "@/features/lessons/lesson-item";
 import { LessonsList } from "@/features/lessons/lessons-list";
 import { withRoleGuard } from "@/HOCs/with-role-guard";
 import { APP_ROLES } from "@/lib/roles";
@@ -28,8 +29,11 @@ function LessonsPage() {
   const filtered = useMemo(() => {
     if (!lessons) return [];
     if (tab === "my")
-      return lessons.filter((l) => l.status === "assigned" || l.status === "in_progress");
-    if (tab === "completed") return lessons.filter((l) => l.status === "completed");
+      return (lessons as LessonListItem[]).filter(
+        (l: LessonListItem) => l.status === "assigned" || l.status === "in_progress",
+      );
+    if (tab === "completed")
+      return (lessons as LessonListItem[]).filter((l: LessonListItem) => l.status === "completed");
     return lessons;
   }, [lessons, tab]);
 

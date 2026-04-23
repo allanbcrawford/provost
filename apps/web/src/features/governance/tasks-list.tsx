@@ -3,7 +3,7 @@
 import { useQuery } from "convex/react";
 import { useState } from "react";
 import { api } from "../../../../../convex/_generated/api";
-import type { Id } from "../../../../../convex/_generated/dataModel";
+import type { Doc, Id } from "../../../../../convex/_generated/dataModel";
 
 type Status = "open" | "in_progress" | "completed" | "cancelled";
 const STATUS_FILTERS: (Status | "all")[] = ["all", "open", "in_progress", "completed", "cancelled"];
@@ -49,7 +49,7 @@ export function TasksList({ familyId }: { familyId: Id<"families"> }) {
         </div>
       ) : (
         <ul className="flex flex-col gap-2">
-          {tasks.map((t) => (
+          {(tasks as Doc<"tasks">[]).map((t: Doc<"tasks">) => (
             <li
               key={t._id}
               className="flex items-start justify-between gap-4 rounded-lg border border-neutral-200 bg-white p-4"

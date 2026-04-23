@@ -35,31 +35,39 @@ function extractCitations(
   return out;
 }
 
+type DocumentPage = { index: number; content: string };
+
+type LoadedDocument = {
+  document: { name: string; type: string };
+  pages: DocumentPage[];
+};
+
 export const handle = internalAction({
   args: { args: v.any(), toolCallId: v.string(), runId: v.id("thread_runs") },
-  handler: async (ctx, { args }) => {
+  handler: async (ctx, { args }): Promise<Record<string, unknown>> => {
     const documentId = args?.documentId as Id<"documents"> | undefined;
     const pageArg = typeof args?.page === "number" ? (args.page as number) : undefined;
     if (!documentId) {
       return { success: false, error: "documentId required", widget: null };
     }
 
-    const loaded = await ctx.runQuery(internal.documents.loadDocumentWithPages, {
+    const loaded = (await ctx.runQuery(internal.documents.loadDocumentWithPages, {
       documentId,
-    });
+    })) as LoadedDocument | null;
     if (!loaded) {
       return { success: false, error: "document not found", widget: null };
     }
 
     const { document, pages } = loaded;
-    const selectedPages = pageArg !== undefined ? pages.filter((p) => p.index === pageArg) : pages;
+    const selectedPages =
+      pageArg !== undefined ? pages.filter((p: DocumentPage) => p.index === pageArg) : pages;
 
     if (selectedPages.length === 0) {
       return { success: false, error: "no pages to explain", widget: null };
     }
 
     const pagesBlock = selectedPages
-      .map((p) => `--- [p.${p.index}] ---\n${truncate(p.content, MAX_PAGE_CHARS)}`)
+      .map((p: DocumentPage) => `--- [p.${p.index}] ---\n${truncate(p.content, MAX_PAGE_CHARS)}`)
       .join("\n\n");
 
     const scope =

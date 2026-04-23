@@ -3,7 +3,7 @@
 import { Button } from "@provost/ui";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
-import type { Id } from "../../../../../convex/_generated/dataModel";
+import type { Doc, Id } from "../../../../../convex/_generated/dataModel";
 
 type ObservationsPanelProps = {
   familyId: Id<"families">;
@@ -38,7 +38,7 @@ export function ObservationsPanel({ familyId, documentId }: ObservationsPanelPro
       <h3 className="text-sm font-semibold uppercase tracking-wide text-provost-text-secondary">
         Observations
       </h3>
-      {observations.map((obs) => (
+      {(observations as Doc<"observations">[]).map((obs: Doc<"observations">) => (
         <article
           key={obs._id}
           className="flex flex-col gap-2 rounded-md border border-provost-border-default bg-white p-3"

@@ -3,7 +3,7 @@
 import { useQuery } from "convex/react";
 import { useMemo, useState } from "react";
 import { api } from "../../../../../convex/_generated/api";
-import type { Id } from "../../../../../convex/_generated/dataModel";
+import type { Doc, Id } from "../../../../../convex/_generated/dataModel";
 import { DocumentItem } from "./document-item";
 import { type DocumentTab, matchesTab } from "./document-tabs-config";
 import { DocumentsTabs } from "./documents-tabs";
@@ -18,7 +18,9 @@ export function DocumentsList({ familyId }: DocumentsListProps) {
 
   const filtered = useMemo(() => {
     if (!documents) return [];
-    return documents.filter((d) => matchesTab(d.category, activeTab));
+    return (documents as Doc<"documents">[]).filter((d: Doc<"documents">) =>
+      matchesTab(d.category, activeTab),
+    );
   }, [documents, activeTab]);
 
   if (documents === undefined) {
@@ -34,7 +36,7 @@ export function DocumentsList({ familyId }: DocumentsListProps) {
         </div>
       ) : (
         <div className="flex flex-col">
-          {filtered.map((d) => (
+          {filtered.map((d: Doc<"documents">) => (
             <DocumentItem key={d._id} document={d} />
           ))}
         </div>

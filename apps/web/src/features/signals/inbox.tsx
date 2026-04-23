@@ -27,8 +27,12 @@ export function SignalsInbox() {
   const family = useSelectedFamily();
   const familyId = family?._id as Id<"families"> | undefined;
 
-  const signals = useQuery(api.signals.listOpen, familyId ? { familyId } : "skip");
-  const observations = useQuery(api.signals.listObservations, familyId ? { familyId } : "skip");
+  const signals = useQuery(api.signals.listOpen, familyId ? { familyId } : "skip") as
+    | Signal[]
+    | undefined;
+  const observations = useQuery(api.signals.listObservations, familyId ? { familyId } : "skip") as
+    | Observation[]
+    | undefined;
   const generateFromRules = useMutation(api.signals.generateFromRules);
   const updateStatus = useMutation(api.signals.updateStatus);
 
@@ -98,7 +102,7 @@ export function SignalsInbox() {
             Observations ({observations.length})
           </h2>
           <ul className="space-y-3">
-            {observations.map((o) => (
+            {observations.map((o: Observation) => (
               <ObservationCard key={o._id} observation={o} />
             ))}
           </ul>

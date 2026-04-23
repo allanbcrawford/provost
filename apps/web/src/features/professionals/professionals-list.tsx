@@ -3,6 +3,7 @@
 import { Button } from "@provost/ui";
 import { useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
+import type { Doc } from "../../../../../convex/_generated/dataModel";
 
 export function ProfessionalsList() {
   const professionals = useQuery(api.professionals.list);
@@ -17,7 +18,7 @@ export function ProfessionalsList() {
 
   return (
     <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
-      {professionals.map((p) => (
+      {(professionals as Doc<"professionals">[]).map((p: Doc<"professionals">) => (
         <article
           key={p._id}
           className="flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-5 shadow-sm"

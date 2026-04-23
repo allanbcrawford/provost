@@ -11,7 +11,13 @@ import { GroupItem } from "./group-item";
 import { type LibraryTab, LibraryTabs } from "./library-tabs";
 import { SourceItem } from "./source-item";
 import { SourceItemGrid } from "./source-item-grid";
-import { FACET_KEYS, type FacetSelection, type LibrarySourceSummary } from "./types";
+import {
+  FACET_KEYS,
+  type FacetSelection,
+  type LibraryCollectionSummary,
+  type LibraryGroupSummary,
+  type LibrarySourceSummary,
+} from "./types";
 
 function getMatchingTags(source: LibrarySourceSummary, query: string): Set<string> {
   const q = query.toLowerCase().trim();
@@ -40,8 +46,10 @@ export function LibraryView() {
   const sources = useQuery(api.library.listSources, sourcesArgs) as
     | LibrarySourceSummary[]
     | undefined;
-  const groups = useQuery(api.library.listGroups, groupsArgs);
-  const collections = useQuery(api.library.listCollections, groupsArgs);
+  const groups = useQuery(api.library.listGroups, groupsArgs) as LibraryGroupSummary[] | undefined;
+  const collections = useQuery(api.library.listCollections, groupsArgs) as
+    | LibraryCollectionSummary[]
+    | undefined;
 
   // Fetch unfiltered for facet sidebar counts
   const allSourcesForFacets = useQuery(

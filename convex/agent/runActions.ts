@@ -402,7 +402,11 @@ export const resumeAfterApproval = internalAction({
     const approvals = await ctx.runQuery(internal.agent.runInternal.loadApprovals, {
       runId: args.runId,
     });
-    const decisionByToolCallId = new Map(approvals.map((a) => [a.tool_call_id, a.status] as const));
+    const decisionByToolCallId = new Map(
+      approvals.map(
+        (a: { tool_call_id: string; status: string }) => [a.tool_call_id, a.status] as const,
+      ),
+    );
 
     let messages = (run.history ?? []) as ChatMessage[];
 

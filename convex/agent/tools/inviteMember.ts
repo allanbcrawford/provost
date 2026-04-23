@@ -1,17 +1,20 @@
 "use node";
 import { v } from "convex/values";
 import { api, internal } from "../../_generated/api";
+import type { Id } from "../../_generated/dataModel";
 import { internalAction } from "../../_generated/server";
 
 export const handle = internalAction({
   args: { args: v.any(), toolCallId: v.string(), runId: v.id("thread_runs") },
-  handler: async (ctx, { args, runId }) => {
-    const { run } = await ctx.runQuery(internal.agent.runInternal.loadRunContext, { runId });
+  handler: async (ctx, { args, runId }): Promise<Record<string, unknown>> => {
+    const { run } = (await ctx.runQuery(internal.agent.runInternal.loadRunContext, {
+      runId,
+    })) as { run: { family_id: Id<"families"> } };
 
     const email: string = args?.email ?? "";
     const role: string = args?.role ?? "member";
 
-    const userId = await ctx.runMutation(api.family.createMember, {
+    const userId: Id<"users"> = await ctx.runMutation(api.family.createMember, {
       familyId: run.family_id,
       first_name: "",
       last_name: "",

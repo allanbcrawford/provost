@@ -3,7 +3,7 @@
 import { useQuery } from "convex/react";
 import { useMemo, useState } from "react";
 import { api } from "../../../../../convex/_generated/api";
-import type { Id } from "../../../../../convex/_generated/dataModel";
+import type { Doc, Id } from "../../../../../convex/_generated/dataModel";
 
 type Category = "mutation" | "tool_call" | "run" | "auth" | "approval";
 const CATEGORIES: (Category | "all")[] = [
@@ -29,8 +29,8 @@ export function AuditLog({ familyId }: { familyId: Id<"families"> }) {
     if (!events) return [];
     if (!search.trim()) return events;
     const q = search.toLowerCase();
-    return events.filter((e) =>
-      [e.action, e.resource_type ?? "", e.resource_id ?? "", e.category].some((s) =>
+    return (events as Doc<"audit_events">[]).filter((e: Doc<"audit_events">) =>
+      [e.action, e.resource_type ?? "", e.resource_id ?? "", e.category].some((s: string) =>
         s.toLowerCase().includes(q),
       ),
     );
@@ -83,7 +83,7 @@ export function AuditLog({ familyId }: { familyId: Id<"families"> }) {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((e) => (
+              {filtered.map((e: Doc<"audit_events">) => (
                 <tr key={e._id} className="border-neutral-100 border-t">
                   <td className="px-4 py-2 text-provost-text-secondary">
                     {new Date(e._creationTime).toLocaleString()}

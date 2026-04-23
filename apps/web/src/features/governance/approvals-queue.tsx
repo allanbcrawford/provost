@@ -4,7 +4,11 @@ import { Button } from "@provost/ui";
 import { useMutation, useQuery } from "convex/react";
 import { useState } from "react";
 import { api } from "../../../../../convex/_generated/api";
-import type { Id } from "../../../../../convex/_generated/dataModel";
+import type { Doc, Id } from "../../../../../convex/_generated/dataModel";
+
+type PendingApproval = Doc<"tool_call_approvals"> & {
+  requester: { name: string; email: string } | null;
+};
 
 export function ApprovalsQueue({ familyId }: { familyId: Id<"families"> }) {
   const pending = useQuery(api.governance.pendingApprovals, { familyId });
@@ -44,7 +48,7 @@ export function ApprovalsQueue({ familyId }: { familyId: Id<"families"> }) {
 
   return (
     <ul className="flex flex-col gap-3">
-      {pending.map((a) => (
+      {(pending as PendingApproval[]).map((a: PendingApproval) => (
         <li
           key={a._id}
           className="flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-4"

@@ -46,9 +46,23 @@ function extractProfessionalHint(markdown: string): ProfessionalHint {
   return null;
 }
 
+type DocumentPage = { index: number; content: string };
+
+type SignalDoc = {
+  title: string;
+  reason: string;
+  suggested_action?: string | null;
+  related_document_id?: Id<"documents"> | null;
+};
+
+type LoadedDocument = {
+  document: { name: string; type: string };
+  pages: DocumentPage[];
+};
+
 export const handle = internalAction({
   args: { args: v.any(), toolCallId: v.string(), runId: v.id("thread_runs") },
-  handler: async (ctx, { args }) => {
+  handler: async (ctx, { args }): Promise<Record<string, unknown>> => {
     const signalId = args?.signalId as Id<"signals"> | undefined;
     const documentId = args?.documentId as Id<"documents"> | undefined;
     const instructions =
@@ -58,7 +72,9 @@ export const handle = internalAction({
       return { success: false, error: "signalId required", widget: null };
     }
 
-    const signal = await ctx.runQuery(internal.signals.getSignal, { signalId });
+    const signal = (await ctx.runQuery(internal.signals.getSignal, {
+      signalId,
+    })) as SignalDoc | null;
     if (!signal) {
       return { success: false, error: "signal not found", widget: null };
     }
@@ -67,15 +83,15 @@ export const handle = internalAction({
 
     let documentName: string | null = null;
     let documentType: string | null = null;
-    let pages: Array<{ index: number; content: string }> = [];
+    let pages: DocumentPage[] = [];
     if (resolvedDocId) {
-      const loaded = await ctx.runQuery(internal.documents.loadDocumentWithPages, {
+      const loaded = (await ctx.runQuery(internal.documents.loadDocumentWithPages, {
         documentId: resolvedDocId,
-      });
+      })) as LoadedDocument | null;
       if (loaded) {
         documentName = loaded.document.name;
         documentType = loaded.document.type;
-        pages = loaded.pages.map((p) => ({ index: p.index, content: p.content }));
+        pages = loaded.pages.map((p: DocumentPage) => ({ index: p.index, content: p.content }));
       }
     }
 
