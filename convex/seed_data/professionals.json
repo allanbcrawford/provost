@@ -1,0 +1,32 @@
+[
+  {
+    "id": "prof-1",
+    "created_at": 1759908654.9095712,
+    "updated_at": null,
+    "deleted_at": null,
+    "name": "Michael Harrington",
+    "profession": "Financial Advisor",
+    "firm": "Wealth Strategies Group",
+    "email": "michael.harrington@wealthstrategies.com"
+  },
+  {
+    "id": "prof-2",
+    "created_at": 1759908654.9096712,
+    "updated_at": null,
+    "deleted_at": null,
+    "name": "Sarah Lin",
+    "profession": "Estate Planning Attorney",
+    "firm": "Thompson & Associates Law",
+    "email": "s.lin@thompsonlaw.com"
+  },
+  {
+    "id": "prof-3",
+    "created_at": 1759908654.9097712,
+    "updated_at": null,
+    "deleted_at": null,
+    "name": "David Johnson",
+    "profession": "Accountant / Tax Advisor",
+    "firm": "Premier Executive Services",
+    "email": "johnson.d@premierexec.com"
+  }
+]

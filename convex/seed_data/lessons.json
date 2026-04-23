@@ -1,0 +1,937 @@
+[
+  {
+    "id": "lesson-1",
+    "created_at": 1731340800,
+    "updated_at": null,
+    "deleted_at": null,
+    "family_id": "6a9fad5c-53b3-4069-a9bb-c25418276453",
+    "title": "Needs vs Wants + Family Values in Money Decisions",
+    "shortTitle": "Needs vs Wants",
+    "shortDescription": "Introduces the idea that every money decision reflects personal and family values",
+    "description": "This lesson introduces the idea that every money decision reflects personal and family values.",
+    "category": "Financial Literacy & Planning",
+    "image": "/images/lessons/needs-vs-wants.png",
+    "contentType": "slides",
+    "content": {
+      "type": "slides",
+      "primaryColor": "#242424",
+      "secondaryColor": "#ffffff",
+      "accentColor": "#F39C12",
+      "highlightColor": "#ededed",
+      "introText": "This lesson introduces the idea that every money decision reflects personal and family values. You'll learn how to separate needs (things you must have) from wants (things you'd like to have) and discover how giving, saving, and spending can all be part of a balanced financial plan.\n\nThe lesson also explores how family values influence financial habits - for example, how traditions of saving or charitable giving can shape the way you think about money. By using the \"Three Buckets\" model - Needs, Wants, and Give - you'll see how to manage money with purpose and build habits that align with your goals and values.\n\nBy the end, you'll have a simple framework for making money decisions that reflect who you are and what matters most to you.",
+      "slides": [
+        {
+          "type": "text",
+          "title": "The Three Buckets",
+          "text": "When you receive money - whether it's from a birthday, a job, or an allowance - it's tempting to spend it right away. But before you do, it helps to pause and think about what that money can do for you. Every dollar you spend, save, or give away is a small reflection of what you value most.\n\nA simple way to make sense of your money is to divide it into three buckets: **Needs**, **Wants**, and **Give**. This system helps you see where your money is going - and whether your spending matches your priorities.",
+          "image": "/assets/lessons/three-buckets.png",
+          "follow_up_questions": [
+            {
+              "prompt": "How do I decide what's a need versus a want?",
+              "label": null
+            },
+            {
+              "prompt": "What percentage should go into each bucket?",
+              "label": null
+            },
+            {
+              "prompt": "Can something be both a need and a want?",
+              "label": null
+            }
+          ],
+          "estimated_reading_seconds": 90
+        },
+        {
+          "type": "text",
+          "title": "The Three Buckets",
+          "text": "Lets dive a little deeper into these three buckets (or jars in this case).\n\n- **Needs are the essentials** - things you have to pay for to live, learn, or get around. Think food, school supplies, or bus fare.\n- **Wants are the extras** - things that bring joy, fun, or comfort, like clothes, video games, or concert tickets.\n- **Give is the bucket for generosity** - money you set aside to help others or support causes you care about.",
+          "image": "/assets/lessons/three-buckets.png",
+          "follow_up_questions": [
+            {
+              "prompt": "How do I start if my family doesn't have clear money traditions?",
+              "label": null
+            },
+            {
+              "prompt": "What if I want to give more than 10%?",
+              "label": null
+            },
+            {
+              "prompt": "Can I adjust these percentages as I get older?",
+              "label": null
+            }
+          ],
+          "estimated_reading_seconds": 65
+        },
+        {
+          "type": "text",
+          "title": "Money Reflects Your Values",
+          "text": "Every spending choice is a statement about what you care about.\n\n- Buying a gift for a friend might show **kindness**.\n- Saving for a trip might show **patience** and **planning**.\n- Donating to a cause might show **compassion**.\n\nWhen you make a purchase, ask yourself: ==Does this reflect the kind of person I want to be?==",
+          "image": "/assets/lessons/money-values.png",
+          "follow_up_questions": [
+            {
+              "prompt": "How can I tell if my spending matches my values?",
+              "label": null
+            },
+            {
+              "prompt": "What if my friends spend differently than me?",
+              "label": null
+            },
+            {
+              "prompt": "Can I change my values as I grow up?",
+              "label": null
+            }
+          ],
+          "estimated_reading_seconds": 45
+        },
+        {
+          "type": "text",
+          "title": "Your Weekly Challenge",
+          "text": "For one week, track how you use your money. Each time you spend, mark it with one of these letters:\n\n- N for **Need**\n- W for **Want**\n- G for **Give**\n\nAt the end of the week, look back and see what your spending says about your priorities. Are your choices in line with your values? Are there changes you'd like to make?",
+          "image": "/assets/lessons/weekly-challenge.png",
+          "imageConfig": {
+            "width": 135,
+            "height": 171
+          },
+          "follow_up_questions": [
+            {
+              "prompt": "What if I forget to track something?",
+              "label": null
+            },
+            {
+              "prompt": "Should I include small purchases like snacks?",
+              "label": null
+            },
+            {
+              "prompt": "How do I decide if something is on the line between Need and Want?",
+              "label": null
+            }
+          ],
+          "estimated_reading_seconds": 55
+        }
+      ],
+      "quiz": {
+        "type": "quiz",
+        "questions": [
+          {
+            "question": "What are the three buckets used to manage money?",
+            "options": [
+              "Save, Spend, Invest",
+              "Needs, Wants, Give",
+              "Income, Expenses, Savings",
+              "Budget, Debt, Credit"
+            ],
+            "correct_option_index": 1
+          }
+        ]
+      }
+    },
+    "approved_by": "e740d25a-b568-4aff-a978-895aef821239",
+    "due_date": "2025-11-11",
+    "status": "pending",
+    "current_slide_index": 0,
+    "last_slide_index": 4,
+    "likeCount": 18,
+    "publishedAt": "2025-10-15"
+  },
+  {
+    "id": "lesson-2",
+    "created_at": 1731340800,
+    "updated_at": null,
+    "deleted_at": null,
+    "family_id": "6a9fad5c-53b3-4069-a9bb-c25418276453",
+    "title": "The Benefits of Higher Education",
+    "shortTitle": "Higher Education",
+    "shortDescription": "A quick look at why higher education still matters and how it can prepare you for future leadership roles.",
+    "description": "This lesson explores the value of higher education in today's world.",
+    "category": "Education & Career",
+    "image": "/images/lessons/higher-education.png",
+    "contentType": "article",
+    "content": {
+      "type": "article",
+      "primaryColor": "#242424",
+      "secondaryColor": "#ffffff",
+      "accentColor": "#4A90D9",
+      "highlightColor": "#e8f3e8",
+      "readingTime": "10 min",
+      "articleText": "For many young adults in families with deep roots — whether in business, philanthropy, or community leadership — higher education plays a role that goes far beyond earning a degree. It becomes a formative stage where future leaders sharpen their thinking, broaden their worldview, and begin to understand what it means to steward something larger than themselves.\n\nIn conversations with students and educators across the country, a consistent theme emerges: college doesn't just prepare you for a job. ==It prepares you for responsibility — especially the kind that comes with guiding a family enterprise or carrying forward a legacy.==\n\n**A Training Ground for Clear, Independent Thought**\n\nOne of the most underrated benefits of higher education is the intellectual independence it cultivates. College challenges you to question assumptions, synthesize complex information, and think critically — not because someone tells you to, but because the environment demands it.\n\nFor young adults who may eventually influence or inherit a family business or foundation, these skills become essential. Clear thinking informs good decision-making. The ability to challenge ideas respectfully strengthens governance. And the confidence to form an independent point of view is part of becoming a responsible steward of family assets or mission.\n\n**A Broader Understanding of the World Beyond the Family Circle**\n\nEven the most successful family businesses and foundations must adapt to a world that is constantly shifting — culturally, economically, and technologically. Higher education exposes young adults to perspectives they may not encounter within the natural orbit of family, advisors, or longstanding networks.\n\nThrough professors, classmates, research, and lived experience, students engage with ideas that expand their worldview. They learn to navigate differences, understand global dynamics, and recognize emerging trends. For a future leader, this broader lens becomes a strategic advantage.\n\n**Professional Credibility and a Wider Range of Options**\n\nFor many next-generation leaders, higher education is part of building professional credibility — not because it signals privilege, but because it signals preparation.\n\nA degree can open doors in industries that intersect with family enterprises. It can provide technical grounding in areas such as finance, engineering, economics, or organizational leadership. And perhaps most importantly, it creates optionality: the ability to chart your own path, contribute in a meaningful way, or take the family business in a new direction if the moment calls for it.\n\nThis optionality matters. It gives young adults the freedom to choose how they'll participate in the family's future — not out of obligation, but out of intention.\n\n**A Place to Grow Into Adulthood**\n\nWhile the academic benefits of college are clear, the personal growth that happens during these years is just as influential. Living independently, managing your own schedule, building relationships, navigating conflicts — these experiences teach resilience, self-discipline, and emotional maturity.\n\nFor future family leaders, these traits are not luxuries. They are the foundation of responsible decision-making and the ability to lead with steadiness and empathy.\n\n**Networks That Extend Opportunity Across a Lifetime**\n\nOne of the quiet strengths of higher education is the community it creates. Professors, mentors, peers, and alumni form a network that can support young adults for decades to come. These connections often lead to collaborations, new ventures, philanthropic partnerships, or access to expertise that strengthens the family enterprise.\n\nIn many ways, this network becomes an extension of the family's own capabilities — a resource that broadens what's possible for the next generation.\n\n**A Chance to Explore Who You Want to Become**\n\nEven within strong families and established businesses, each generation brings its own identity. College offers young adults the space to explore interests, challenge expectations, and discover where their talents align with the family's legacy.\n\nSome students return to the family business with renewed purpose. Others find new ways to contribute — through strategy, innovation, social impact, or governance. A few chart entirely new paths, expanding the family's influence in unexpected directions. All of these choices are strengthened, not constrained, by what higher education provides.\n\n**Why Higher Education Still Matters for the Next Generation**\n\nHigher education isn't a rite of passage for tradition's sake. It's a rare window of time where young adults can learn, experiment, fail safely, and build the intellectual and emotional tools they'll need for the future.\n\nFor those who may step into leadership or stewardship roles, college becomes something more: a proving ground for judgment, character, and vision.\n\nIt helps the next generation lead well, communicate clearly, and carry forward the values that built the family success in the first place — while also equipping them to adapt that legacy to a world that will look very different from the one their parents inherited.",
+      "slides": [],
+      "quiz": {
+        "type": "quiz",
+        "questions": [
+          {
+            "question": "What is one key benefit of higher education mentioned?",
+            "options": [
+              "Making money quickly",
+              "Building lifelong connections",
+              "Avoiding work",
+              "Having fun"
+            ],
+            "correct_option_index": 1
+          }
+        ]
+      }
+    },
+    "approved_by": "e2fd7200-d971-4519-a81f-e4acd931b606",
+    "due_date": "2025-11-11",
+    "status": "pending",
+    "current_slide_index": 0,
+    "last_slide_index": 0,
+    "likeCount": 24,
+    "publishedAt": "2025-10-20",
+    "recommendations": ["lesson-interactive-1", "lesson-external-1"]
+  },
+  {
+    "id": "lesson-3",
+    "created_at": 1731340800,
+    "updated_at": null,
+    "deleted_at": null,
+    "family_id": "6a9fad5c-53b3-4069-a9bb-c25418276453",
+    "title": "Understanding Trusts: The Treasure Chest Analogy",
+    "shortTitle": "Understanding Trusts",
+    "shortDescription": "Explore how your family’s trust connects to your own growth and independence.",
+    "description": "Learn how trusts work using a simple treasure chest analogy.",
+    "category": "Family Governance & Legacy",
+    "image": "/images/lessons/understanding-trusts.png",
+    "contentType": "slides",
+    "content": {
+      "type": "slides",
+      "primaryColor": "#242424",
+      "secondaryColor": "#ffffff",
+      "accentColor": "#3498DB",
+      "highlightColor": "#ededed",
+      "introText": "==You are named as a beneficiary in the Williams Family Trust. That sounds formal - but I can make it clear.== Over the next 10 minutes, you'll explore how your family's trust connects to your own growth and independence. By the end, you'll be able to:\n1. **Understand How Trusts Work** - Learn what a trust is, who manages it, how distributions are made, and why families use them to protect and grow wealth across generations.\n2. **Connect Trusts to Family Legacy** - Discover how the Williams Family Trust reflects your grandparents' values, supports education and opportunity, and preserves the family's long-term vision for responsible stewardship.\n3. **Use Trusts Responsibly Toward Independence** - Explore how to balance the trust's support with your own financial growth—learning when to rely on it, when to self-fund, and how to use it as a tool for lasting independence.",
+      "slides": [
+        {
+          "type": "text",
+          "title": "The Treasure Chest Analogy",
+          "text": "A trust is like a secure container that holds valuable assets - investments, property, or savings. Your grandparents, Robert and Linda, placed family wealth in this \u201cchest\u201d to be used for specific purposes.\n\n==The trustee manages the chest; the beneficiaries (like you) benefit under the trust\u2019s rules.== But who Holds the Key? The trustee does. A trustee is the person (or institution) responsible for making sure the trust is managed correctly. They follow legal rules and your grandparents\u2019 wishes.",
+          "image": "/assets/lessons/treasure-chest-closed.png",
+          "follow_up_questions": [
+            {
+              "prompt": "What happens if the trustee doesn't follow the rules?",
+              "label": null
+            },
+            {
+              "prompt": "Can a trustee be replaced if needed?",
+              "label": null
+            },
+            {
+              "prompt": "How do I know what my grandparents' specific wishes were?",
+              "label": null
+            }
+          ],
+          "estimated_reading_seconds": 60
+        },
+        {
+          "type": "text",
+          "title": "How Distributions Work",
+          "text": "The trustee doesn\u2019t just \u201chand out\u201d money, they ensure every request aligns with the trust\u2019s purpose. If you need funds - say, for graduate school - you\u2019d submit a request to the trustee. The Trustee will then check:\n\n==1. Does this fit the trust\u2019s rules?\n2. Is it for an approved purpose (like education or career development)?\n3. Is it financially prudent for the trust overall?==\n\nIf all boxes are checked, they \u201cunlock the chest.\u201d",
+          "image": "/assets/lessons/treasure-chest-open.png",
+          "follow_up_questions": [
+            {
+              "prompt": "What happens if my request doesn't meet all the criteria?",
+              "label": null
+            },
+            {
+              "prompt": "How long does it typically take for the trustee to approve a request?",
+              "label": null
+            },
+            {
+              "prompt": "Can I appeal if my request is denied?",
+              "label": null
+            }
+          ],
+          "estimated_reading_seconds": 70
+        },
+        {
+          "type": "text",
+          "title": "Legacy & Intent",
+          "text": "This isn\u2019t just about control - ==it\u2019s about values.== Robert and Linda wanted to ensure the family\u2019s wealth would empower education, growth, and stewardship - not just spending.\n\nThe trust exists to sustain opportunity across generations while encouraging responsibility.",
+          "image": "/assets/lessons/treasure-chest-open.png",
+          "follow_up_questions": [
+            {
+              "prompt": "How does wealth empower education?",
+              "label": null
+            },
+            {
+              "prompt": "Examples of \"growth\" in this context?",
+              "label": null
+            },
+            {
+              "prompt": "What does stewardship mean for our family?",
+              "label": null
+            }
+          ],
+          "estimated_reading_seconds": 55
+        }
+      ],
+      "quiz": {
+        "type": "quiz",
+        "questions": [
+          {
+            "question": "Which of the following best describes a trustee's role?",
+            "options": [
+              "Someone who benefits from the trust",
+              "Someone who created the trust",
+              "Someone who manages the trust according to its rules",
+              "Someone who decides new rules for the trust"
+            ],
+            "correct_option_index": 2
+          }
+        ]
+      }
+    },
+    "approved_by": "e740d25a-b568-4aff-a978-895aef821239",
+    "due_date": "2025-11-11",
+    "status": "in_progress",
+    "current_slide_index": 2,
+    "last_slide_index": 3,
+    "likeCount": 31,
+    "publishedAt": "2025-09-25"
+  },
+  {
+    "id": "lesson-video-1",
+    "created_at": 1731340800,
+    "updated_at": null,
+    "deleted_at": null,
+    "family_id": "6a9fad5c-53b3-4069-a9bb-c25418276453",
+    "title": "Investing Basics: Diversification",
+    "shortTitle": "Diversification",
+    "shortDescription": "Understand the importance of diversification in investing to manage risk and maximize returns.",
+    "description": "Learn the key differences between stocks and bonds and how to build a diversified investment portfolio.",
+    "category": "Financial Literacy & Planning",
+    "image": "/images/lessons/investing-stocks-bonds.png",
+    "contentType": "video",
+    "content": {
+      "type": "video",
+      "videoUrl": "https://share.synthesia.io/embeds/videos/855b4ed8-a485-43da-88fc-ffadf11d726d",
+      "videoDuration": "6 min",
+      "primaryColor": "#242424",
+      "secondaryColor": "#ffffff",
+      "accentColor": "#27AE60",
+      "highlightColor": "#ededed"
+    },
+    "approved_by": "e740d25a-b568-4aff-a978-895aef821239",
+    "due_date": "2025-11-11",
+    "status": "in_progress",
+    "current_slide_index": 3,
+    "last_slide_index": 10,
+    "likeCount": 15,
+    "publishedAt": "2025-11-01"
+  },
+  {
+    "id": "lesson-4",
+    "created_at": 1731340800,
+    "updated_at": null,
+    "deleted_at": null,
+    "family_id": "6a9fad5c-53b3-4069-a9bb-c25418276453",
+    "title": "Financial Literacy: Investing Fundamentals",
+    "shortTitle": "Investing Fundamentals",
+    "shortDescription": "This is a summary sentence of the lesson which is AI generated to help you understand the content.",
+    "description": "Learn the basics of investing and building wealth over time.",
+    "category": "Financial Literacy & Planning",
+    "image": "/images/lessons/financial-literacy.jpg",
+    "contentType": "article",
+    "content": {
+      "type": "slides",
+      "primaryColor": "#242424",
+      "secondaryColor": "#ffffff",
+      "accentColor": "#27AE60",
+      "highlightColor": "#ededed",
+      "slides": [
+        {
+          "type": "text",
+          "title": "What is Investing?",
+          "text": "Investing is putting money to work to potentially earn more money over time.",
+          "image": "/assets/investing.png",
+          "follow_up_questions": [],
+          "estimated_reading_seconds": 80
+        },
+        {
+          "type": "text",
+          "title": "Types of Investments",
+          "text": "Stocks, bonds, mutual funds, and other investment vehicles.",
+          "image": "/assets/types.png",
+          "follow_up_questions": [],
+          "estimated_reading_seconds": 100
+        },
+        {
+          "type": "text",
+          "title": "Risk and Reward",
+          "text": "Understanding the relationship between risk and potential returns.",
+          "image": "/assets/risk.png",
+          "follow_up_questions": [],
+          "estimated_reading_seconds": 90
+        },
+        {
+          "type": "text",
+          "title": "The Power of Compounding",
+          "text": "How your money can grow exponentially over time.",
+          "image": "/assets/compounding.png",
+          "follow_up_questions": [],
+          "estimated_reading_seconds": 85
+        },
+        {
+          "type": "text",
+          "title": "Getting Started",
+          "text": "Practical steps to begin your investing journey.",
+          "image": "/assets/start.png",
+          "follow_up_questions": [],
+          "estimated_reading_seconds": 75
+        }
+      ],
+      "quiz": {
+        "type": "quiz",
+        "questions": [
+          {
+            "question": "What is compounding?",
+            "options": [
+              "Losing money over time",
+              "Money growing exponentially over time",
+              "Spending money quickly",
+              "Borrowing money"
+            ],
+            "correct_option_index": 1
+          }
+        ]
+      }
+    },
+    "approved_by": "e740d25a-b568-4aff-a978-895aef821239",
+    "due_date": "2025-11-11",
+    "status": "completed",
+    "current_slide_index": 5,
+    "last_slide_index": 5,
+    "likeCount": 42,
+    "publishedAt": "2025-08-10"
+  },
+  {
+    "id": "lesson-interactive-1",
+    "created_at": 1731427200,
+    "updated_at": null,
+    "deleted_at": null,
+    "family_id": "6a9fad5c-53b3-4069-a9bb-c25418276453",
+    "title": "Finding a College that You Will Love",
+    "shortTitle": "College Finder",
+    "shortDescription": "A guided experience to help identify the best higher education option for you.",
+    "description": "Choosing a college isn't about prestige - it's about finding the environment where you'll grow, thrive, and become the person you want to be. This interactive lesson walks you through the questions that matter most, helping you identify the type of school that best fits your goals, personality, and future responsibilities - including those connected to family business, leadership, or legacy.",
+    "category": "Education & Career",
+    "image": "/images/lessons/college-finder.png",
+    "contentType": "interactive",
+    "content": {
+      "type": "interactive",
+      "primaryColor": "#242424",
+      "secondaryColor": "#ffffff",
+      "accentColor": "#4A90D9",
+      "highlightColor": "#ededed",
+      "coverImage": "/images/lessons/college-finder.png",
+      "introText": "Choosing a college isn't about prestige - it's about finding the environment where you'll grow, thrive, and become the person you want to be. This interactive lesson walks you through the questions that matter most, helping you identify the type of school that best fits your goals, personality, and future responsibilities - including those connected to family business, leadership, or legacy.",
+      "estimatedMinutes": 8,
+      "questions": [
+        {
+          "title": "What Matters Most to You?",
+          "subtitle": "Choose at least 3 priorities:",
+          "minSelections": 3,
+          "options": [
+            {
+              "id": "academic-rigor",
+              "label": "Academic Rigor"
+            },
+            {
+              "id": "close-knit-community",
+              "label": "Close-knit Community"
+            },
+            {
+              "id": "strong-alumni-networks",
+              "label": "Strong Alumni Networks"
+            },
+            {
+              "id": "big-school-vibes",
+              "label": "Big-school Vibes"
+            },
+            {
+              "id": "flexibility-explore-majors",
+              "label": "Flexibility to Explore Majors"
+            },
+            {
+              "id": "research-opportunities",
+              "label": "Research opportunities"
+            },
+            {
+              "id": "proximity-to-home",
+              "label": "Proximity to Home"
+            },
+            {
+              "id": "athletics-campus-life",
+              "label": "Athletics or Campus Life"
+            },
+            {
+              "id": "specialized-training",
+              "label": "Specialized Training"
+            },
+            {
+              "id": "global-exposure",
+              "label": "Global Exposure (Study Abroad, International Programs)"
+            }
+          ]
+        },
+        {
+          "title": "What size campus appeals to you?",
+          "subtitle": "Select one:",
+          "minSelections": 1,
+          "maxSelections": 1,
+          "options": [
+            {
+              "id": "small",
+              "label": "Small (under 5,000 students)"
+            },
+            {
+              "id": "medium",
+              "label": "Medium (5,000 - 15,000 students)"
+            },
+            {
+              "id": "large",
+              "label": "Large (15,000 - 30,000 students)"
+            },
+            {
+              "id": "very-large",
+              "label": "Very Large (30,000+ students)"
+            },
+            {
+              "id": "no-preference",
+              "label": "No preference"
+            }
+          ]
+        },
+        {
+          "title": "What type of location do you prefer?",
+          "subtitle": "Select one:",
+          "minSelections": 1,
+          "maxSelections": 1,
+          "options": [
+            {
+              "id": "urban",
+              "label": "Urban - in a major city"
+            },
+            {
+              "id": "suburban",
+              "label": "Suburban - near a city"
+            },
+            {
+              "id": "college-town",
+              "label": "College town"
+            },
+            {
+              "id": "rural",
+              "label": "Rural - in the countryside"
+            },
+            {
+              "id": "no-preference",
+              "label": "No preference"
+            }
+          ]
+        },
+        {
+          "title": "How important is being close to family?",
+          "subtitle": "Select one:",
+          "minSelections": 1,
+          "maxSelections": 1,
+          "options": [
+            {
+              "id": "very-important",
+              "label": "Very important - I want to be within driving distance"
+            },
+            {
+              "id": "somewhat-important",
+              "label": "Somewhat important - a short flight is okay"
+            },
+            {
+              "id": "not-important",
+              "label": "Not important - I'm open to anywhere"
+            },
+            {
+              "id": "prefer-distance",
+              "label": "I actually prefer some distance"
+            }
+          ]
+        },
+        {
+          "title": "What are your academic interests?",
+          "subtitle": "Choose up to 3:",
+          "minSelections": 1,
+          "maxSelections": 3,
+          "options": [
+            {
+              "id": "business",
+              "label": "Business & Entrepreneurship"
+            },
+            {
+              "id": "stem",
+              "label": "STEM (Science, Technology, Engineering, Math)"
+            },
+            {
+              "id": "liberal-arts",
+              "label": "Liberal Arts & Humanities"
+            },
+            {
+              "id": "social-sciences",
+              "label": "Social Sciences"
+            },
+            {
+              "id": "arts",
+              "label": "Arts & Creative Fields"
+            },
+            {
+              "id": "pre-professional",
+              "label": "Pre-professional (Law, Medicine)"
+            },
+            {
+              "id": "undecided",
+              "label": "I'm still exploring"
+            }
+          ]
+        },
+        {
+          "title": "What's your ideal learning environment?",
+          "subtitle": "Choose all that apply:",
+          "minSelections": 1,
+          "options": [
+            {
+              "id": "small-classes",
+              "label": "Small, discussion-based classes"
+            },
+            {
+              "id": "lectures",
+              "label": "Large lectures with many students"
+            },
+            {
+              "id": "hands-on",
+              "label": "Hands-on, practical learning"
+            },
+            {
+              "id": "research",
+              "label": "Research opportunities with professors"
+            },
+            {
+              "id": "internships",
+              "label": "Strong internship programs"
+            },
+            {
+              "id": "study-abroad",
+              "label": "Study abroad options"
+            }
+          ]
+        }
+      ]
+    },
+    "approved_by": "e740d25a-b568-4aff-a978-895aef821239",
+    "due_date": "2025-12-15",
+    "status": "pending",
+    "current_slide_index": 0,
+    "last_slide_index": 6,
+    "likeCount": 12,
+    "publishedAt": "2025-11-07",
+    "hiddenFromList": true
+  },
+  {
+    "id": "lesson-external-1",
+    "created_at": 1731427200,
+    "updated_at": null,
+    "deleted_at": null,
+    "family_id": "6a9fad5c-53b3-4069-a9bb-c25418276453",
+    "title": "AI is Unlocking a New Way to Learn",
+    "shortTitle": "AI in Education",
+    "shortDescription": "Generative AI represents a seismic shift for higher education institutions.",
+    "description": "Generative AI represents a seismic shift for higher education institutions.",
+    "category": "Education & Career",
+    "image": "/images/lessons/ai-education.png",
+    "contentType": "external_article",
+    "content": {
+      "type": "external_article",
+      "externalUrl": "https://www2.deloitte.com/us/en/insights/industry/public-sector/ai-in-higher-education.html",
+      "thumbnailImage": "/images/lessons/ai-education.png",
+      "creator": {
+        "name": "Deloitte",
+        "avatarUrl": "/images/creators/deloitte-logo.png"
+      }
+    },
+    "approved_by": "e740d25a-b568-4aff-a978-895aef821239",
+    "due_date": "2025-12-15",
+    "status": "pending",
+    "current_slide_index": 0,
+    "last_slide_index": 0,
+    "likeCount": 19,
+    "publishedAt": "2025-11-07"
+  },
+  {
+    "id": "lesson-simplicity",
+    "created_at": 1731513600,
+    "updated_at": null,
+    "deleted_at": null,
+    "family_id": "6a9fad5c-53b3-4069-a9bb-c25418276453",
+    "title": "Simplicity Started it All",
+    "shortTitle": "Simplicity",
+    "shortDescription": "How Lessons from Mom Helped Robert Build the Williams Legacy.",
+    "description": "Explore how the simple lessons Florence taught Robert shaped his approach to business and family leadership.",
+    "category": "Family History",
+    "image": "/images/lessons/simplicity-started.jpg",
+    "contentType": "article",
+    "content": {
+      "type": "article",
+      "primaryColor": "#242424",
+      "secondaryColor": "#ffffff",
+      "accentColor": "#4A90D9",
+      "highlightColor": "#e8f3e8",
+      "readingTime": "8 min",
+      "articleText": "The Williams family's success didn't begin with a grand business plan or a large inheritance. It began with simple lessons taught at a kitchen table.\n\nRobert Williams often speaks of the values his mother instilled in him during his childhood. ==Clarity, preparation, and fairness== — these weren't abstract concepts to Florence. They were daily practices she modeled in everything she did.\n\n**The Power of Simple Explanations**\n\nFlorence believed that if you couldn't explain something simply, you didn't understand it well enough yourself. This principle guided Robert throughout his career, from his first business pitch to the complex negotiations that built the family's holdings.\n\n**Preparation as a Way of Life**\n\nEvery evening, Robert watched his mother prepare for the next day's work. She would review her notes, anticipate questions, and practice her arguments. This discipline became Robert's own, and he passed it down to his children.\n\n**The Legacy Continues**\n\nToday, the Williams family continues to honor these simple principles. Every major decision is explained clearly. Every important meeting is thoroughly prepared for. And every family member understands that their success is built on the foundation of simple, timeless values.",
+      "slides": [],
+      "quiz": {
+        "type": "quiz",
+        "questions": []
+      }
+    },
+    "approved_by": "e740d25a-b568-4aff-a978-895aef821239",
+    "due_date": "2025-12-31",
+    "status": "pending",
+    "current_slide_index": 0,
+    "last_slide_index": 0,
+    "likeCount": 12,
+    "publishedAt": "2025-11-15",
+    "hiddenFromList": true
+  },
+  {
+    "id": "lesson-design-principles",
+    "created_at": 1731513600,
+    "updated_at": null,
+    "deleted_at": null,
+    "family_id": "6a9fad5c-53b3-4069-a9bb-c25418276453",
+    "title": "10 Principles of Good Design",
+    "shortTitle": "Good Design",
+    "shortDescription": "Dieter Rams' principle that Good design is as little design as possible.",
+    "description": "Learn about Dieter Rams' influential design principles and how simplicity leads to excellence.",
+    "category": "Design & Philosophy",
+    "image": "/images/lessons/10-principles-design.jpg",
+    "contentType": "external_article",
+    "content": {
+      "type": "external_article",
+      "externalUrl": "https://www.designmuseum.org/discover-design/all-stories/what-is-good-design-a-quick-look-at-dieter-rams-ten-principles",
+      "thumbnailImage": "/images/lessons/10-principles-design.jpg",
+      "creator": {
+        "name": "The Design Museum",
+        "avatarUrl": "/images/creators/design-museum-logo.png"
+      }
+    },
+    "approved_by": "e740d25a-b568-4aff-a978-895aef821239",
+    "due_date": "2025-12-31",
+    "status": "pending",
+    "current_slide_index": 0,
+    "last_slide_index": 0,
+    "likeCount": 19,
+    "publishedAt": "2025-11-15",
+    "hiddenFromList": true
+  },
+  {
+    "id": "lesson-article-investing-basics-v1",
+    "hiddenFromList": true,
+    "created_at": 1733000000,
+    "updated_at": null,
+    "deleted_at": null,
+    "family_id": "6a9fad5c-53b3-4069-a9bb-c25418276453",
+    "title": "Investing Basics: How Money Grows Over Time",
+    "shortTitle": "Investing Basics",
+    "shortDescription": "A clear introduction to asset classes, diversification, and building a portfolio.",
+    "description": "Learn the core building blocks of investing and how different assets work together to grow wealth responsibly.",
+    "category": "Financial Literacy & Planning",
+    "image": "/images/lessons/investing-basics-article.jpg",
+    "contentType": "article",
+    "status": "pending",
+    "current_slide_index": 0,
+    "last_slide_index": 0,
+    "due_date": "2026-04-01",
+    "approved_by": "admin",
+    "likeCount": 5,
+    "publishedAt": "2025-12-01",
+    "content": {
+      "type": "article",
+      "readingTime": "10 min",
+      "articleText": "Investing is how money moves from today’s choices to tomorrow’s opportunities. Rather than keeping all your money in one place, investing allows you to participate in the growth of businesses, economies, and long-term trends.\n\n==Investing isn’t about picking a single winner — it’s about building a system.==\n\n### The Core Building Blocks of Investing\nMost portfolios are built from a few major asset classes.\n\n**Stocks** represent ownership in a company. They typically offer higher potential returns but also come with greater risk.\n\n**Bonds** are loans to governments or organizations that pay interest and return principal over time. They often provide steadier income and can help stabilize a portfolio.\n\n**Cash equivalents** — such as savings accounts or money market funds — are more liquid and lower risk, but generally produce lower returns.\n\n**Mutual funds and ETFs** pool money from many investors to purchase a diversified set of investments, providing built-in diversification.\n\nPrivate market investments extend beyond public markets, offering long-term opportunities and access to investments not available on exchanges.\n\n### Risk and Return Work Together\nDifferent investments carry different levels of risk. Stocks may fluctuate more, while bonds and cash equivalents tend to be more stable. Because of this, portfolios combine multiple asset types.\n\n==Diversification means putting your money in different baskets so no single outcome defines your future.==\n\nWhen one part of a portfolio struggles, another may hold steady or grow.\n\n### Asset Allocation: Designing Your Portfolio\nAsset allocation is how you divide your investments across categories like stocks, bonds, private markets, and cash. The right allocation depends on:\n- your time horizon\n- your tolerance for risk\n- your goals\n\nOver time, investment performance changes your allocation. Rebalancing helps bring your portfolio back to its intended design.\n\n### Investing Can Reflect Your Values\nInvesting doesn’t only shape financial outcomes — it can shape real-world impact. Impact investing focuses on generating both financial returns and positive social or environmental outcomes.\n\nExamples may include renewable energy, affordable housing, or innovations that address global challenges.\n\n==Your portfolio is not just a financial tool — it’s a reflection of priorities.==\n\n### The Big Idea\nSuccessful investing is less about predicting markets and more about building a thoughtful mix of assets that evolves over time.\n\n---\n\n## Key Takeaways\n- Different asset classes serve different roles.\n- Diversification helps manage risk over time.\n- Asset allocation is the blueprint of a portfolio.\n- Rebalancing keeps a portfolio aligned with goals.\n- Investing can reflect personal values.\n\n## Reflection Questions\n1. What role should stability vs growth play in your portfolio?\n2. How comfortable are you with short-term market fluctuations?\n3. What causes or themes would you want your investments to support?\n\n## Quiz",
+      "quiz": {
+        "type": "quiz",
+        "questions": [
+          {
+            "question": "What does diversification mean?",
+            "options": [
+              "Investing in one strong company",
+              "Spreading investments across different assets",
+              "Keeping all money in cash",
+              "Avoiding risk completely"
+            ],
+            "correct_option_index": 1
+          },
+          {
+            "question": "What is asset allocation?",
+            "options": [
+              "Choosing one investment",
+              "Timing market movements",
+              "Deciding how money is divided across asset classes",
+              "Buying only stocks"
+            ],
+            "correct_option_index": 2
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "lesson-slides-investing-basics-v1",
+    "hiddenFromList": true,
+    "created_at": 1733100000,
+    "updated_at": null,
+    "deleted_at": null,
+    "family_id": "6a9fad5c-53b3-4069-a9bb-c25418276453",
+    "title": "Investing Basics: The Building Blocks",
+    "shortTitle": "Investing Basics",
+    "shortDescription": "Understand the main investment types and how they work together.",
+    "description": "Learn the core framework for building a diversified portfolio.",
+    "category": "Financial Literacy & Planning",
+    "image": "/images/lessons/investing-basics-slides.jpg",
+    "contentType": "slides",
+    "status": "pending",
+    "current_slide_index": 0,
+    "last_slide_index": 4,
+    "due_date": "2026-04-01",
+    "approved_by": "admin",
+    "likeCount": 8,
+    "publishedAt": "2025-12-01",
+    "content": {
+      "type": "slides",
+      "introText": "Investing can feel complex, but most portfolios are built from a small set of core building blocks. In this lesson, you’ll learn what those building blocks are and how they work together.",
+      "slides": [
+        {
+          "type": "text",
+          "title": "Stocks: Ownership and Growth",
+          "text": "Stocks represent ownership in a company. When you buy a stock, you participate in that company’s potential growth. Stocks typically offer higher return potential but also greater risk.\n\nStocks can be categorized by company size, style (growth vs value), and industry.\n\n==Stocks are designed to drive long-term growth.==",
+          "follow_up_questions": [
+            {
+              "prompt": "What makes a stock risky?",
+              "label": null
+            },
+            {
+              "prompt": "How do different industries affect stocks?",
+              "label": null
+            },
+            {
+              "prompt": "Can stocks be both growth and value?",
+              "label": null
+            }
+          ],
+          "estimated_reading_seconds": 70
+        },
+        {
+          "type": "text",
+          "title": "Bonds: Stability and Income",
+          "text": "Bonds are loans you provide to governments or organizations. In return, you receive interest and repayment of the principal.\n\nBonds can provide steady income and help diversify a portfolio. However, they also carry risks such as inflation risk and borrower risk.\n\n==Bonds often help balance stock volatility.==",
+          "follow_up_questions": [
+            {
+              "prompt": "Why do bonds reduce portfolio risk?",
+              "label": null
+            },
+            {
+              "prompt": "What happens if interest rates change?",
+              "label": null
+            },
+            {
+              "prompt": "Can bonds lose value?",
+              "label": null
+            }
+          ],
+          "estimated_reading_seconds": 70
+        },
+        {
+          "type": "text",
+          "title": "Diversification: Different Baskets",
+          "text": "Diversification means spreading investments across multiple assets and categories.\n\nInstead of relying on one investment, you combine stocks, bonds, cash, and funds. When one investment struggles, another may perform differently.\n\n==Diversification helps smooth the investing journey over time.==",
+          "follow_up_questions": [
+            {
+              "prompt": "How many investments are enough to diversify?",
+              "label": null
+            },
+            {
+              "prompt": "Does diversification remove risk?",
+              "label": null
+            },
+            {
+              "prompt": "Can you diversify within one asset class?",
+              "label": null
+            }
+          ],
+          "estimated_reading_seconds": 65
+        },
+        {
+          "type": "text",
+          "title": "Asset Allocation: The Portfolio Blueprint",
+          "text": "Asset allocation is how you divide your money across asset classes. It reflects your goals, timeline, and comfort with risk.\n\nOver time, returns shift your allocation, which is why investors rebalance periodically.\n\n==Asset allocation is one of the biggest drivers of long-term outcomes.==",
+          "follow_up_questions": [
+            {
+              "prompt": "How does age affect allocation?",
+              "label": null
+            },
+            {
+              "prompt": "How often should portfolios rebalance?",
+              "label": null
+            },
+            {
+              "prompt": "Can allocation change over time?",
+              "label": null
+            }
+          ],
+          "estimated_reading_seconds": 75
+        },
+        {
+          "type": "text",
+          "title": "Investing with Intent",
+          "text": "Investing can also reflect values. Impact investing focuses on generating financial returns while supporting positive outcomes such as renewable energy, healthcare, or affordable housing.\n\nInvestors can pursue both financial performance and intentional impact.\n\n==Your portfolio is a reflection of priorities — not just performance.==",
+          "follow_up_questions": [
+            {
+              "prompt": "What is impact investing?",
+              "label": null
+            },
+            {
+              "prompt": "Can impact investments perform well financially?",
+              "label": null
+            },
+            {
+              "prompt": "How do investors choose impact themes?",
+              "label": null
+            }
+          ],
+          "estimated_reading_seconds": 70
+        }
+      ],
+      "quiz": {
+        "type": "quiz",
+        "questions": [
+          {
+            "question": "What is the main purpose of diversification?",
+            "options": [
+              "Maximize risk",
+              "Reduce reliance on one investment",
+              "Avoid investing",
+              "Pick the best stock"
+            ],
+            "correct_option_index": 1
+          },
+          {
+            "question": "What does asset allocation describe?",
+            "options": [
+              "Timing the market",
+              "Choosing one asset",
+              "How money is divided across investment types",
+              "Selling investments"
+            ],
+            "correct_option_index": 2
+          }
+        ]
+      }
+    }
+  }
+]
