@@ -1,12 +1,13 @@
 "use client";
 
-import { useSelectedFamily } from "@/context/family-context";
+import { useState } from "react";
+import { AdminFamilyPicker } from "@/components/admin-family-picker";
 import { AuditLog } from "@/features/governance/audit-log";
-import { withRoleGuard } from "@/HOCs/with-role-guard";
-import { APP_ROLES } from "@/lib/roles";
+import type { Id } from "../../../../../../../convex/_generated/dataModel";
 
-function GovernanceAuditPage() {
-  const family = useSelectedFamily();
+export default function AdminGovernanceAuditPage() {
+  const [familyId, setFamilyId] = useState<Id<"families"> | null>(null);
+
   return (
     <div className="p-8">
       <div className="mb-8">
@@ -14,18 +15,17 @@ function GovernanceAuditPage() {
           Audit log
         </h1>
         <p className="mt-2 text-[14px] tracking-[-0.42px] text-provost-text-secondary">
-          All mutations, tool calls, runs, auth, and approvals for this family.
+          All mutations, tool calls, runs, auth, and approvals for the selected family.
         </p>
       </div>
-      {!family ? (
+      <AdminFamilyPicker value={familyId} onChange={setFamilyId} />
+      {!familyId ? (
         <div className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">
           Select a family to continue.
         </div>
       ) : (
-        <AuditLog familyId={family._id} />
+        <AuditLog familyId={familyId} />
       )}
     </div>
   );
 }
-
-export default withRoleGuard(GovernanceAuditPage, APP_ROLES.GOVERNANCE!);

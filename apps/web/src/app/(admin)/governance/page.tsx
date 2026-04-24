@@ -1,16 +1,16 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@provost/ui";
-import { useSelectedFamily } from "@/context/family-context";
+import { useState } from "react";
+import { AdminFamilyPicker } from "@/components/admin-family-picker";
 import { ApprovalsQueue } from "@/features/governance/approvals-queue";
 import { AuditLog } from "@/features/governance/audit-log";
 import { ComplianceSettings } from "@/features/governance/compliance-settings";
 import { TasksList } from "@/features/governance/tasks-list";
-import { withRoleGuard } from "@/HOCs/with-role-guard";
-import { APP_ROLES } from "@/lib/roles";
+import type { Id } from "../../../../../../convex/_generated/dataModel";
 
-function GovernancePage() {
-  const family = useSelectedFamily();
+export default function AdminGovernancePage() {
+  const [familyId, setFamilyId] = useState<Id<"families"> | null>(null);
 
   return (
     <div className="p-8">
@@ -19,11 +19,13 @@ function GovernancePage() {
           Governance
         </h1>
         <p className="mt-2 text-[14px] tracking-[-0.42px] text-provost-text-secondary">
-          Audit log, approvals queue, tasks, and compliance settings.
+          Audit log, approvals queue, tasks, and compliance settings per family.
         </p>
       </div>
 
-      {!family ? (
+      <AdminFamilyPicker value={familyId} onChange={setFamilyId} />
+
+      {!familyId ? (
         <div className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">
           Select a family to continue.
         </div>
@@ -36,21 +38,19 @@ function GovernancePage() {
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
           <TabsContent value="audit">
-            <AuditLog familyId={family._id} />
+            <AuditLog familyId={familyId} />
           </TabsContent>
           <TabsContent value="approvals">
-            <ApprovalsQueue familyId={family._id} />
+            <ApprovalsQueue familyId={familyId} />
           </TabsContent>
           <TabsContent value="tasks">
-            <TasksList familyId={family._id} />
+            <TasksList familyId={familyId} />
           </TabsContent>
           <TabsContent value="settings">
-            <ComplianceSettings />
+            <ComplianceSettings familyId={familyId} />
           </TabsContent>
         </Tabs>
       )}
     </div>
   );
 }
-
-export default withRoleGuard(GovernancePage, APP_ROLES.GOVERNANCE!);

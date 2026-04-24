@@ -40,3 +40,11 @@ export async function requireFamilyMember(
   }
   return { user, membership };
 }
+
+export async function requireSiteAdmin(ctx: QueryCtx | MutationCtx) {
+  const user = await requireUserRecord(ctx);
+  if (user.is_site_admin !== true) {
+    throw new ConvexError({ code: "FORBIDDEN_SITE_ADMIN" });
+  }
+  return user;
+}

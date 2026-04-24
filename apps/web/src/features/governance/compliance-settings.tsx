@@ -18,6 +18,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useSelectedFamily } from "@/context/family-context";
 import { api } from "../../../../../convex/_generated/api";
+import type { Id } from "../../../../../convex/_generated/dataModel";
 
 const formSchema = z.object({
   piiRedaction: z.boolean(),
@@ -50,12 +51,10 @@ function toFormValues(prefs: Record<string, unknown> | undefined): FormValues {
   };
 }
 
-export function ComplianceSettings() {
-  const family = useSelectedFamily();
-  const preferences = useQuery(
-    api.compliance.getPreferences,
-    family ? { familyId: family._id } : "skip",
-  );
+export function ComplianceSettings({ familyId: familyIdProp }: { familyId?: Id<"families"> }) {
+  const contextFamily = useSelectedFamily();
+  const familyId = familyIdProp ?? contextFamily?._id ?? null;
+  const preferences = useQuery(api.compliance.getPreferences, familyId ? { familyId } : "skip");
   const setPreference = useMutation(api.compliance.setPreference);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
@@ -71,7 +70,7 @@ export function ComplianceSettings() {
     }
   }, [preferences, form]);
 
-  if (!family) {
+  if (!familyId) {
     return <div className="text-provost-text-secondary text-sm">Select a family to continue.</div>;
   }
   if (preferences === undefined) {
@@ -79,7 +78,7 @@ export function ComplianceSettings() {
   }
 
   async function onSubmit(values: FormValues) {
-    if (!family) return;
+    if (!familyId) return;
     const current = toFormValues(preferences);
     const changes: { key: string; value: unknown }[] = [];
     (Object.keys(PREF_KEYS) as (keyof typeof PREF_KEYS)[]).forEach((field) => {
@@ -94,7 +93,7 @@ export function ComplianceSettings() {
     setSaving(true);
     try {
       for (const change of changes) {
-        await setPreference({ familyId: family._id, key: change.key, value: change.value });
+        await setPreference({ familyId, key: change.key, value: change.value });
       }
       setSavedAt(Date.now());
     } finally {

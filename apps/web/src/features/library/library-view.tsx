@@ -3,7 +3,6 @@
 import { Button, Icon, Input } from "@provost/ui";
 import { useQuery } from "convex/react";
 import { useCallback, useMemo, useState } from "react";
-import { useSelectedFamily } from "@/context/family-context";
 import { api } from "../../../../../convex/_generated/api";
 import { CollectionItem } from "./collection-item";
 import { FacetFilter } from "./facet-filter";
@@ -32,7 +31,6 @@ function getMatchingTags(source: LibrarySourceSummary, query: string): Set<strin
 }
 
 export function LibraryView() {
-  const family = useSelectedFamily();
   const [activeTab, setActiveTab] = useState<LibraryTab>("sources");
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
@@ -40,22 +38,19 @@ export function LibraryView() {
   const [facets, setFacets] = useState<FacetSelection>({});
   const [showFilters, setShowFilters] = useState(true);
 
-  const sourcesArgs = family ? { familyId: family._id, query: searchQuery, facets } : "skip";
-  const groupsArgs = family ? { familyId: family._id } : "skip";
-
-  const sources = useQuery(api.library.listSources, sourcesArgs) as
-    | LibrarySourceSummary[]
-    | undefined;
-  const groups = useQuery(api.library.listGroups, groupsArgs) as LibraryGroupSummary[] | undefined;
-  const collections = useQuery(api.library.listCollections, groupsArgs) as
+  const sources = useQuery(api.library.listSourcesAsAdmin, {
+    query: searchQuery,
+    facets,
+  }) as LibrarySourceSummary[] | undefined;
+  const groups = useQuery(api.library.listGroupsAsAdmin, {}) as LibraryGroupSummary[] | undefined;
+  const collections = useQuery(api.library.listCollectionsAsAdmin, {}) as
     | LibraryCollectionSummary[]
     | undefined;
 
   // Fetch unfiltered for facet sidebar counts
-  const allSourcesForFacets = useQuery(
-    api.library.listSources,
-    family ? { familyId: family._id } : "skip",
-  ) as LibrarySourceSummary[] | undefined;
+  const allSourcesForFacets = useQuery(api.library.listSourcesAsAdmin, {}) as
+    | LibrarySourceSummary[]
+    | undefined;
 
   const counts = useMemo(
     () => ({
@@ -74,12 +69,6 @@ export function LibraryView() {
       return next;
     });
   }, []);
-
-  if (!family) {
-    return (
-      <div className="p-8 text-provost-text-secondary text-sm">Select a family to continue.</div>
-    );
-  }
 
   const ctaLabel =
     activeTab === "sources"

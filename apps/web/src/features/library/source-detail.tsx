@@ -29,7 +29,7 @@ function TagSection({ label, tags }: { label: string; tags: TagEntry[] }) {
 }
 
 export function SourceDetail({ sourceId }: { sourceId: Id<"library_sources"> }) {
-  const source = useQuery(api.library.getSource, { sourceId }) as
+  const source = useQuery(api.library.getSourceAsAdmin, { sourceId }) as
     | LibrarySourceDetail
     | null
     | undefined;

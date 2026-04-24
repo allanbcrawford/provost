@@ -2,8 +2,6 @@
 
 import { useMutation } from "convex/react";
 import { useState } from "react";
-import { withRoleGuard } from "@/HOCs/with-role-guard";
-import { APP_ROLES } from "@/lib/roles";
 import { api } from "../../../../../../../convex/_generated/api";
 
 type Tester = {
@@ -15,7 +13,7 @@ type Tester = {
   onboarding_status: string;
 };
 
-function TestersPage() {
+export default function TestersPage() {
   const inviteTester = useMutation(api.users.inviteTester);
   const listTesters = useMutation(api.users.listTesters);
 
@@ -186,5 +184,3 @@ function TestersPage() {
     </div>
   );
 }
-
-export default withRoleGuard(TestersPage, APP_ROLES.GOVERNANCE!);

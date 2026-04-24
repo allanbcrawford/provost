@@ -19,10 +19,15 @@ export const coreTables = {
     clerk_user_id: v.string(),
     learning_path: v.optional(v.string()),
     onboarding_status: v.string(),
+    // Site-admin flag (distinct from per-family family_users.role). Site
+    // admins see the /(admin) UI for Library curation and Governance; they
+    // have no family context by default.
+    is_site_admin: v.optional(v.boolean()),
     deleted_at: v.optional(v.number()),
   })
     .index("by_email", ["email"])
-    .index("by_clerk_id", ["clerk_user_id"]),
+    .index("by_clerk_id", ["clerk_user_id"])
+    .index("by_site_admin", ["is_site_admin"]),
 
   families: defineTable({
     name: v.string(),

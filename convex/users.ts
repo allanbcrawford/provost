@@ -1,7 +1,16 @@
 import { ConvexError, v } from "convex/values";
-import { mutation } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 import { writeAudit } from "./lib/audit";
-import { requireUser, requireUserRecord } from "./lib/authz";
+import { requireSiteAdmin, requireUser, requireUserRecord } from "./lib/authz";
+
+// ---------------------------------------------------------------------------
+// Site-admin provisioning (bootstrap)
+// ---------------------------------------------------------------------------
+// The first site admin is minted via:
+//   npx convex run users:promoteSiteAdmin '{"email":"you@example.com","value":true}'
+// Site admins see the /(admin) UI (Library + Governance); family users do
+// not. Distinct from family-scoped roles in `family_users.role`.
+// ---------------------------------------------------------------------------
 
 const DEMO_FAMILY_NAME = "Williams Family (demo)";
 
@@ -146,10 +155,34 @@ export const getOrProvisionFromClerk = mutation({
       .unique();
     if (existing) return existing._id;
 
+    // Claim a previously-stubbed row (from inviteTester / bootstrapSiteAdmin)
+    // matched by email. Preserves any flags we pre-set (e.g. is_site_admin).
+    const email = identity.email ?? "";
+    if (email) {
+      const pending = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .unique();
+      if (pending && pending.clerk_user_id.startsWith("pending-invite-")) {
+        await ctx.db.patch(pending._id, {
+          clerk_user_id: identity.subject,
+          first_name:
+            pending.first_name || identity.givenName || identity.name?.split(" ")[0] || "",
+          last_name:
+            pending.last_name ||
+            identity.familyName ||
+            identity.name?.split(" ").slice(1).join(" ") ||
+            "",
+          onboarding_status: "claimed",
+        });
+        return pending._id;
+      }
+    }
+
     const userId = await ctx.db.insert("users", {
       first_name: identity.givenName ?? identity.name?.split(" ")[0] ?? "",
       last_name: identity.familyName ?? identity.name?.split(" ").slice(1).join(" ") ?? "",
-      email: identity.email ?? "",
+      email,
       role: "member",
       generation: 2,
       clerk_user_id: identity.subject,
@@ -168,6 +201,72 @@ export const me = mutation({
       .withIndex("by_clerk_id", (q) => q.eq("clerk_user_id", identity.subject))
       .unique();
     return user;
+  },
+});
+
+// Small, cheap query used by the admin UI to decide whether to render the
+// /(admin) layout or redirect away. Never throws for signed-in users; returns
+// { isSiteAdmin: false } when the row exists but the flag is unset.
+export const meSiteAdmin = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return { isSiteAdmin: false };
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_user_id", identity.subject))
+      .unique();
+    return { isSiteAdmin: user?.is_site_admin === true };
+  },
+});
+
+// Grant or revoke site-admin. Internal-only: invoked via `npx convex run`.
+export const promoteSiteAdmin = internalMutation({
+  args: { email: v.string(), value: v.boolean() },
+  handler: async (ctx, { email, value }) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .unique();
+    if (!user) throw new ConvexError({ code: "USER_NOT_FOUND", email });
+    await ctx.db.patch(user._id, { is_site_admin: value });
+    await writeAudit(ctx, {
+      actorUserId: user._id,
+      actorKind: "system",
+      category: "auth",
+      action: value ? "site_admin.granted" : "site_admin.revoked",
+      resourceType: "user",
+      resourceId: String(user._id),
+      metadata: { email },
+    });
+    return { userId: user._id, is_site_admin: value };
+  },
+});
+
+// Top-level families roster for site admins. Returns family name + member
+// count only — no per-family data. This lands the shape for the future
+// admin "Families" list view; unused by UI in this pass.
+export const listFamiliesForSiteAdmin = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireSiteAdmin(ctx);
+    const families = await ctx.db.query("families").collect();
+    const active = families.filter((f) => !f.deleted_at);
+    const results = await Promise.all(
+      active.map(async (f) => {
+        const memberships = await ctx.db
+          .query("family_users")
+          .withIndex("by_family", (q) => q.eq("family_id", f._id))
+          .collect();
+        return {
+          _id: f._id,
+          name: f.name,
+          description: f.description ?? null,
+          member_count: memberships.length,
+        };
+      }),
+    );
+    return results.sort((a, b) => a.name.localeCompare(b.name));
   },
 });
 

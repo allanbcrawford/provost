@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { query } from "./_generated/server";
-import { requireFamilyMember } from "./lib/authz";
+import { requireFamilyMember, requireSiteAdmin } from "./lib/authz";
 
 type TagEntry = { label: string; confidence?: number };
 
@@ -147,3 +147,74 @@ export type LibrarySourceSummary = {
   category: string;
   tags: DocumentTags;
 };
+
+// ---------------------------------------------------------------------------
+// Site-admin curation views. Not family-scoped — these read the global
+// `library_sources` / `library_groups` / `library_collections` tables used to
+// author knowledge content (learning modules, lessons, podcasts, etc.). Gated
+// by `requireSiteAdmin` so family users can never hit them.
+// ---------------------------------------------------------------------------
+
+export const listSourcesAsAdmin = query({
+  args: {
+    query: v.optional(v.string()),
+    facets: facetsValidator,
+  },
+  handler: async (ctx, { query: q, facets }) => {
+    await requireSiteAdmin(ctx);
+    const rows = await ctx.db.query("library_sources").take(1000);
+    const filtered = rows
+      .filter((r) => matchesFacets(r, facets))
+      .filter((r) => matchesQuery(r, q ?? ""));
+    return filtered.map((r) => ({
+      _id: r._id,
+      title: r.title,
+      author: r.author ?? null,
+      category: r.category,
+      tags: (r.tags as DocumentTags | undefined) ?? {},
+    }));
+  },
+});
+
+export const getSourceAsAdmin = query({
+  args: { sourceId: v.id("library_sources") },
+  handler: async (ctx, { sourceId }) => {
+    await requireSiteAdmin(ctx);
+    const source = await ctx.db.get(sourceId);
+    if (!source) return null;
+    return {
+      _id: source._id,
+      title: source.title,
+      author: source.author ?? null,
+      category: source.category,
+      content: source.content,
+      tags: (source.tags as DocumentTags | undefined) ?? {},
+    };
+  },
+});
+
+export const listGroupsAsAdmin = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireSiteAdmin(ctx);
+    const groups = await ctx.db.query("library_groups").take(500);
+    return groups.map((g) => ({
+      _id: g._id,
+      title: g.title,
+      source_count: g.source_ids.length,
+    }));
+  },
+});
+
+export const listCollectionsAsAdmin = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireSiteAdmin(ctx);
+    const collections = await ctx.db.query("library_collections").take(500);
+    return collections.map((c) => ({
+      _id: c._id,
+      title: c.title,
+      group_count: c.group_ids.length,
+    }));
+  },
+});
