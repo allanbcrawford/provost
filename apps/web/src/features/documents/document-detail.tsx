@@ -1,9 +1,16 @@
 "use client";
 
-import { Button, PDFViewer, setupPdfWorker } from "@provost/ui";
+import { Button } from "@provost/ui";
 import { useQuery } from "convex/react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+
+const PDFViewer = dynamic(() => import("@provost/ui/pdf").then((m) => m.PDFViewer), {
+  ssr: false,
+  loading: () => <div className="p-4 text-sm text-provost-text-secondary">Loading PDF…</div>,
+});
+
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 import { ObservationsPanel } from "./observations-panel";
@@ -18,7 +25,7 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
-    setupPdfWorker();
+    import("@provost/ui/pdf").then((m) => m.setupPdfWorker());
   }, []);
 
   if (document === undefined) {

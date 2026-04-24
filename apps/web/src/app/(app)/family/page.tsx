@@ -1,11 +1,12 @@
 "use client";
 
-import { type LayerOption, LayerToggle, Tabs, TabsList, TabsTrigger } from "@provost/ui";
+import { Icon, type LayerOption, LayerToggle, Tabs, TabsList, TabsTrigger } from "@provost/ui";
 import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
 import { useQuery } from "convex/react";
 import { useCallback, useMemo, useState } from "react";
 import { useSelectedFamily } from "@/context/family-context";
 import { useWidgetSlot } from "@/context/widget-portal-context";
+import { MembersList } from "@/features/family/members-list";
 import { adaptGraphPayload } from "@/features/graph/adapt-convex";
 import { buildGraph, buildPayloadFromConvex, filterByLayers } from "@/features/graph/build-graph";
 import { FamilyGraph } from "@/features/graph/family-graph";
@@ -22,6 +23,7 @@ import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
 
 type FamilyTab = "our-family" | "professionals";
+type FamilyView = "tree" | "list";
 
 const INITIAL_LAYERS: LayerState = {
   people: true,
@@ -220,29 +222,73 @@ function FamilyGraphScene() {
 function FamilyPageContent() {
   const family = useSelectedFamily();
   const [activeTab, setActiveTab] = useState<FamilyTab>("our-family");
+  const [view, setView] = useState<FamilyView>("list");
+
+  const graphData = useQuery(
+    api.family.getGraph,
+    family ? { familyId: family._id as Id<"families"> } : "skip",
+  );
+  const members = graphData?.members ?? [];
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
       <div className="flex-shrink-0 px-8 pt-8 pb-0">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="font-dm-serif text-[42px] font-medium tracking-[-0.84px] text-provost-text-primary">
-            {family?.name ?? "Family"}
-          </h1>
-        </div>
+        <h1 className="mb-8 font-dm-serif text-[44px] leading-[1.05] tracking-[-0.02em] text-provost-text-primary">
+          People
+        </h1>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as FamilyTab)}>
-          <TabsList>
-            <TabsTrigger value="our-family">Our Family</TabsTrigger>
-            <TabsTrigger value="professionals">Professionals</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex items-end justify-between">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as FamilyTab)}>
+            <TabsList>
+              <TabsTrigger value="our-family">Our Family</TabsTrigger>
+              <TabsTrigger value="professionals">Professionals</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          {activeTab === "our-family" && (
+            <div className="mb-2 flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setView("tree")}
+                aria-pressed={view === "tree"}
+                aria-label="Tree view"
+                className={`flex size-9 items-center justify-center rounded-lg border transition-colors ${
+                  view === "tree"
+                    ? "border-provost-border-strong text-provost-text-primary"
+                    : "border-transparent text-provost-text-secondary hover:bg-provost-bg-secondary"
+                }`}
+              >
+                <Icon name="account_tree" size={20} weight={200} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setView("list")}
+                aria-pressed={view === "list"}
+                aria-label="List view"
+                className={`flex size-9 items-center justify-center rounded-lg border transition-colors ${
+                  view === "list"
+                    ? "border-provost-border-strong text-provost-text-primary"
+                    : "border-transparent text-provost-text-secondary hover:bg-provost-bg-secondary"
+                }`}
+              >
+                <Icon name="format_list_bulleted" size={20} weight={200} />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="min-h-0 flex-1">
         {activeTab === "our-family" ? (
-          <ReactFlowProvider>
-            <FamilyGraphScene />
-          </ReactFlowProvider>
+          view === "tree" ? (
+            <ReactFlowProvider>
+              <FamilyGraphScene />
+            </ReactFlowProvider>
+          ) : (
+            <div className="h-full overflow-auto px-8 pt-6 pb-8">
+              <MembersList members={members} />
+            </div>
+          )
         ) : (
           <div className="h-full overflow-auto p-8 pt-4">
             <ProfessionalsList />

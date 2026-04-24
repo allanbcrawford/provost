@@ -6,6 +6,7 @@ import { Header } from "@/components/header";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { BreadcrumbProvider } from "@/context/breadcrumb-context";
 import { FamilyProvider } from "@/context/family-context";
+import { SidebarProvider } from "@/context/sidebar-context";
 import { WidgetPortalProvider } from "@/context/widget-portal-context";
 import { ChatPanelProvider } from "@/features/chat/chat-panel-context";
 
@@ -16,16 +17,18 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         <FamilyBootstrap>
           <WidgetPortalProvider>
             <ChatPanelProvider>
-              <BreadcrumbProvider>
-                <div className="flex h-dvh flex-col overflow-hidden bg-provost-bg-primary">
-                  <Header />
-                  <div className="flex flex-1 overflow-hidden">
-                    <SidebarNav />
-                    <main className="flex-1 min-w-0 overflow-y-auto bg-white">{children}</main>
-                    <ChatRail />
+              <SidebarProvider>
+                <BreadcrumbProvider>
+                  <div className="flex h-dvh flex-col overflow-hidden bg-provost-bg-primary">
+                    <Header />
+                    <div className="flex flex-1 overflow-hidden">
+                      <SidebarNav />
+                      <main className="flex-1 min-w-0 overflow-y-auto bg-white">{children}</main>
+                      <ChatRail />
+                    </div>
                   </div>
-                </div>
-              </BreadcrumbProvider>
+                </BreadcrumbProvider>
+              </SidebarProvider>
             </ChatPanelProvider>
           </WidgetPortalProvider>
         </FamilyBootstrap>

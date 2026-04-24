@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { Fragment, useMemo } from "react";
 import { useBreadcrumbs } from "@/context/breadcrumb-context";
 import { useSelectedFamily } from "@/context/family-context";
+import { useSidebar } from "@/context/sidebar-context";
 import { useChatPanel } from "@/features/chat/chat-panel-context";
 
 function titleize(segment: string): string {
@@ -34,22 +35,38 @@ export function Header() {
   const { overrides } = useBreadcrumbs();
   const family = useSelectedFamily();
   const { isOpen: isChatPanelOpen, setIsOpen: setChatPanelOpen } = useChatPanel();
+  const { toggle: toggleSidebar } = useSidebar();
 
   const crumbs = useMemo(() => overrides ?? buildCrumbsFromPath(pathname), [overrides, pathname]);
 
   const familyName = useMemo(() => {
     const raw = family?.name ?? "";
-    return (
-      raw
-        .replace(/\sFamily$/i, "")
-        .replace(/^The\s/i, "")
-        .trim() || "Family"
-    );
+    // Normalize: drop parenthesized qualifiers (e.g. "(demo)"), collapse
+    // whitespace, then peel off the "Family" suffix and "The" prefix before
+    // returning the last remaining word as the surname.
+    const cleaned = raw
+      .replace(/\s*\([^)]*\)\s*/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .replace(/\s+Family$/i, "")
+      .replace(/^The\s+/i, "")
+      .trim();
+    if (!cleaned) return "Family";
+    const parts = cleaned.split(/\s+/);
+    return parts[parts.length - 1] ?? "Family";
   }, [family?.name]);
 
   return (
     <header className="w-full h-[61px] flex items-center justify-between px-4 md:px-6 border-b border-provost-border-subtle bg-white shrink-0">
       <div className="flex items-center gap-2 md:gap-4 min-w-0">
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          className="flex justify-center p-2 hover:bg-provost-bg-secondary rounded-lg transition-colors"
+          aria-label="Toggle sidebar"
+        >
+          <Icon name="menu" size={25} className="text-provost-text-secondary" />
+        </button>
         <span className="font-dm-serif text-2xl md:text-[34px] truncate">{familyName}</span>
         <button
           type="button"

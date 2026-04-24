@@ -29,10 +29,10 @@ export const TabsTrigger = forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      "relative inline-flex items-center justify-center whitespace-nowrap pb-4 text-[15px] tracking-[-0.6px] transition-colors outline-none",
-      "text-provost-text-secondary hover:text-provost-text-primary",
-      "data-[state=active]:text-provost-text-primary",
-      "data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-0 data-[state=active]:after:right-0 data-[state=active]:after:h-[2px] data-[state=active]:after:bg-provost-text-primary",
+      "relative inline-flex items-center justify-center whitespace-nowrap pb-4 text-[16px] font-light tracking-[-0.4px] transition-colors outline-none",
+      "text-provost-text-tertiary hover:text-provost-text-primary",
+      "data-[state=active]:text-provost-text-primary data-[state=active]:font-medium",
+      "data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-1/2 data-[state=active]:after:-translate-x-1/2 data-[state=active]:after:h-[2px] data-[state=active]:after:w-10 data-[state=active]:after:bg-provost-text-primary",
       "disabled:pointer-events-none disabled:opacity-50",
       className,
     )}

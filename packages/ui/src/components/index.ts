@@ -54,7 +54,6 @@ export { Icon } from "./icon";
 export { Input } from "./input";
 export { Label } from "./label";
 export { Markdown } from "./markdown";
-export { isPdfSupported, PDFThumbnails, PDFViewer, setupPdfWorker } from "./pdf-viewer";
 export {
   StatusChip,
   type StatusChipProps,
