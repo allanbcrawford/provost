@@ -8,10 +8,16 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  // TODO(phase-4): mount <WidgetPortalProvider> in apps/web/src/app/(app)/layout.tsx
-  // (the authenticated shell) so chat tools can push widgets into page slots.
   return (
     <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,200..700,0..1,0&display=block"
+          rel="stylesheet"
+        />
+      </head>
       <body className="min-h-dvh bg-white text-neutral-900 antialiased">
         <Providers>{children}</Providers>
       </body>

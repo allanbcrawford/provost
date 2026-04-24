@@ -1,6 +1,8 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,200..700,0..1,0&display=swap");
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+@custom-variant fixed (&:is(.layout-fixed *));
 
 :root {
   --radius: 0.65rem;
@@ -36,30 +38,22 @@
   --sidebar-border: #eeecea;
   --sidebar-ring: oklch(0.708 0 0);
 
-  /* Provost backgrounds */
+  /* Figma Design Tokens - Provost */
   --provost-bg-primary: #fffefd;
   --provost-bg-secondary: #f5f5f5;
   --provost-bg-card: rgba(255, 255, 255, 0.7);
   --provost-bg-card-solid: #fffefd;
   --provost-bg-card-subtle: rgba(223, 221, 220, 0.7);
   --provost-bg-menu-hover: #f5f4f3;
-
-  /* Provost borders */
   --provost-border-subtle: #eeecea;
   --provost-border-light: #f3f0ec;
-
-  /* Provost text */
   --provost-text-primary: #242424;
   --provost-text-secondary: #6b6b6b;
   --provost-text-tertiary: rgba(0, 0, 0, 0.4);
-
-  /* Provost accents */
   --provost-accent-red: #6f292e;
   --provost-accent-blue: #0163ad;
   --provost-accent-blue-hover: #0152a3;
   --provost-accent-amber: #b45309;
-
-  /* Provost radii + shadow */
   --provost-radius-card: 12px;
   --provost-radius-medium: 8px;
   --provost-radius-small: 6px;
@@ -82,7 +76,9 @@
   --provost-card-slate: #28303b;
   --provost-card-green-dark: #292f37;
 
-  /* Neutral gray scale */
+  /* ===========================================
+     NEUTRAL GRAY SCALE (base primitives)
+     =========================================== */
   --provost-neutral-900: #242424;
   --provost-neutral-700: #6b6b6b;
   --provost-neutral-600: #6e6e6e;
@@ -99,7 +95,10 @@
   --provost-neutral-50: #f8f6f4;
   --provost-neutral-25: #2f2c25;
 
-  /* Semantic text aliases */
+  /* ===========================================
+     SEMANTIC ALIASES (for common use cases)
+     =========================================== */
+  /* Text colors */
   --provost-text-strong: var(--provost-neutral-900);
   --provost-text-muted: var(--provost-neutral-700);
   --provost-text-subtle: var(--provost-neutral-550);
@@ -107,14 +106,14 @@
   --provost-text-disabled: var(--provost-neutral-200);
   --provost-text-placeholder: var(--provost-neutral-150);
 
-  /* Semantic border aliases */
+  /* Border colors */
   --provost-border-default: var(--provost-neutral-100);
   --provost-border-lighter: var(--provost-neutral-125);
   --provost-border-strong: var(--provost-neutral-250);
   --provost-border-gray: var(--provost-neutral-250);
   --provost-border-medium: #d3dde5;
 
-  /* Semantic background aliases */
+  /* Background colors */
   --provost-bg-subtle: var(--provost-neutral-75);
   --provost-bg-muted: var(--provost-neutral-50);
   --provost-bg-hover: #f9fafb;
@@ -122,11 +121,13 @@
   --provost-bg-icon: #e9e9eb;
   --provost-bg-icon-green: #cae1d7;
 
-  /* UI elements */
+  /* UI element colors */
   --provost-dot: var(--provost-neutral-500);
   --provost-icon-disabled: var(--provost-neutral-300);
 
-  /* Status */
+  /* ===========================================
+     STATUS COLORS
+     =========================================== */
   --provost-status-success: #22c55e;
   --provost-status-success-bg: #dcfce7;
   --provost-status-error: #e54965;
@@ -140,7 +141,9 @@
   --provost-status-inactive-bg: #fff3e0;
   --provost-status-inactive-text: #e65100;
 
-  /* Special purpose */
+  /* ===========================================
+     SPECIAL PURPOSE COLORS
+     =========================================== */
   --provost-highlight-mark: #e8f3e8;
   --provost-observation-danger: #c94b4b;
   --provost-observation-info-bg: rgba(211, 221, 229, 0.4);
@@ -162,6 +165,40 @@
   --provost-signal-risk-bg: #fffbeb;
   --provost-signal-recommendation: #0163ad;
   --provost-signal-recommendation-bg: #eff6ff;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: #fffefd;
+  --sidebar-foreground: #2f2c25;
+  --sidebar-primary: #2f2c25;
+  --sidebar-primary-foreground: #fffefd;
+  --sidebar-accent: #f5f5f5;
+  --sidebar-accent-foreground: #2f2c25;
+  --sidebar-border: #eeecea;
+  --sidebar-ring: oklch(0.556 0 0);
 }
 
 @theme inline {
@@ -209,7 +246,7 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* Provost palette */
+  /* Provost Design Tokens - Tailwind integration */
   --color-provost-bg-primary: var(--provost-bg-primary);
   --color-provost-bg-secondary: var(--provost-bg-secondary);
   --color-provost-bg-card: var(--provost-bg-card);
@@ -332,6 +369,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.font-dm-serif {
+  font-family: "DM Serif Display", ui-serif, Georgia, serif;
+}
+
+/* Google Material Symbols — ligatures require the font to be loaded before
+   render, so we rely on font-display: block via the <link> in layout.tsx. */
 .material-symbols-outlined {
   font-family: "Material Symbols Outlined", sans-serif;
   font-weight: normal;
@@ -344,9 +387,10 @@ body {
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
+  font-feature-settings: "liga";
   font-variation-settings:
     "FILL" 0,
-    "wght" 300,
+    "wght" 200,
     "GRAD" 0,
     "opsz" 24;
 }
