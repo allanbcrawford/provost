@@ -26,7 +26,11 @@ function SimulationsPage() {
   const [initialState, setInitialState] = useState<WaterfallSavedState | null>(null);
 
   if (!family) {
-    return <div className="p-8 text-sm text-provost-text-secondary">Select a family first.</div>;
+    return (
+      <div className="p-8 text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+        Select a family first.
+      </div>
+    );
   }
 
   const handleOpen = (sim: SavedSimulation) => {
@@ -40,7 +44,15 @@ function SimulationsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl p-8">
+    <div className="p-8">
+      <div className="mb-8">
+        <h1 className="font-dm-serif text-[42px] font-medium tracking-[-0.84px] text-provost-text-primary">
+          Simulations
+        </h1>
+        <p className="mt-2 text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+          Explore hypothetical outcomes and save scenarios for later review.
+        </p>
+      </div>
       <SimulationsList saved={saved ?? []} onNew={handleNew} onOpen={handleOpen} />
       <WaterfallModal
         open={open}

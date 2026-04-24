@@ -1,5 +1,6 @@
 "use client";
 
+import { Button, Tabs, TabsContent, TabsList, TabsTrigger } from "@provost/ui";
 import { useQuery } from "convex/react";
 import { useMemo, useState } from "react";
 import { useSelectedFamily } from "@/context/family-context";
@@ -10,12 +11,14 @@ import { APP_ROLES } from "@/lib/roles";
 import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
 
-type TabKey = "my" | "all" | "completed";
+type TabKey = "my" | "fun-facts" | "completed" | "curriculum" | "progress";
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "my", label: "My Lessons" },
-  { key: "all", label: "All" },
+  { key: "fun-facts", label: "Fun Facts" },
   { key: "completed", label: "Completed" },
+  { key: "curriculum", label: "Curriculum" },
+  { key: "progress", label: "Progress" },
 ];
 
 function LessonsPage() {
@@ -26,57 +29,63 @@ function LessonsPage() {
   );
   const [tab, setTab] = useState<TabKey>("my");
 
-  const filtered = useMemo(() => {
+  const filtered = useMemo<LessonListItem[]>(() => {
     if (!lessons) return [];
+    const list = lessons as LessonListItem[];
     if (tab === "my")
-      return (lessons as LessonListItem[]).filter(
-        (l: LessonListItem) => l.status === "assigned" || l.status === "in_progress",
-      );
-    if (tab === "completed")
-      return (lessons as LessonListItem[]).filter((l: LessonListItem) => l.status === "completed");
-    return lessons;
+      return list.filter((l) => l.status === "assigned" || l.status === "in_progress");
+    if (tab === "completed") return list.filter((l) => l.status === "completed");
+    return [];
   }, [lessons, tab]);
 
   const isLoading = lessons === undefined;
 
+  const emptyMessage =
+    tab === "my"
+      ? "No lessons in progress. Browse the curriculum to get started."
+      : tab === "completed"
+        ? "You haven't completed any lessons yet."
+        : tab === "fun-facts"
+          ? "No family fun facts yet."
+          : tab === "curriculum"
+            ? "Curriculum management coming soon."
+            : "Progress tracking coming soon.";
+
   return (
-    <div className="mx-auto max-w-5xl p-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="font-semibold text-2xl text-neutral-900">Lessons</h1>
+    <div className="p-8">
+      <div className="mb-8 flex items-center justify-between">
+        <h1 className="font-dm-serif text-[42px] font-medium tracking-[-0.84px] text-provost-text-primary">
+          Lessons
+        </h1>
+        <Button
+          variant="outline"
+          className="h-[35px] rounded-full border-provost-text-primary px-5 text-[15px] font-medium"
+        >
+          Request new lesson
+        </Button>
       </div>
 
-      <div className="mb-6 flex gap-1 border-neutral-200 border-b">
+      <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="flex flex-col gap-6">
+        <TabsList>
+          {TABS.map((t) => (
+            <TabsTrigger key={t.key} value={t.key}>
+              {t.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
         {TABS.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => setTab(t.key)}
-            className={[
-              "-mb-px border-b-2 px-4 py-2 text-sm transition-colors",
-              tab === t.key
-                ? "border-neutral-900 font-medium text-neutral-900"
-                : "border-transparent text-neutral-600 hover:text-neutral-900",
-            ].join(" ")}
-          >
-            {t.label}
-          </button>
+          <TabsContent key={t.key} value={t.key}>
+            {isLoading ? (
+              <p className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+                Loading lessons…
+              </p>
+            ) : (
+              <LessonsList lessons={filtered} emptyMessage={emptyMessage} />
+            )}
+          </TabsContent>
         ))}
-      </div>
-
-      {isLoading ? (
-        <p className="text-neutral-500 text-sm">Loading lessons…</p>
-      ) : (
-        <LessonsList
-          lessons={filtered}
-          emptyMessage={
-            tab === "my"
-              ? "No lessons in progress. Check the All tab to browse the curriculum."
-              : tab === "completed"
-                ? "You haven't completed any lessons yet."
-                : "No lessons available."
-          }
-        />
-      )}
+      </Tabs>
     </div>
   );
 }

@@ -15,7 +15,7 @@ import {
 } from "@provost/ui";
 import { useMutation, useQuery } from "convex/react";
 import Link from "next/link";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { api } from "../../../../../convex/_generated/api";
 import type { Doc, Id } from "../../../../../convex/_generated/dataModel";
 
@@ -30,7 +30,7 @@ type DecidedApproval = Doc<"tool_call_approvals"> & {
 
 export function ApprovalsQueue({ familyId }: { familyId: Id<"families"> }) {
   return (
-    <Tabs defaultValue="pending" className="flex flex-col gap-4">
+    <Tabs defaultValue="pending" className="flex flex-col gap-6">
       <TabsList>
         <TabsTrigger value="pending">Pending</TabsTrigger>
         <TabsTrigger value="recent">Recent decisions</TabsTrigger>
@@ -89,12 +89,14 @@ function PendingList({ familyId }: { familyId: Id<"families"> }) {
   }
 
   if (pending === undefined) {
-    return <div className="text-provost-text-secondary text-sm">Loading…</div>;
+    return (
+      <div className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">Loading…</div>
+    );
   }
 
   if (pending.length === 0) {
     return (
-      <div className="rounded-md border border-neutral-200 border-dashed p-8 text-center text-provost-text-secondary text-sm">
+      <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] tracking-[-0.42px] text-provost-text-secondary">
         No pending approvals.
       </div>
     );
@@ -102,64 +104,68 @@ function PendingList({ familyId }: { familyId: Id<"families"> }) {
 
   return (
     <>
-      <ul className="flex flex-col gap-3">
-        {(pending as PendingApproval[]).map((a) => {
+      <ul className="flex flex-col">
+        {(pending as PendingApproval[]).map((a, idx) => {
           const isOpen = expanded.has(a._id);
           return (
-            <li
-              key={a._id}
-              className="flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-4"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2">
-                    <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-800 text-xs">
-                      pending
-                    </span>
-                    <h3 className="font-medium font-mono text-sm">{a.tool_name}</h3>
+            <Fragment key={a._id}>
+              {idx > 0 && <li aria-hidden className="h-px bg-[#E5E7EB]" />}
+              <li className="flex flex-col gap-3 py-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex min-w-0 flex-1 flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[12px] font-medium text-amber-800">
+                        pending
+                      </span>
+                      <h3 className="font-mono text-[14px] font-medium tracking-[-0.42px] text-provost-text-primary">
+                        {a.tool_name}
+                      </h3>
+                    </div>
+                    <p className="text-[13px] tracking-[-0.39px] text-provost-text-secondary">
+                      Requested by {a.requester?.name ?? "—"} ·{" "}
+                      {new Date(a._creationTime).toLocaleString()}
+                    </p>
+                    <Link
+                      href={`/governance/audit?search=${a.thread_run_id}`}
+                      className="self-start text-[13px] tracking-[-0.39px] text-provost-text-secondary underline hover:text-provost-text-primary"
+                    >
+                      Context: thread/run {a.thread_run_id.slice(-6)}
+                    </Link>
                   </div>
-                  <p className="text-provost-text-secondary text-xs">
-                    Requested by {a.requester?.name ?? "—"} ·{" "}
-                    {new Date(a._creationTime).toLocaleString()}
-                  </p>
-                  <Link
-                    href={`/governance/audit?search=${a.thread_run_id}`}
-                    className="text-provost-text-secondary text-xs underline hover:text-provost-text-primary"
-                  >
-                    Context: thread/run {a.thread_run_id.slice(-6)}
-                  </Link>
+                  <div className="flex shrink-0 gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setRejectTarget(a)}
+                      disabled={busy === a.tool_call_id}
+                      className="h-[35px] rounded-full px-4 text-[13px] font-medium"
+                    >
+                      Reject
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => onApprove(a.tool_call_id)}
+                      disabled={busy === a.tool_call_id}
+                      className="h-[35px] rounded-full px-4 text-[13px] font-medium"
+                    >
+                      Approve
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setRejectTarget(a)}
-                    disabled={busy === a.tool_call_id}
-                  >
-                    Reject
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => onApprove(a.tool_call_id)}
-                    disabled={busy === a.tool_call_id}
-                  >
-                    Approve
-                  </Button>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => toggleExpand(a._id)}
-                className="self-start text-provost-text-secondary text-xs underline hover:text-provost-text-primary"
-              >
-                {isOpen ? "Hide arguments" : "Show arguments"}
-              </button>
-              {isOpen && (
-                <pre className="overflow-x-auto rounded bg-neutral-50 p-3 text-neutral-700 text-xs">
-                  {JSON.stringify(a.arguments, null, 2)}
-                </pre>
-              )}
-            </li>
+                <button
+                  type="button"
+                  onClick={() => toggleExpand(a._id)}
+                  className="self-start text-[13px] tracking-[-0.39px] text-provost-text-secondary underline hover:text-provost-text-primary"
+                >
+                  {isOpen ? "Hide arguments" : "Show arguments"}
+                </button>
+                {isOpen && (
+                  <pre className="overflow-x-auto rounded-[8px] bg-provost-bg-muted p-3 font-mono text-[12px] text-provost-text-primary">
+                    {JSON.stringify(a.arguments, null, 2)}
+                  </pre>
+                )}
+              </li>
+            </Fragment>
           );
         })}
       </ul>
@@ -183,7 +189,7 @@ function PendingList({ familyId }: { familyId: Id<"families"> }) {
           </DialogHeader>
           {rejectTarget && (
             <div className="flex flex-col gap-2">
-              <p className="font-mono text-provost-text-secondary text-xs">
+              <p className="font-mono text-[12px] text-provost-text-secondary">
                 {rejectTarget.tool_name}
               </p>
               <textarea
@@ -191,7 +197,7 @@ function PendingList({ familyId }: { familyId: Id<"families"> }) {
                 onChange={(e) => setRejectReason(e.target.value)}
                 rows={4}
                 placeholder="Reason (optional)"
-                className="w-full rounded-[8px] border border-provost-border-subtle bg-white p-3 text-sm text-provost-text-primary shadow-xs outline-none placeholder:text-provost-text-secondary focus-visible:border-provost-border-default focus-visible:ring-2 focus-visible:ring-provost-border-default/30"
+                className="w-full rounded-[8px] border border-provost-border-subtle bg-white p-3 text-[14px] tracking-[-0.42px] text-provost-text-primary shadow-xs outline-none placeholder:text-provost-text-secondary focus-visible:border-provost-border-default focus-visible:ring-2 focus-visible:ring-provost-border-default/30"
               />
             </div>
           )}
@@ -220,61 +226,65 @@ function RecentDecisionsList({ familyId }: { familyId: Id<"families"> }) {
   const decisions = useQuery(api.governance.recentDecisions, { familyId, limit: 20 });
 
   if (decisions === undefined) {
-    return <div className="text-provost-text-secondary text-sm">Loading…</div>;
+    return (
+      <div className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">Loading…</div>
+    );
   }
 
   if (decisions.length === 0) {
     return (
-      <div className="rounded-md border border-neutral-200 border-dashed p-8 text-center text-provost-text-secondary text-sm">
+      <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] tracking-[-0.42px] text-provost-text-secondary">
         No decisions yet.
       </div>
     );
   }
 
   return (
-    <ul className="flex flex-col gap-2">
-      {(decisions as DecidedApproval[]).map((a) => {
+    <ul className="flex flex-col">
+      {(decisions as DecidedApproval[]).map((a, idx) => {
         const isApproved = a.status === "approved";
         return (
-          <li
-            key={a._id}
-            className="flex flex-col gap-2 rounded-lg border border-neutral-200 bg-white p-4"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={
-                      isApproved
-                        ? "rounded bg-emerald-100 px-2 py-0.5 text-emerald-800 text-xs"
-                        : "rounded bg-rose-100 px-2 py-0.5 text-rose-800 text-xs"
-                    }
-                  >
-                    {a.status}
-                  </span>
-                  <h3 className="font-medium font-mono text-sm">{a.tool_name}</h3>
+          <Fragment key={a._id}>
+            {idx > 0 && <li aria-hidden className="h-px bg-[#E5E7EB]" />}
+            <li className="flex flex-col gap-2 py-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={
+                        isApproved
+                          ? "rounded-full bg-emerald-100 px-2 py-0.5 text-[12px] font-medium text-emerald-800"
+                          : "rounded-full bg-rose-100 px-2 py-0.5 text-[12px] font-medium text-rose-800"
+                      }
+                    >
+                      {a.status}
+                    </span>
+                    <h3 className="font-mono text-[14px] font-medium tracking-[-0.42px] text-provost-text-primary">
+                      {a.tool_name}
+                    </h3>
+                  </div>
+                  <p className="text-[13px] tracking-[-0.39px] text-provost-text-secondary">
+                    Decided by {a.decider?.name ?? "—"} ·{" "}
+                    {a.decided_at ? new Date(a.decided_at).toLocaleString() : "—"}
+                  </p>
+                  <p className="text-[13px] tracking-[-0.39px] text-provost-text-secondary">
+                    Requested by {a.requester?.name ?? "—"}
+                  </p>
                 </div>
-                <p className="text-provost-text-secondary text-xs">
-                  Decided by {a.decider?.name ?? "—"} ·{" "}
-                  {a.decided_at ? new Date(a.decided_at).toLocaleString() : "—"}
-                </p>
-                <p className="text-provost-text-secondary text-xs">
-                  Requested by {a.requester?.name ?? "—"}
-                </p>
+                <Link
+                  href={`/governance/audit?search=${a.thread_run_id}`}
+                  className="text-[13px] tracking-[-0.39px] text-provost-text-secondary underline hover:text-provost-text-primary"
+                >
+                  Context
+                </Link>
               </div>
-              <Link
-                href={`/governance/audit?search=${a.thread_run_id}`}
-                className="text-provost-text-secondary text-xs underline hover:text-provost-text-primary"
-              >
-                Context
-              </Link>
-            </div>
-            {a.decision_reason && (
-              <p className="rounded bg-neutral-50 p-2 text-neutral-700 text-xs">
-                Reason: {a.decision_reason}
-              </p>
-            )}
-          </li>
+              {a.decision_reason && (
+                <p className="rounded-[8px] bg-provost-bg-muted p-2 text-[13px] tracking-[-0.39px] text-provost-text-primary">
+                  Reason: {a.decision_reason}
+                </p>
+              )}
+            </li>
+          </Fragment>
         );
       })}
     </ul>

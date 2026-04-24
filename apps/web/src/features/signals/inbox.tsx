@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery } from "convex/react";
-import { useEffect, useMemo } from "react";
+import { Fragment, useEffect, useMemo } from "react";
 import { useSelectedFamily } from "@/context/family-context";
 import { api } from "../../../../../convex/_generated/api";
 import type { Doc, Id } from "../../../../../convex/_generated/dataModel";
@@ -17,7 +17,7 @@ const SEVERITY_LABEL: Record<Signal["severity"], string> = {
   stale: "Stale",
 };
 
-const SEVERITY_STYLES: Record<Signal["severity"], string> = {
+const SEVERITY_CHIP: Record<Signal["severity"], string> = {
   review: "bg-red-50 text-red-700 border-red-200",
   missing: "bg-amber-50 text-amber-800 border-amber-200",
   stale: "bg-neutral-100 text-neutral-700 border-neutral-300",
@@ -48,28 +48,33 @@ export function SignalsInbox() {
   }, [signals]);
 
   if (!family) {
-    return <div className="p-8 text-neutral-500 text-sm">Select a family to view the inbox.</div>;
+    return (
+      <div className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+        Select a family to view the inbox.
+      </div>
+    );
   }
 
   if (signals === undefined || observations === undefined) {
-    return <div className="p-8 text-neutral-500 text-sm">Loading inbox…</div>;
+    return (
+      <div className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+        Loading inbox…
+      </div>
+    );
   }
 
   const totalSignals = signals.length;
   const totalObservations = observations.length;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8 p-8">
-      <header>
-        <h1 className="font-semibold text-2xl text-neutral-900">Signals Inbox</h1>
-        <p className="mt-1 text-neutral-600 text-sm">
-          {totalSignals} open signal{totalSignals === 1 ? "" : "s"} · {totalObservations}{" "}
-          observation{totalObservations === 1 ? "" : "s"}
-        </p>
-      </header>
+    <div className="flex flex-col gap-10">
+      <p className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+        {totalSignals} open signal{totalSignals === 1 ? "" : "s"} · {totalObservations} observation
+        {totalObservations === 1 ? "" : "s"}
+      </p>
 
       {totalSignals === 0 && totalObservations === 0 ? (
-        <div className="rounded-md border border-neutral-200 bg-white p-6 text-neutral-600 text-sm">
+        <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] tracking-[-0.42px] text-provost-text-secondary">
           Nothing to review right now.
         </div>
       ) : null}
@@ -78,18 +83,22 @@ export function SignalsInbox() {
         const list = grouped[sev];
         if (list.length === 0) return null;
         return (
-          <section key={sev} className="space-y-3">
-            <h2 className="font-medium text-neutral-700 text-sm uppercase tracking-wide">
+          <section key={sev}>
+            <h2 className="mb-3 text-[12px] font-semibold uppercase tracking-wider text-provost-text-tertiary">
               {SEVERITY_LABEL[sev]} ({list.length})
             </h2>
-            <ul className="space-y-3">
-              {list.map((s) => (
-                <SignalCard
-                  key={s._id}
-                  signal={s}
-                  onDraft={() => updateStatus({ signalId: s._id, status: "drafting" })}
-                  onResolve={() => updateStatus({ signalId: s._id, status: "resolved" })}
-                />
+            <ul className="flex flex-col">
+              {list.map((s, idx) => (
+                <Fragment key={s._id}>
+                  {idx > 0 && <li aria-hidden className="h-px bg-[#E5E7EB]" />}
+                  <li>
+                    <SignalRow
+                      signal={s}
+                      onDraft={() => updateStatus({ signalId: s._id, status: "drafting" })}
+                      onResolve={() => updateStatus({ signalId: s._id, status: "resolved" })}
+                    />
+                  </li>
+                </Fragment>
               ))}
             </ul>
           </section>
@@ -97,13 +106,18 @@ export function SignalsInbox() {
       })}
 
       {observations.length > 0 ? (
-        <section className="space-y-3">
-          <h2 className="font-medium text-neutral-700 text-sm uppercase tracking-wide">
+        <section>
+          <h2 className="mb-3 text-[12px] font-semibold uppercase tracking-wider text-provost-text-tertiary">
             Observations ({observations.length})
           </h2>
-          <ul className="space-y-3">
-            {observations.map((o: Observation) => (
-              <ObservationCard key={o._id} observation={o} />
+          <ul className="flex flex-col">
+            {observations.map((o: Observation, idx: number) => (
+              <Fragment key={o._id}>
+                {idx > 0 && <li aria-hidden className="h-px bg-[#E5E7EB]" />}
+                <li>
+                  <ObservationRow observation={o} />
+                </li>
+              </Fragment>
             ))}
           </ul>
         </section>
@@ -112,7 +126,7 @@ export function SignalsInbox() {
   );
 }
 
-function SignalCard({
+function SignalRow({
   signal,
   onDraft,
   onResolve,
@@ -122,80 +136,88 @@ function SignalCard({
   onResolve: () => void;
 }) {
   return (
-    <li className="rounded-md border border-neutral-200 bg-white p-4 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span
-              className={`inline-flex items-center rounded-full border px-2 py-0.5 font-medium text-xs ${SEVERITY_STYLES[signal.severity]}`}
-            >
-              {SEVERITY_LABEL[signal.severity]}
-            </span>
-            <span className="text-neutral-400 text-xs uppercase tracking-wide">
-              {signal.category}
-            </span>
-            {signal.status === "drafting" ? (
-              <span className="text-blue-600 text-xs">Drafting</span>
-            ) : null}
-          </div>
-          <h3 className="mt-2 font-medium text-neutral-900 text-sm">{signal.title}</h3>
-          <p className="mt-1 text-neutral-700 text-sm">{signal.reason}</p>
-          {signal.suggested_action ? (
-            <p className="mt-2 text-neutral-600 text-sm">
-              <span className="font-medium text-neutral-700">Suggested:</span>{" "}
-              {signal.suggested_action}
-            </p>
+    <div className="flex items-start gap-6 py-6">
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <span
+            className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[12px] font-medium ${SEVERITY_CHIP[signal.severity]}`}
+          >
+            {SEVERITY_LABEL[signal.severity]}
+          </span>
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-provost-text-tertiary">
+            {signal.category}
+          </span>
+          {signal.status === "drafting" ? (
+            <span className="text-[12px] font-medium text-provost-accent-blue">Drafting</span>
           ) : null}
         </div>
+        <h3 className="mt-2 text-[22px] font-bold leading-[1.26] tracking-[-0.88px] text-provost-text-primary">
+          {signal.title}
+        </h3>
+        <p className="mt-2 text-[14px] tracking-[-0.42px] text-provost-text-primary">
+          {signal.reason}
+        </p>
+        {signal.suggested_action ? (
+          <p className="mt-2 text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+            <span className="font-medium text-provost-text-primary">Suggested:</span>{" "}
+            {signal.suggested_action}
+          </p>
+        ) : null}
       </div>
-      <div className="mt-4 flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         <button
           type="button"
           onClick={onDraft}
-          className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 font-medium text-neutral-800 text-sm hover:bg-neutral-50"
+          className="h-[35px] rounded-full border border-provost-border-default bg-white px-4 text-[13px] font-medium text-provost-text-primary hover:bg-provost-bg-muted"
         >
           Draft revision →
         </button>
         <button
           type="button"
           onClick={onResolve}
-          className="rounded-md px-3 py-1.5 font-medium text-neutral-600 text-sm hover:bg-neutral-100"
+          className="h-[35px] rounded-full px-4 text-[13px] font-medium text-provost-text-secondary hover:bg-provost-bg-muted"
         >
           Mark resolved
         </button>
       </div>
-    </li>
+    </div>
   );
 }
 
-function ObservationCard({ observation }: { observation: Observation }) {
+function ObservationRow({ observation }: { observation: Observation }) {
   return (
-    <li className="rounded-md border border-neutral-200 bg-white p-4 shadow-sm">
-      <div className="flex items-center gap-2">
-        <span className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 font-medium text-sky-700 text-xs">
-          Observation
-        </span>
-        <span className="text-neutral-400 text-xs uppercase tracking-wide">
-          {observation.status}
-        </span>
+    <div className="flex items-start gap-6 py-6">
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[12px] font-medium text-sky-700">
+            Observation
+          </span>
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-provost-text-tertiary">
+            {observation.status}
+          </span>
+        </div>
+        <h3 className="mt-2 text-[22px] font-bold leading-[1.26] tracking-[-0.88px] text-provost-text-primary">
+          {observation.title}
+        </h3>
+        <p className="mt-2 text-[14px] tracking-[-0.42px] text-provost-text-primary">
+          {observation.description}
+        </p>
+        <p className="mt-2 text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+          <span className="font-medium text-provost-text-primary">Why this matters:</span>{" "}
+          {observation.why_this_matters}
+        </p>
+        <p className="mt-1 text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+          <span className="font-medium text-provost-text-primary">Recommendation:</span>{" "}
+          {observation.recommendation}
+        </p>
+        {observation.next_best_actions.length > 0 ? (
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+            {observation.next_best_actions.map((a) => (
+              <li key={a}>{a}</li>
+            ))}
+          </ul>
+        ) : null}
       </div>
-      <h3 className="mt-2 font-medium text-neutral-900 text-sm">{observation.title}</h3>
-      <p className="mt-1 text-neutral-700 text-sm">{observation.description}</p>
-      <p className="mt-2 text-neutral-600 text-sm">
-        <span className="font-medium text-neutral-700">Why this matters:</span>{" "}
-        {observation.why_this_matters}
-      </p>
-      <p className="mt-1 text-neutral-600 text-sm">
-        <span className="font-medium text-neutral-700">Recommendation:</span>{" "}
-        {observation.recommendation}
-      </p>
-      {observation.next_best_actions.length > 0 ? (
-        <ul className="mt-2 list-disc space-y-1 pl-5 text-neutral-600 text-sm">
-          {observation.next_best_actions.map((a) => (
-            <li key={a}>{a}</li>
-          ))}
-        </ul>
-      ) : null}
-    </li>
+    </div>
   );
 }
