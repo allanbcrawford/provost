@@ -9,11 +9,19 @@
  */
 
 import type * as agent_approvals from "../agent/approvals.js";
+import type * as agent_digest from "../agent/digest.js";
+import type * as agent_digestInternal from "../agent/digestInternal.js";
+import type * as agent_embed from "../agent/embed.js";
+import type * as agent_embedInternal from "../agent/embedInternal.js";
+import type * as agent_knowledgeHydrate from "../agent/knowledgeHydrate.js";
+import type * as agent_memoriesInternal from "../agent/memoriesInternal.js";
 import type * as agent_openai from "../agent/openai.js";
 import type * as agent_prompts from "../agent/prompts.js";
 import type * as agent_run from "../agent/run.js";
 import type * as agent_runActions from "../agent/runActions.js";
 import type * as agent_runInternal from "../agent/runInternal.js";
+import type * as agent_summarize from "../agent/summarize.js";
+import type * as agent_summarizeInternal from "../agent/summarizeInternal.js";
 import type * as agent_tools_assignLesson from "../agent/tools/assignLesson.js";
 import type * as agent_tools_attachFile from "../agent/tools/attachFile.js";
 import type * as agent_tools_attachFileInternal from "../agent/tools/attachFileInternal.js";
@@ -27,14 +35,20 @@ import type * as agent_tools_generateSignals from "../agent/tools/generateSignal
 import type * as agent_tools_inviteMember from "../agent/tools/inviteMember.js";
 import type * as agent_tools_listObservations from "../agent/tools/listObservations.js";
 import type * as agent_tools_navigate from "../agent/tools/navigate.js";
+import type * as agent_tools_remember from "../agent/tools/remember.js";
 import type * as agent_tools_renderFamilyGraph from "../agent/tools/renderFamilyGraph.js";
 import type * as agent_tools_renderWaterfallSimulation from "../agent/tools/renderWaterfallSimulation.js";
+import type * as agent_tools_searchKnowledge from "../agent/tools/searchKnowledge.js";
 import type * as agent_tools_searchLibrary from "../agent/tools/searchLibrary.js";
 import type * as agent_tools_summarizeLesson from "../agent/tools/summarizeLesson.js";
+import type * as bootstrap from "../bootstrap.js";
+import type * as bootstrapInternal from "../bootstrapInternal.js";
 import type * as compliance from "../compliance.js";
+import type * as crons from "../crons.js";
 import type * as documents from "../documents.js";
 import type * as families from "../families.js";
 import type * as family from "../family.js";
+import type * as files from "../files.js";
 import type * as governance from "../governance.js";
 import type * as guardrails from "../guardrails.js";
 import type * as lessons from "../lessons.js";
@@ -66,11 +80,19 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   "agent/approvals": typeof agent_approvals;
+  "agent/digest": typeof agent_digest;
+  "agent/digestInternal": typeof agent_digestInternal;
+  "agent/embed": typeof agent_embed;
+  "agent/embedInternal": typeof agent_embedInternal;
+  "agent/knowledgeHydrate": typeof agent_knowledgeHydrate;
+  "agent/memoriesInternal": typeof agent_memoriesInternal;
   "agent/openai": typeof agent_openai;
   "agent/prompts": typeof agent_prompts;
   "agent/run": typeof agent_run;
   "agent/runActions": typeof agent_runActions;
   "agent/runInternal": typeof agent_runInternal;
+  "agent/summarize": typeof agent_summarize;
+  "agent/summarizeInternal": typeof agent_summarizeInternal;
   "agent/tools/assignLesson": typeof agent_tools_assignLesson;
   "agent/tools/attachFile": typeof agent_tools_attachFile;
   "agent/tools/attachFileInternal": typeof agent_tools_attachFileInternal;
@@ -84,14 +106,20 @@ declare const fullApi: ApiFromModules<{
   "agent/tools/inviteMember": typeof agent_tools_inviteMember;
   "agent/tools/listObservations": typeof agent_tools_listObservations;
   "agent/tools/navigate": typeof agent_tools_navigate;
+  "agent/tools/remember": typeof agent_tools_remember;
   "agent/tools/renderFamilyGraph": typeof agent_tools_renderFamilyGraph;
   "agent/tools/renderWaterfallSimulation": typeof agent_tools_renderWaterfallSimulation;
+  "agent/tools/searchKnowledge": typeof agent_tools_searchKnowledge;
   "agent/tools/searchLibrary": typeof agent_tools_searchLibrary;
   "agent/tools/summarizeLesson": typeof agent_tools_summarizeLesson;
+  bootstrap: typeof bootstrap;
+  bootstrapInternal: typeof bootstrapInternal;
   compliance: typeof compliance;
+  crons: typeof crons;
   documents: typeof documents;
   families: typeof families;
   family: typeof family;
+  files: typeof files;
   governance: typeof governance;
   guardrails: typeof guardrails;
   lessons: typeof lessons;
