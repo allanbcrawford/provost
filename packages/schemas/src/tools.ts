@@ -134,3 +134,14 @@ export const AssignLessonArgsSchema = z.object({
   dueDate: z.number().optional(),
 });
 export type AssignLessonArgs = z.infer<typeof AssignLessonArgsSchema>;
+
+export const SearchKnowledgeArgsSchema = z.object({
+  query: z.string().min(1),
+  limit: z.number().int().positive().max(25).optional(),
+});
+export type SearchKnowledgeArgs = z.infer<typeof SearchKnowledgeArgsSchema>;
+
+export const RememberArgsSchema = z.object({
+  text: z.string().min(1).max(1_000),
+});
+export type RememberArgs = z.infer<typeof RememberArgsSchema>;

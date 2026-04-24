@@ -9,8 +9,10 @@ import {
   InviteMemberArgsSchema,
   ListObservationsArgsSchema,
   NavigateArgsSchema,
+  RememberArgsSchema,
   RenderFamilyGraphArgsSchema,
   RenderWaterfallSimulationArgsSchema,
+  SearchKnowledgeArgsSchema,
   SearchLibraryArgsSchema,
   SummarizeLessonArgsSchema,
 } from "@provost/schemas/tools";
@@ -139,7 +141,7 @@ export function registerAllTools(): void {
     description:
       "Attach an already-uploaded file to the current conversation run so the agent can reference it.",
     argsSchema: AttachFileArgsSchema,
-    approvalRequired: false,
+    approvalRequired: true,
     surfaces: ["any"],
     handlerRef: "agent/tools/attachFile:handle",
   });
@@ -151,5 +153,25 @@ export function registerAllTools(): void {
     approvalRequired: false,
     surfaces: ["family", "documents", "signals", "any"],
     handlerRef: "agent/tools/listObservations:handle",
+  });
+
+  registerTool({
+    name: "search_knowledge",
+    description:
+      "Semantic search across the family's documents, assigned lessons, and library sources. Use for factual questions about estate plans, governance docs, or lessons the family has been assigned.",
+    argsSchema: SearchKnowledgeArgsSchema,
+    approvalRequired: false,
+    surfaces: ["any"],
+    handlerRef: "agent/tools/searchKnowledge:handle",
+  });
+
+  registerTool({
+    name: "remember",
+    description:
+      "Save a durable, family-scoped note that Provost should recall in future conversations (e.g. 'the family prefers to give to education causes'). Requires explicit user approval.",
+    argsSchema: RememberArgsSchema,
+    approvalRequired: true,
+    surfaces: ["any"],
+    handlerRef: "agent/tools/remember:handle",
   });
 }
