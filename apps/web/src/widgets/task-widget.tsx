@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { AiDisclaimer } from "@/components/ai-disclaimer";
 
 export type TaskToolWidgetProps = {
   taskId: string;
@@ -34,6 +35,7 @@ export function TaskToolWidget({ taskId, title, assigneeType, status }: TaskTool
       >
         View in /governance
       </Link>
+      <AiDisclaimer kind="default" />
     </div>
   );
 }

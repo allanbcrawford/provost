@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import type { ThreadState } from "@/entities/threads/thread";
 import { getTurnsFromThread } from "@/entities/turn/helpers/get-turns-from-thread";
 import type { RateLimitNotice } from "@/hooks/use-run";
+import type { Id } from "../../../../../convex/_generated/dataModel";
 import { ChatPanelEmptyState } from "./chat-panel-empty-state";
 import { ChatPanelInput } from "./chat-panel-input";
 import { TurnView } from "./turn-view";
@@ -15,7 +16,7 @@ export type ChatPanelProps = {
   thread: ThreadState;
   events?: RunEvent[];
   isStreaming?: boolean;
-  onSend: (text: string) => void;
+  onSend: (text: string, fileIds?: Id<"files">[]) => void;
   onApprove?: (toolCallId: string) => void;
   onReject?: (toolCallId: string) => void;
   placeholder?: string;
@@ -99,7 +100,10 @@ export function ChatPanel({
           <TurnView key={turn.id} turn={turn} onApprove={onApprove} onReject={onReject} />
         ))
       ) : (
-        <ChatPanelEmptyState firstName={user?.firstName ?? undefined} onSelectSuggestion={onSend} />
+        <ChatPanelEmptyState
+          firstName={user?.firstName ?? undefined}
+          onSelectSuggestion={(text) => onSend(text)}
+        />
       )}
       {isStreaming && (
         <div className="flex items-center gap-2 px-4 pb-2 text-provost-text-muted text-sm">

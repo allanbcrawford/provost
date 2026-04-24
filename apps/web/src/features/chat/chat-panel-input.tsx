@@ -1,25 +1,52 @@
 "use client";
 
 import { Icon } from "@provost/ui";
-import { type KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
+import { useMutation } from "convex/react";
+import {
+  type ChangeEvent,
+  type KeyboardEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { api } from "../../../../../convex/_generated/api";
+import type { Id } from "../../../../../convex/_generated/dataModel";
+
+export type PendingAttachment = {
+  fileId: Id<"files">;
+  name: string;
+  size: number;
+};
 
 export type ChatPanelInputProps = {
-  onSend: (text: string) => void;
+  onSend: (text: string, fileIds?: Id<"files">[]) => void;
   disabled?: boolean;
   placeholder?: string;
-  onUpload?: () => void;
   onPromptIdeas?: () => void;
 };
+
+function formatSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes}B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)}KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+}
 
 export function ChatPanelInput({
   onSend,
   disabled = false,
   placeholder = "Chat with Provost...",
-  onUpload,
   onPromptIdeas,
 }: ChatPanelInputProps) {
   const [value, setValue] = useState("");
+  const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const uploadUrlMut = useMutation(api.files.uploadUrl);
+  const createFileMut = useMutation(api.files.createFile);
 
   useEffect(() => {
     if (!disabled) textareaRef.current?.focus();
@@ -28,9 +55,11 @@ export function ChatPanelInput({
   const submit = useCallback(() => {
     const trimmed = value.trim();
     if (!trimmed || disabled) return;
-    onSend(trimmed);
+    const fileIds = attachments.map((a) => a.fileId);
+    onSend(trimmed, fileIds.length > 0 ? fileIds : undefined);
     setValue("");
-  }, [value, disabled, onSend]);
+    setAttachments([]);
+  }, [value, disabled, onSend, attachments]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -42,8 +71,82 @@ export function ChatPanelInput({
     [submit],
   );
 
+  const handleFiles = useCallback(
+    async (e: ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(e.target.files ?? []);
+      e.target.value = "";
+      if (files.length === 0) return;
+
+      setUploadError(null);
+      setUploading(true);
+      try {
+        const uploaded: PendingAttachment[] = [];
+        for (const file of files) {
+          const url = await uploadUrlMut({});
+          const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": file.type || "application/octet-stream" },
+            body: file,
+          });
+          if (!res.ok) throw new Error(`upload failed: ${res.status}`);
+          const { storageId } = (await res.json()) as { storageId: Id<"_storage"> };
+          const { fileId } = await createFileMut({
+            storageId,
+            name: file.name,
+            type: file.type || "application/octet-stream",
+            size: file.size,
+          });
+          uploaded.push({ fileId, name: file.name, size: file.size });
+        }
+        setAttachments((prev) => [...prev, ...uploaded]);
+      } catch (err) {
+        setUploadError(err instanceof Error ? err.message : "Upload failed.");
+      } finally {
+        setUploading(false);
+      }
+    },
+    [uploadUrlMut, createFileMut],
+  );
+
+  const removeAttachment = useCallback((fileId: Id<"files">) => {
+    setAttachments((prev) => prev.filter((a) => a.fileId !== fileId));
+  }, []);
+
   return (
     <div className="relative rounded-2xl border border-provost-text-primary bg-white p-3">
+      {(attachments.length > 0 || uploading || uploadError) && (
+        <div className="mb-2 flex flex-wrap gap-1.5">
+          {attachments.map((a) => (
+            <span
+              key={a.fileId}
+              className="inline-flex items-center gap-1.5 rounded-full border border-provost-border-subtle bg-provost-bg-secondary px-2.5 py-1 text-[12px] text-provost-text-primary"
+            >
+              <Icon name="attach_file" size={14} />
+              <span className="max-w-[160px] truncate">{a.name}</span>
+              <span className="text-provost-text-tertiary">{formatSize(a.size)}</span>
+              <button
+                type="button"
+                onClick={() => removeAttachment(a.fileId)}
+                className="ml-0.5 text-provost-text-secondary hover:text-provost-text-primary"
+                aria-label={`Remove ${a.name}`}
+              >
+                <Icon name="close" size={14} />
+              </button>
+            </span>
+          ))}
+          {uploading && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-provost-border-subtle bg-white px-2.5 py-1 text-[12px] text-provost-text-secondary">
+              Uploading…
+            </span>
+          )}
+          {uploadError && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-red-300 bg-red-50 px-2.5 py-1 text-[12px] text-red-700">
+              {uploadError}
+            </span>
+          )}
+        </div>
+      )}
+
       <textarea
         ref={textareaRef}
         value={value}
@@ -54,12 +157,14 @@ export function ChatPanelInput({
         placeholder={placeholder}
         rows={1}
       />
+      <input ref={fileInputRef} type="file" multiple onChange={handleFiles} className="hidden" />
       <div className="flex items-end gap-2">
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={onUpload}
-            className="inline-flex h-[35px] items-center gap-1 rounded-full border border-provost-border-default bg-white pl-3 pr-4 text-provost-text-primary transition-colors hover:bg-provost-bg-secondary"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading || disabled}
+            className="inline-flex h-[35px] items-center gap-1 rounded-full border border-provost-border-default bg-white pl-3 pr-4 text-provost-text-primary transition-colors hover:bg-provost-bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Icon name="add" size={20} />
             <span className="text-[14px] font-normal">Upload</span>
@@ -77,7 +182,7 @@ export function ChatPanelInput({
         <button
           type="button"
           onClick={submit}
-          disabled={!value.trim() || disabled}
+          disabled={!value.trim() || disabled || uploading}
           className="ml-auto flex min-h-[38px] min-w-[38px] items-center justify-center rounded-full border border-provost-border-default bg-white text-provost-text-primary transition-colors hover:bg-provost-bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="Send message"
         >
