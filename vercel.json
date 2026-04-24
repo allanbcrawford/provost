@@ -1,7 +1,7 @@
 {
-  "buildCommand": "cd ../.. && pnpm turbo run build --filter=@provost/web...",
-  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
-  "outputDirectory": ".next",
+  "buildCommand": "pnpm turbo run build --filter=@provost/web...",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "outputDirectory": "apps/web/.next",
   "framework": "nextjs",
-  "ignoreCommand": "cd ../.. && pnpm dlx turbo-ignore @provost/web"
+  "ignoreCommand": "pnpm dlx turbo-ignore @provost/web"
 }
