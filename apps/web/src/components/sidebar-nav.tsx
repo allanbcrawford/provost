@@ -44,32 +44,32 @@ export function SidebarNav() {
   const items = NAV_ITEMS.filter((item) => canSee(role, item.key));
 
   return (
-    <nav className="flex h-full w-60 shrink-0 flex-col border-neutral-200 border-r bg-white">
-      <div className="flex h-14 items-center gap-2 border-neutral-200 border-b px-5">
-        <Icon name="shield_person" size={22} weight={500} />
-        <span className="font-semibold text-neutral-900 text-sm">Provost</span>
-      </div>
-      <ul className="flex-1 space-y-0.5 overflow-y-auto p-2">
+    <aside className="h-full w-[260px] shrink-0 overflow-hidden border-r border-provost-border-subtle bg-white">
+      <nav className="flex h-full flex-col overflow-y-auto pt-6">
         {items.map((item) => {
           const active = isActive(pathname, item.href);
           return (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                className={[
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
-                  active
-                    ? "bg-neutral-100 font-medium text-neutral-900"
-                    : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900",
-                ].join(" ")}
-              >
-                <Icon name={item.icon} size={18} weight={active ? 500 : 400} />
-                <span>{item.label}</span>
-              </Link>
-            </li>
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex items-center px-5 py-3 text-[17px] transition-colors hover:bg-provost-bg-menu-hover ${
+                active ? "text-provost-text-primary" : "text-provost-neutral-550"
+              }`}
+            >
+              <span className="flex h-6 w-6 items-center justify-center">
+                <Icon
+                  name={item.icon}
+                  size={29}
+                  weight={200}
+                  filled={active}
+                  className={active ? "text-provost-text-primary" : "text-provost-neutral-550"}
+                />
+              </span>
+              <span className="ml-[15px]">{item.label}</span>
+            </Link>
           );
         })}
-      </ul>
-    </nav>
+      </nav>
+    </aside>
   );
 }
