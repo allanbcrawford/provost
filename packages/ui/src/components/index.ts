@@ -1,12 +1,4 @@
 export { Button, type ButtonProps, buttonVariants } from "./button";
-export {
-  Badge,
-  ContentCard,
-  ContentMetadata,
-  DotSeparator,
-  ProgressBar,
-  ThumbnailImage,
-} from "./content-card";
 export * from "./chat";
 export {
   Badge,
