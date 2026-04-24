@@ -1,10 +1,10 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { Button, Icon } from "@provost/ui";
+import { Icon } from "@provost/ui";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo } from "react";
+import { Fragment, useMemo } from "react";
 import { useBreadcrumbs } from "@/context/breadcrumb-context";
 import { useSelectedFamily } from "@/context/family-context";
 import { useChatPanel } from "@/features/chat/chat-panel-context";
@@ -19,8 +19,8 @@ function titleize(segment: string): string {
 
 function buildCrumbsFromPath(pathname: string) {
   const parts = pathname.split("/").filter(Boolean);
-  if (parts.length === 0) return [{ label: "Home", href: "/" }];
-  const crumbs: { label: string; href: string }[] = [{ label: "Home", href: "/" }];
+  if (parts.length === 0) return [] as { label: string; href?: string }[];
+  const crumbs: { label: string; href?: string }[] = [];
   let acc = "";
   for (const part of parts) {
     acc += `/${part}`;
@@ -33,56 +33,118 @@ export function Header() {
   const pathname = usePathname() ?? "/";
   const { overrides } = useBreadcrumbs();
   const family = useSelectedFamily();
-  const { isOpen, setIsOpen } = useChatPanel();
+  const { isOpen: isChatPanelOpen, setIsOpen: setChatPanelOpen } = useChatPanel();
 
   const crumbs = useMemo(() => overrides ?? buildCrumbsFromPath(pathname), [overrides, pathname]);
 
-  const familyName = family?.name ?? "Provost";
+  const familyName = useMemo(() => {
+    const raw = family?.name ?? "";
+    return (
+      raw
+        .replace(/\sFamily$/i, "")
+        .replace(/^The\s/i, "")
+        .trim() || "Family"
+    );
+  }, [family?.name]);
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-4 border-neutral-200 border-b bg-white px-5">
-      <nav aria-label="Breadcrumb" className="flex min-w-0 flex-1 items-center gap-2 text-sm">
-        <span className="truncate font-medium text-neutral-900">{familyName}</span>
-        <span className="text-neutral-300">/</span>
-        <ol className="flex min-w-0 items-center gap-1.5 text-neutral-600">
-          {crumbs.map((crumb, idx) => {
-            const last = idx === crumbs.length - 1;
-            return (
-              <li key={`${crumb.href ?? crumb.label}-${idx}`} className="flex items-center gap-1.5">
-                {idx > 0 && <span className="text-neutral-300">/</span>}
-                {last || !crumb.href ? (
-                  <span className={last ? "font-medium text-neutral-900" : undefined}>
-                    {crumb.label}
-                  </span>
-                ) : (
-                  <Link href={crumb.href} className="hover:text-neutral-900">
-                    {crumb.label}
-                  </Link>
-                )}
-              </li>
-            );
-          })}
-        </ol>
-      </nav>
-      <div className="flex items-center gap-1">
-        <Button variant="ghost" size="icon" aria-label="Search">
-          <Icon name="search" size={18} />
-        </Button>
-        <Button variant="ghost" size="icon" aria-label="Notifications">
-          <Icon name="notifications" size={18} />
-        </Button>
-        <Button
-          variant={isOpen ? "primary" : "ghost"}
-          size="sm"
-          onClick={() => setIsOpen(!isOpen)}
-          aria-pressed={isOpen}
+    <header className="w-full h-[61px] flex items-center justify-between px-4 md:px-6 border-b border-provost-border-subtle bg-white shrink-0">
+      <div className="flex items-center gap-2 md:gap-4 min-w-0">
+        <span className="font-dm-serif text-2xl md:text-[34px] truncate">{familyName}</span>
+        <button
+          type="button"
+          className="hidden md:flex p-2 hover:bg-provost-bg-secondary rounded-lg transition-colors"
+          aria-label="Search"
         >
-          <Icon name="chat" size={16} />
-          <span className="ml-1.5">Chat</span>
-        </Button>
-        <div className="ml-2">
-          <UserButton />
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path
+              d="M15 15L19 19"
+              stroke="#6B6B6B"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M17 9C17 4.58172 13.4183 1 9 1C4.58172 1 1 4.58172 1 9C1 13.4183 4.58172 17 9 17C13.4183 17 17 13.4183 17 9Z"
+              stroke="#6B6B6B"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+        {crumbs.length > 0 && (
+          <nav
+            aria-label="Breadcrumb"
+            className="hidden md:flex items-center text-[15px] font-light text-provost-text-secondary min-w-0"
+          >
+            {crumbs.map((crumb, idx) => {
+              const last = idx === crumbs.length - 1;
+              return (
+                <Fragment key={`${crumb.href ?? crumb.label}-${idx}`}>
+                  {idx > 0 && <span className="mx-1">/</span>}
+                  {last || !crumb.href ? (
+                    <span className="flex items-center truncate">{crumb.label}</span>
+                  ) : (
+                    <Link
+                      href={crumb.href}
+                      className="flex items-center hover:text-provost-text-primary transition-colors truncate"
+                    >
+                      {crumb.label}
+                    </Link>
+                  )}
+                </Fragment>
+              );
+            })}
+          </nav>
+        )}
+      </div>
+
+      <div className="flex items-center gap-1 md:gap-2 shrink-0">
+        <button
+          type="button"
+          className="p-2 hover:bg-provost-bg-secondary rounded-lg transition-colors"
+          aria-label="Notifications"
+        >
+          <Icon name="notifications" size={30} className="text-provost-text-secondary" />
+        </button>
+
+        <div className="w-[45px] h-[45px] rounded-full overflow-hidden flex items-center justify-center">
+          <UserButton
+            appearance={{
+              elements: {
+                avatarBox: "w-[45px] h-[45px]",
+                userButtonAvatarBox: "w-[45px] h-[45px]",
+              },
+            }}
+          />
         </div>
+
+        <div className="hidden md:block h-[31px] w-px bg-provost-border-subtle mx-2" />
+
+        <button
+          type="button"
+          onClick={() => setChatPanelOpen(!isChatPanelOpen)}
+          className={`hidden md:flex p-2 rounded-lg transition-colors items-center ${
+            isChatPanelOpen ? "bg-provost-bg-secondary" : "hover:bg-provost-bg-secondary"
+          }`}
+          aria-label={isChatPanelOpen ? "Close assistant" : "Open assistant"}
+          aria-expanded={isChatPanelOpen}
+        >
+          <Icon name="asterisk" size={30} />
+          <Icon
+            name="keyboard_arrow_right"
+            size={23}
+            className={isChatPanelOpen ? "" : "rotate-180"}
+          />
+        </button>
       </div>
     </header>
   );
