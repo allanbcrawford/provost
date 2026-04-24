@@ -1,11 +1,14 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import type { RunEvent } from "@provost/schemas/runs";
-import { ChatInput, ChatScroll } from "@provost/ui";
+import { ChatScroll } from "@provost/ui";
 import { useEffect, useState } from "react";
 import type { ThreadState } from "@/entities/threads/thread";
 import { getTurnsFromThread } from "@/entities/turn/helpers/get-turns-from-thread";
 import type { RateLimitNotice } from "@/hooks/use-run";
+import { ChatPanelEmptyState } from "./chat-panel-empty-state";
+import { ChatPanelInput } from "./chat-panel-input";
 import { TurnView } from "./turn-view";
 
 export type ChatPanelProps = {
@@ -66,6 +69,7 @@ export function ChatPanel({
   rateLimit,
   onDismissRateLimit,
 }: ChatPanelProps) {
+  const { user } = useUser();
   const turns = getTurnsFromThread(thread, events);
   const hasTurns = turns.length > 0;
 
@@ -76,14 +80,13 @@ export function ChatPanel({
   return (
     <ChatScroll
       className="h-full w-full"
-      contentClassName="p-4 md:p-5 space-y-6"
+      contentClassName={hasTurns ? "p-4 md:p-5 space-y-6" : ""}
       footer={
         <div className="space-y-2 p-4">
           {rateLimit && <RateLimitBanner notice={rateLimit} onDismiss={onDismissRateLimit} />}
-          <ChatInput
+          <ChatPanelInput
             onSend={onSend}
-            disabled={isStreaming}
-            pendingApproval={hasPendingApproval}
+            disabled={isStreaming || hasPendingApproval}
             placeholder={
               placeholder ?? (isStreaming ? "Waiting for response..." : "Chat with Provost...")
             }
@@ -96,13 +99,10 @@ export function ChatPanel({
           <TurnView key={turn.id} turn={turn} onApprove={onApprove} onReject={onReject} />
         ))
       ) : (
-        <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-provost-text-muted">
-          <p className="font-medium text-lg text-provost-text-primary">Hi there</p>
-          <p className="text-sm">Ask Provost anything about this family.</p>
-        </div>
+        <ChatPanelEmptyState firstName={user?.firstName ?? undefined} onSelectSuggestion={onSend} />
       )}
       {isStreaming && (
-        <div className="flex items-center gap-2 text-provost-text-muted text-sm">
+        <div className="flex items-center gap-2 px-4 pb-2 text-provost-text-muted text-sm">
           <span className="flex gap-1">
             <span
               className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400"
