@@ -55,7 +55,7 @@ export const inviteSiteAdmin = internalAction({
     }
 
     const { userId, alreadyExisted } = await ctx.runMutation(
-      internal.bootstrap.provisionSiteAdminRow,
+      internal.bootstrapInternal.provisionSiteAdminRow,
       { email },
     );
 
