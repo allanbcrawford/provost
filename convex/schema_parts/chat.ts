@@ -4,16 +4,27 @@ import { v } from "convex/values";
 export const chatTables = {
   threads: defineTable({
     family_id: v.id("families"),
+    creator_id: v.optional(v.id("users")),
     title: v.optional(v.string()),
     current_run_id: v.optional(v.id("thread_runs")),
     messages: v.array(v.any()),
+    // Rolling summary of older messages. Populated by the nightly
+    // summarization cron when a thread's message count exceeds the trim
+    // threshold. The run loop uses summary + tail in place of full history.
+    summary: v.optional(v.string()),
+    summarized_up_to_index: v.optional(v.number()),
+    summarized_at: v.optional(v.number()),
     deleted_at: v.optional(v.number()),
-  }).index("by_family", ["family_id"]),
+  })
+    .index("by_family", ["family_id"])
+    .index("by_creator", ["creator_id"]),
 
   thread_users: defineTable({
     thread_id: v.id("threads"),
     user_id: v.id("users"),
-  }).index("by_thread_and_user", ["thread_id", "user_id"]),
+  })
+    .index("by_thread_and_user", ["thread_id", "user_id"])
+    .index("by_user", ["user_id"]),
 
   thread_runs: defineTable({
     thread_id: v.id("threads"),
@@ -29,6 +40,7 @@ export const chatTables = {
       v.literal("waiting_for_approval"),
       v.literal("completed"),
       v.literal("failed"),
+      v.literal("cancelled"),
     ),
     route: v.optional(v.string()),
     selection: v.optional(v.union(v.null(), v.object({ kind: v.string(), id: v.string() }))),
