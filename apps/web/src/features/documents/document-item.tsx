@@ -1,4 +1,5 @@
 import { Button } from "@provost/ui";
+import Image from "next/image";
 import Link from "next/link";
 import type { Doc } from "../../../../../convex/_generated/dataModel";
 
@@ -18,21 +19,31 @@ export function DocumentItem({ document }: DocumentItemProps) {
   const isFinancial =
     document.category === "financial_statements" || document.category === "financial";
   const isDanger = document.observation_type === "danger";
+  const thumbnailSrc = isFinancial
+    ? "/images/documents/financial-document.png"
+    : "/images/documents/documents.png";
 
   return (
-    <div className="flex items-start gap-4 py-6 border-b border-provost-border-default last:border-b-0">
-      <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-md bg-provost-neutral-100 text-2xl">
-        {isFinancial ? "📊" : "📄"}
+    <div className="flex items-start gap-4">
+      <div className="flex items-center justify-center">
+        <Image
+          src={thumbnailSrc}
+          alt={document.name}
+          width={95}
+          height={95}
+          className="h-[95px] w-[95px] object-cover"
+          unoptimized
+        />
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 pr-6">
-            <div className="truncate text-[18px] font-semibold tracking-tight text-provost-text-primary">
+          <div className="min-w-0 pr-12">
+            <div className="max-w-[400px] truncate text-[20px] font-bold tracking-[-0.8px]">
               {document.name}
             </div>
             {document.summary && (
-              <p className="mt-1 line-clamp-2 text-sm text-provost-text-secondary">
+              <p className="mt-1 line-clamp-1 max-w-[500px] text-[15px] font-normal tracking-[-0.4px] text-provost-text-secondary">
                 {document.summary}
               </p>
             )}
@@ -43,20 +54,33 @@ export function DocumentItem({ document }: DocumentItemProps) {
           </Button>
         </div>
 
-        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-provost-text-secondary">
-          {document.creator_name && <span>{document.creator_name}</span>}
-          {document.creator_name && <span aria-hidden>·</span>}
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px] text-provost-text-secondary">
+          {document.creator_name && (
+            <span className="flex items-center gap-1">
+              <span className="material-symbols-outlined text-[18px]">upload</span>
+              <span className="ml-1">{document.creator_name}</span>
+            </span>
+          )}
+
+          {document.creator_name && (
+            <span
+              aria-hidden
+              className="mx-[5.7px] inline-block h-[3.5px] w-[3.5px] shrink-0 rounded-full bg-current opacity-60"
+            />
+          )}
+
           <span>{formatDate(document._creationTime)}</span>
-          <span aria-hidden>·</span>
-          <span className="capitalize">{document.type}</span>
 
           {document.observation_is_observed && (
             <span
-              className={`ml-2 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                isDanger ? "bg-red-600 text-white" : "bg-blue-100 text-blue-700"
+              className={`ml-2 inline-flex items-center rounded-full px-3 py-1 text-[14px] font-medium ${
+                isDanger
+                  ? "bg-provost-observation-danger text-white"
+                  : "bg-provost-observation-info-bg text-provost-accent-blue"
               }`}
             >
-              Observation
+              <span className="material-symbols-outlined text-[18px]">search_check_2</span>
+              <span className="ml-1">Observation</span>
             </span>
           )}
         </div>

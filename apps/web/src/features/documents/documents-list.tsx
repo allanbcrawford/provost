@@ -24,20 +24,25 @@ export function DocumentsList({ familyId }: DocumentsListProps) {
   }, [documents, activeTab]);
 
   if (documents === undefined) {
-    return <div className="p-8 text-sm text-provost-text-secondary">Loading…</div>;
+    return <div className="py-8 text-sm text-provost-text-secondary">Loading…</div>;
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col">
       <DocumentsTabs activeTab={activeTab} onTabChange={setActiveTab} />
       {filtered.length === 0 ? (
         <div className="py-16 text-center text-sm text-provost-text-secondary">
           No documents in this category yet.
         </div>
       ) : (
-        <div className="flex flex-col">
-          {filtered.map((d: Doc<"documents">) => (
-            <DocumentItem key={d._id} document={d} />
+        <div className="flex flex-col gap-16 py-8">
+          {filtered.map((d: Doc<"documents">, index: number) => (
+            <div key={d._id} className="relative">
+              <DocumentItem document={d} />
+              {index < filtered.length - 1 && (
+                <div className="absolute right-0 -bottom-8 left-0 h-px bg-[#E5E7EB]" />
+              )}
+            </div>
           ))}
         </div>
       )}

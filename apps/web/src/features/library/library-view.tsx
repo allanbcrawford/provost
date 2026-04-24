@@ -81,13 +81,26 @@ export function LibraryView() {
     );
   }
 
+  const ctaLabel =
+    activeTab === "sources"
+      ? "Add Source"
+      : activeTab === "groups"
+        ? "Create Group"
+        : "Create Collection";
+
   return (
-    <div className="px-8 py-6">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="font-medium text-[42px] tracking-[-0.84px]">Library</h1>
-        <Button variant="primary">
+    <div className="p-8">
+      <div className="mb-8 flex items-center justify-between">
+        <h1 className="font-dm-serif text-[42px] font-medium tracking-[-0.84px] text-provost-text-primary">
+          Library
+        </h1>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-[35px] rounded-full border-provost-text-primary px-5 text-[15px]"
+        >
           <Icon name="add" size={18} />
-          Add Source
+          {ctaLabel}
         </Button>
       </div>
 
