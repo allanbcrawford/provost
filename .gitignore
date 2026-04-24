@@ -2,9 +2,10 @@ node_modules/
 .turbo/
 .next/
 .convex/
-convex/_generated/*
-!convex/_generated/ai/
-!convex/_generated/ai/**
+# convex/_generated is tracked so Vercel can build without running codegen
+# (Convex's codegen in CI requires CONVEX_DEPLOY_KEY which we don't set for
+# every Vercel build; committing generated types is an officially-supported
+# pattern for monorepos)
 dist/
 build/
 .env
