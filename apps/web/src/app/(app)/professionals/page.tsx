@@ -6,13 +6,15 @@ import { APP_ROLES } from "@/lib/roles";
 
 function ProfessionalsPage() {
   return (
-    <div className="mx-auto max-w-6xl">
-      <header className="border-neutral-200 border-b px-6 pt-8 pb-4">
-        <h1 className="font-semibold text-2xl text-provost-text-primary">Professionals</h1>
-        <p className="mt-1 text-provost-text-secondary text-sm">
+    <div className="p-8">
+      <div className="mb-8">
+        <h1 className="font-dm-serif text-[42px] font-medium tracking-[-0.84px] text-provost-text-primary">
+          Professionals
+        </h1>
+        <p className="mt-2 text-[14px] tracking-[-0.42px] text-provost-text-secondary">
           Directory of advisors, attorneys, and accountants available to your family office.
         </p>
-      </header>
+      </div>
       <ProfessionalsList />
     </div>
   );

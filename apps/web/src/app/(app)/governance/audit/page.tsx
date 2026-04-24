@@ -8,20 +8,22 @@ import { APP_ROLES } from "@/lib/roles";
 function GovernanceAuditPage() {
   const family = useSelectedFamily();
   return (
-    <div className="mx-auto max-w-6xl">
-      <header className="border-neutral-200 border-b px-6 pt-8 pb-4">
-        <h1 className="font-semibold text-2xl text-provost-text-primary">Audit log</h1>
-        <p className="mt-1 text-provost-text-secondary text-sm">
+    <div className="p-8">
+      <div className="mb-8">
+        <h1 className="font-dm-serif text-[42px] font-medium tracking-[-0.84px] text-provost-text-primary">
+          Audit log
+        </h1>
+        <p className="mt-2 text-[14px] tracking-[-0.42px] text-provost-text-secondary">
           All mutations, tool calls, runs, auth, and approvals for this family.
         </p>
-      </header>
-      <div className="p-6">
-        {!family ? (
-          <div className="text-provost-text-secondary text-sm">Select a family to continue.</div>
-        ) : (
-          <AuditLog familyId={family._id} />
-        )}
       </div>
+      {!family ? (
+        <div className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+          Select a family to continue.
+        </div>
+      ) : (
+        <AuditLog familyId={family._id} />
+      )}
     </div>
   );
 }

@@ -164,14 +164,14 @@ export function AuditLog({ familyId }: { familyId: Id<"families"> }) {
       </div>
 
       {isLoading ? (
-        <div className="text-provost-text-secondary text-sm">Loading…</div>
+        <div className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">Loading…</div>
       ) : results.length === 0 ? (
-        <div className="rounded-md border border-neutral-200 border-dashed p-8 text-center text-provost-text-secondary text-sm">
+        <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] tracking-[-0.42px] text-provost-text-secondary">
           No audit events match the current filters.
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
-          <table className="w-full text-sm">
+        <div className="overflow-hidden rounded-[8px] border border-provost-border-subtle bg-white">
+          <table className="w-full text-[14px] tracking-[-0.42px]">
             <thead className="bg-neutral-50 text-left text-provost-text-secondary text-xs uppercase tracking-wide">
               <tr>
                 <th className="px-4 py-2 font-medium">Time</th>

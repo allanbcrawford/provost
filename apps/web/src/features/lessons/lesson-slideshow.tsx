@@ -86,7 +86,7 @@ export function LessonSlideshow({ lesson }: { lesson: LessonDetail }) {
 
   if (totalSlides === 0) {
     return (
-      <div className="rounded-lg border border-neutral-200 bg-white p-8 text-center text-neutral-500 text-sm">
+      <div className="rounded-[14px] border border-provost-border-subtle bg-white p-8 text-center text-[14px] tracking-[-0.42px] text-provost-text-secondary">
         This lesson has no slides yet.
       </div>
     );
@@ -94,19 +94,28 @@ export function LessonSlideshow({ lesson }: { lesson: LessonDetail }) {
 
   if (isIntro) {
     return (
-      <div className="mx-auto flex max-w-3xl flex-col items-start gap-6 rounded-lg border border-neutral-200 bg-white p-8">
-        <div className="space-y-2">
-          <p className="text-neutral-500 text-xs uppercase tracking-wide">{lesson.category}</p>
-          <h2 className="font-semibold text-2xl text-neutral-900">{lesson.title}</h2>
+      <div className="mx-auto flex max-w-3xl flex-col items-start gap-6 rounded-[14px] border border-provost-border-subtle bg-white p-10">
+        <div className="space-y-3">
+          <p className="font-semibold text-[10.5px] uppercase tracking-wider text-provost-text-tertiary">
+            {lesson.category}
+          </p>
+          <h2 className="font-dm-serif text-[42px] font-medium leading-[1.05] tracking-[-0.84px] text-provost-text-primary">
+            {lesson.title}
+          </h2>
         </div>
         {content.introText ? (
-          <p className="whitespace-pre-line text-neutral-700 text-sm leading-relaxed">
+          <p className="whitespace-pre-line text-[16px] leading-relaxed text-provost-text-primary">
             {content.introText}
           </p>
         ) : (
-          <p className="text-neutral-700 text-sm">{lesson.description}</p>
+          <p className="text-[16px] leading-relaxed text-provost-text-primary">
+            {lesson.description}
+          </p>
         )}
-        <Button onClick={handleStart}>
+        <Button
+          onClick={handleStart}
+          className="h-[40px] rounded-full px-5 text-[15px] font-medium"
+        >
           <Icon name="play_arrow" size={18} weight={500} />
           Start lesson
         </Button>
@@ -120,15 +129,18 @@ export function LessonSlideshow({ lesson }: { lesson: LessonDetail }) {
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
-      <div className="rounded-lg border border-neutral-200 bg-white p-8">
+      <div className="rounded-[14px] border border-provost-border-subtle bg-white p-10">
         {slide?.title && (
-          <h2 className="mb-4 font-semibold text-2xl" style={{ color: primaryColor }}>
+          <h2
+            className="mb-5 font-dm-serif text-[32px] font-medium leading-[1.1] tracking-[-0.64px]"
+            style={{ color: primaryColor }}
+          >
             {slide.title}
           </h2>
         )}
         {slide?.text && (
           <div
-            className="text-neutral-800 text-base leading-relaxed"
+            className="text-[16px] leading-relaxed text-provost-text-primary"
             // biome-ignore lint/security/noDangerouslySetInnerHtml: trusted seeded content
             dangerouslySetInnerHTML={{ __html: formatSlideText(slide.text) }}
           />
@@ -146,23 +158,40 @@ export function LessonSlideshow({ lesson }: { lesson: LessonDetail }) {
           />
         </div>
         <div className="flex items-center justify-between">
-          <p className="text-neutral-600 text-sm">
-            Slide {slideIndex + 1} <span className="text-neutral-400">of {totalSlides}</span>
+          <p className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+            Slide {slideIndex + 1}{" "}
+            <span className="text-provost-text-tertiary">of {totalSlides}</span>
           </p>
           <div className="flex items-center gap-2">
-            <Button variant="outline" disabled={isFirst} onClick={() => goTo(slideIndex - 1)}>
+            <Button
+              variant="outline"
+              disabled={isFirst}
+              onClick={() => goTo(slideIndex - 1)}
+              className="h-[35px] rounded-full px-5 text-[15px] font-medium"
+            >
               Back
             </Button>
             {isLast ? (
-              <Button onClick={handleComplete} disabled={isCompleted}>
+              <Button
+                onClick={handleComplete}
+                disabled={isCompleted}
+                className="h-[35px] rounded-full px-5 text-[15px] font-medium"
+              >
                 {isCompleted ? "Completed" : "Complete"}
               </Button>
             ) : (
-              <Button onClick={() => goTo(slideIndex + 1)}>Next</Button>
+              <Button
+                onClick={() => goTo(slideIndex + 1)}
+                className="h-[35px] rounded-full px-5 text-[15px] font-medium"
+              >
+                Next
+              </Button>
             )}
           </div>
         </div>
-        {isCompleted && <p className="text-emerald-700 text-xs">You completed this lesson.</p>}
+        {isCompleted && (
+          <p className="text-[12px] font-medium text-emerald-700">You completed this lesson.</p>
+        )}
       </div>
     </div>
   );

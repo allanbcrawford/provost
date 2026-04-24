@@ -61,17 +61,21 @@ function TestersPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
-      <header className="border-neutral-200 border-b px-6 pt-8 pb-4">
-        <h1 className="font-semibold text-2xl text-provost-text-primary">Internal Testers</h1>
-        <p className="mt-1 text-provost-text-secondary text-sm">
+    <div className="p-8">
+      <div className="mb-8">
+        <h1 className="font-dm-serif text-[42px] font-medium tracking-[-0.84px] text-provost-text-primary">
+          Internal Testers
+        </h1>
+        <p className="mt-2 text-[14px] tracking-[-0.42px] text-provost-text-secondary">
           Invite internal testers to the staging demo family. Admin only.
         </p>
-      </header>
+      </div>
 
-      <div className="space-y-8 p-6">
+      <div className="flex flex-col gap-10">
         <section>
-          <h2 className="mb-3 font-medium text-provost-text-primary text-sm">Invite a tester</h2>
+          <h2 className="mb-3 text-[12px] font-semibold uppercase tracking-wider text-provost-text-tertiary">
+            Invite a tester
+          </h2>
           <form onSubmit={handleInvite} className="flex gap-3">
             <input
               type="email"
@@ -79,27 +83,27 @@ function TestersPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="tester@example.com"
               required
-              className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-provost-primary focus:outline-none"
+              className="h-[40px] flex-1 rounded-[8px] border border-provost-border-subtle bg-white px-3 text-[14px] tracking-[-0.42px] text-provost-text-primary focus:border-provost-text-primary focus:outline-none"
             />
             <button
               type="submit"
               disabled={loading || !email.trim()}
-              className="rounded-md bg-provost-primary px-4 py-2 text-sm text-white disabled:opacity-50"
+              className="h-[40px] rounded-full bg-provost-text-primary px-5 text-[15px] font-medium text-white disabled:opacity-50"
             >
               {loading ? "Inviting…" : "Send invite"}
             </button>
           </form>
 
           {inviteUrl && (
-            <div className="mt-3 rounded-md bg-green-50 p-3">
-              <p className="mb-1 text-green-800 text-xs font-medium">
+            <div className="mt-3 rounded-[8px] bg-green-50 p-3">
+              <p className="mb-1 text-[12px] font-medium text-green-800">
                 Invite link (share manually):
               </p>
               <a
                 href={inviteUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="break-all text-xs text-green-700 underline"
+                className="break-all text-[12px] text-green-700 underline"
               >
                 {inviteUrl}
               </a>
@@ -107,59 +111,65 @@ function TestersPage() {
           )}
 
           {!inviteUrl && (
-            <p className="mt-2 text-provost-text-secondary text-xs">
+            <p className="mt-2 text-[12px] text-provost-text-secondary">
               If <code>CLERK_SECRET_KEY</code> is configured, an email invite is sent automatically.
               Otherwise the invite link is logged server-side (Phase 8+ stretch).
             </p>
           )}
         </section>
 
-        {error && <p className="rounded-md bg-red-50 px-3 py-2 text-red-700 text-sm">{error}</p>}
+        {error && (
+          <p className="rounded-[8px] bg-red-50 px-3 py-2 text-[14px] tracking-[-0.42px] text-red-700">
+            {error}
+          </p>
+        )}
 
         <section>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-medium text-provost-text-primary text-sm">Demo family members</h2>
+            <h2 className="text-[12px] font-semibold uppercase tracking-wider text-provost-text-tertiary">
+              Demo family members
+            </h2>
             <button
               type="button"
               onClick={handleLoad}
               disabled={listLoading}
-              className="text-provost-primary text-xs underline disabled:opacity-50"
+              className="text-[12px] font-medium text-provost-text-primary underline disabled:opacity-50"
             >
               {listLoading ? "Loading…" : "Refresh"}
             </button>
           </div>
 
           {testers.length === 0 ? (
-            <p className="text-provost-text-secondary text-sm">
+            <p className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">
               No members loaded yet. Click Refresh to fetch.
             </p>
           ) : (
-            <div className="overflow-hidden rounded-md border border-neutral-200">
-              <table className="w-full text-sm">
-                <thead className="bg-neutral-50">
+            <div className="overflow-hidden rounded-[8px] border border-provost-border-subtle">
+              <table className="w-full text-[14px] tracking-[-0.42px]">
+                <thead className="bg-provost-bg-muted">
                   <tr>
-                    <th className="px-4 py-2 text-left font-medium text-provost-text-secondary text-xs">
+                    <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-provost-text-tertiary">
                       Name
                     </th>
-                    <th className="px-4 py-2 text-left font-medium text-provost-text-secondary text-xs">
+                    <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-provost-text-tertiary">
                       Email
                     </th>
-                    <th className="px-4 py-2 text-left font-medium text-provost-text-secondary text-xs">
+                    <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-provost-text-tertiary">
                       Role
                     </th>
-                    <th className="px-4 py-2 text-left font-medium text-provost-text-secondary text-xs">
+                    <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-provost-text-tertiary">
                       Status
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100">
+                <tbody className="divide-y divide-provost-border-subtle">
                   {testers.map((t) => (
                     <tr key={t._id}>
                       <td className="px-4 py-2 text-provost-text-primary">
                         {t.first_name} {t.last_name}
                       </td>
                       <td className="px-4 py-2 text-provost-text-secondary">{t.email}</td>
-                      <td className="px-4 py-2 text-provost-text-secondary capitalize">
+                      <td className="px-4 py-2 capitalize text-provost-text-secondary">
                         {t.memberRole}
                       </td>
                       <td className="px-4 py-2 text-provost-text-secondary">
