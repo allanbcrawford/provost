@@ -1,6 +1,6 @@
 "use client";
 
-import { type LayerOption, LayerToggle } from "@provost/ui";
+import { type LayerOption, LayerToggle, Tabs, TabsList, TabsTrigger } from "@provost/ui";
 import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
 import { useQuery } from "convex/react";
 import { useCallback, useMemo, useState } from "react";
@@ -10,6 +10,7 @@ import { adaptGraphPayload } from "@/features/graph/adapt-convex";
 import { buildGraph, buildPayloadFromConvex, filterByLayers } from "@/features/graph/build-graph";
 import { FamilyGraph } from "@/features/graph/family-graph";
 import type { LayerKey, LayerState, SelectedNode } from "@/features/graph/types";
+import { ProfessionalsList } from "@/features/professionals/professionals-list";
 import { DetailPanel } from "@/features/signals/detail-panel";
 import { DraftRevisionModal } from "@/features/signals/draft-revision-modal";
 import { SignalsRail } from "@/features/signals/signals-rail";
@@ -19,6 +20,8 @@ import { withRoleGuard } from "@/HOCs/with-role-guard";
 import { APP_ROLES } from "@/lib/roles";
 import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
+
+type FamilyTab = "our-family" | "professionals";
 
 const INITIAL_LAYERS: LayerState = {
   people: true,
@@ -39,7 +42,7 @@ type WaterfallWidgetProps = {
   customEdits?: CustomEdits;
 };
 
-function FamilyScene() {
+function FamilyGraphScene() {
   const family = useSelectedFamily();
   const graphData = useQuery(
     api.family.getGraph,
@@ -116,7 +119,6 @@ function FamilyScene() {
     setDraftingSignalId(null);
   }, []);
 
-  // Agent-injected widgets via portal slot
   if (widget) {
     if (widget.kind === "waterfall" && !simOpen) {
       const p = (widget.props ?? {}) as WaterfallWidgetProps;
@@ -145,77 +147,53 @@ function FamilyScene() {
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
-      <div className="flex flex-shrink-0 items-center justify-between border-provost-border-subtle border-b bg-white/80 px-5 py-3 backdrop-blur">
-        <div className="min-w-0">
-          <p className="font-semibold text-[10.5px] text-provost-text-tertiary uppercase tracking-wider">
-            Knowledge Graph
-          </p>
-          <h1 className="font-dm-serif text-[22px] text-provost-text-primary leading-tight">
-            {family?.name ?? "Family"}
-          </h1>
+      {loading || !payload ? (
+        <div className="flex flex-1 items-center justify-center text-[13px] text-provost-text-secondary">
+          Loading family graph…
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            setSimSeed({});
-            setSimOpen(true);
-          }}
-          className="flex items-center gap-1.5 rounded-full bg-provost-text-primary px-3 py-1.5 font-medium text-[12.5px] text-white hover:bg-provost-text-primary/90"
-        >
-          <span className="material-symbols-outlined text-[16px]">play_arrow</span>
-          Run simulation
-        </button>
-      </div>
+      ) : (
+        <div className="flex min-h-0 flex-1">
+          <SignalsRail
+            signals={payload.signals}
+            sentIds={sentIds}
+            onFocus={focus}
+            selectedId={selectedId}
+          />
 
-      <div className="flex min-h-0 flex-1">
-        {loading || !payload ? (
-          <div className="flex flex-1 items-center justify-center text-[13px] text-provost-text-secondary">
-            Loading family graph…
-          </div>
-        ) : (
-          <>
-            <SignalsRail
-              signals={payload.signals}
-              sentIds={sentIds}
-              onFocus={focus}
+          <div className="relative min-w-0 flex-1">
+            <FamilyGraph
+              nodes={nodes}
+              edges={edges}
+              onSelect={setSelected}
               selectedId={selectedId}
             />
 
-            <div className="relative min-w-0 flex-1">
-              <FamilyGraph
-                nodes={nodes}
-                edges={edges}
-                onSelect={setSelected}
-                selectedId={selectedId}
-              />
-
-              <div className="pointer-events-none absolute top-4 right-4 z-10">
-                <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-provost-border-subtle bg-white/95 px-2 py-1 shadow-sm backdrop-blur">
-                  <LayerToggle
-                    layers={LAYER_OPTIONS}
-                    value={layers}
-                    onChange={(next) => setLayers(next)}
-                  />
-                  <span className="px-2 text-[10.5px] text-provost-text-tertiary">
-                    {counts.people}·{counts.documents}·{counts.signals}·{counts.professionals}
-                  </span>
-                </div>
+            <div className="pointer-events-none absolute top-4 right-4 z-10">
+              <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-provost-border-subtle bg-white/95 px-2 py-1 shadow-sm backdrop-blur">
+                <LayerToggle
+                  layers={LAYER_OPTIONS}
+                  value={layers}
+                  onChange={(next) => setLayers(next)}
+                />
+                <span className="px-2 text-[10.5px] text-provost-text-tertiary">
+                  {counts.people}·{counts.documents}·{counts.signals}·{counts.professionals}
+                </span>
               </div>
             </div>
+          </div>
 
-            <DetailPanel
-              selected={selected}
-              payload={payload}
-              sentIds={sentIds}
-              onClose={() => setSelected(null)}
-              onFocus={focus}
-              onDraftRevision={(signalId) => setDraftingSignalId(signalId)}
-              onShowInGraph={handleShowInGraph}
-              activeHighlightSignalId={activeHighlightSignalId}
-            />
-          </>
-        )}
-      </div>
+          <DetailPanel
+            selected={selected}
+            payload={payload}
+            sentIds={sentIds}
+            onClose={() => setSelected(null)}
+            onFocus={focus}
+            onDraftRevision={(signalId) => setDraftingSignalId(signalId)}
+            onShowInGraph={handleShowInGraph}
+            activeHighlightSignalId={activeHighlightSignalId}
+          />
+        </div>
+      )}
 
       {draftingSignal && payload && (
         <DraftRevisionModal
@@ -239,12 +217,40 @@ function FamilyScene() {
   );
 }
 
-function FamilyPage() {
+function FamilyPageContent() {
+  const family = useSelectedFamily();
+  const [activeTab, setActiveTab] = useState<FamilyTab>("our-family");
+
   return (
-    <ReactFlowProvider>
-      <FamilyScene />
-    </ReactFlowProvider>
+    <div className="flex h-full min-h-0 w-full flex-col">
+      <div className="flex-shrink-0 px-8 pt-8 pb-0">
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="font-dm-serif text-[42px] font-medium tracking-[-0.84px] text-provost-text-primary">
+            {family?.name ?? "Family"}
+          </h1>
+        </div>
+
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as FamilyTab)}>
+          <TabsList>
+            <TabsTrigger value="our-family">Our Family</TabsTrigger>
+            <TabsTrigger value="professionals">Professionals</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      <div className="min-h-0 flex-1">
+        {activeTab === "our-family" ? (
+          <ReactFlowProvider>
+            <FamilyGraphScene />
+          </ReactFlowProvider>
+        ) : (
+          <div className="h-full overflow-auto p-8 pt-4">
+            <ProfessionalsList />
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
-export default withRoleGuard(FamilyPage, APP_ROLES.FAMILY ?? []);
+export default withRoleGuard(FamilyPageContent, APP_ROLES.FAMILY ?? []);

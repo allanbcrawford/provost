@@ -32,24 +32,31 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
   const hasPdf = Boolean(document.fileUrl);
 
   return (
-    <div className="flex h-full flex-col gap-4 p-6">
+    <div className="flex h-full flex-col gap-4 p-8">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <Button asChild size="sm" variant="outline" className="mb-3">
-            <Link href="/documents">← Back to Library</Link>
+          <Button asChild size="sm" variant="ghost" className="mb-3 -ml-2">
+            <Link href="/documents">
+              <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+              Back to Library
+            </Link>
           </Button>
-          <h1 className="truncate text-2xl font-semibold tracking-tight text-provost-text-primary">
+          <h1 className="truncate font-dm-serif text-[36px] font-medium leading-[1.2] tracking-[-0.72px] text-provost-text-primary">
             {document.name}
           </h1>
-          <p className="mt-1 text-sm text-provost-text-secondary">
-            {document.type}
-            {document.creator_name ? ` · ${document.creator_name}` : ""}
+          <p className="mt-1 text-[13px] text-provost-text-secondary">
+            <span className="capitalize">{document.type}</span>
+            {document.creator_name ? `  ·  By ${document.creator_name}` : ""}
           </p>
           {document.summary && (
-            <p className="mt-2 max-w-3xl text-sm text-provost-text-secondary">{document.summary}</p>
+            <p className="mt-2 max-w-3xl text-[15px] tracking-[-0.4px] text-provost-text-secondary">
+              {document.summary}
+            </p>
           )}
         </div>
       </div>
+
+      <div className="mt-2 h-px bg-[#E5E7EB]" />
 
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[1fr_340px]">
         <div className="flex min-h-0 flex-col rounded-md border border-provost-border-default bg-neutral-50">

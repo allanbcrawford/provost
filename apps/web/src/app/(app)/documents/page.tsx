@@ -15,9 +15,16 @@ function DocumentsPage() {
 
   return (
     <div className="p-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-semibold tracking-tight text-provost-text-primary">Library</h1>
-        <Button size="sm" variant="outline" disabled>
+      <div className="mb-8 flex items-center justify-between">
+        <h1 className="font-dm-serif text-[42px] font-medium tracking-[-0.84px] text-provost-text-primary">
+          Library
+        </h1>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled
+          className="h-[35px] rounded-full px-5 text-[15px]"
+        >
           Add new document
         </Button>
       </div>
