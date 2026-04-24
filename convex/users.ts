@@ -170,3 +170,81 @@ export const me = mutation({
     return user;
   },
 });
+
+// Demo helper: link the current signed-in Clerk identity to a seeded family member.
+// Finds the seeded user by first+last name (clerk_user_id starts with "seed-"),
+// swaps ownership to the current Clerk subject, deletes the auto-provisioned duplicate,
+// and makes sure the user has a family_users row as admin for demo access.
+export const claimSeededMember = mutation({
+  args: {
+    firstName: v.string(),
+    lastName: v.string(),
+  },
+  handler: async (ctx, { firstName, lastName }) => {
+    const identity = await requireUser(ctx);
+
+    // Find the seeded member by name (unclaimed only).
+    const candidates = await ctx.db
+      .query("users")
+      .filter((q) =>
+        q.and(q.eq(q.field("first_name"), firstName), q.eq(q.field("last_name"), lastName)),
+      )
+      .collect();
+    const seeded = candidates.find((u) => u.clerk_user_id.startsWith("seed-"));
+    if (!seeded) {
+      throw new ConvexError({
+        code: "SEEDED_MEMBER_NOT_FOUND",
+        firstName,
+        lastName,
+      });
+    }
+
+    // Drop any duplicate user auto-provisioned from the current Clerk sign-in.
+    const autoProvisioned = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_user_id", identity.subject))
+      .unique();
+    if (autoProvisioned && autoProvisioned._id !== seeded._id) {
+      // Move any family_users rows from the auto-provisioned user to the seeded one
+      // before deleting (defensive; usually there are none).
+      const strayMemberships = await ctx.db
+        .query("family_users")
+        .withIndex("by_user", (q) => q.eq("user_id", autoProvisioned._id))
+        .collect();
+      for (const m of strayMemberships) {
+        await ctx.db.delete(m._id);
+      }
+      await ctx.db.delete(autoProvisioned._id);
+    }
+
+    // Claim the seeded row: swap clerk_user_id + bump role to admin for demo access.
+    await ctx.db.patch(seeded._id, {
+      clerk_user_id: identity.subject,
+      email: identity.email ?? seeded.email,
+      role: "admin",
+      onboarding_status: "claimed",
+    });
+
+    // Ensure the seeded user has an admin family_users row for the demo family.
+    const membership = await ctx.db
+      .query("family_users")
+      .withIndex("by_user", (q) => q.eq("user_id", seeded._id))
+      .first();
+    if (membership && membership.role !== "admin") {
+      await ctx.db.patch(membership._id, { role: "admin" });
+    }
+
+    await writeAudit(ctx, {
+      familyId: membership?.family_id,
+      actorUserId: seeded._id,
+      actorKind: "user",
+      category: "auth",
+      action: "seed_member_claimed",
+      resourceType: "user",
+      resourceId: String(seeded._id),
+      metadata: { firstName, lastName, clerkSubject: identity.subject },
+    });
+
+    return { userId: seeded._id, familyId: membership?.family_id ?? null };
+  },
+});
