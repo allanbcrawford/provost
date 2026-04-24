@@ -6,6 +6,9 @@ type LimitConfig = { windowMs: number; max: number };
 const LIMITS: Record<string, LimitConfig> = {
   "run.start:user": { windowMs: 60_000, max: 20 },
   "run.start:family": { windowMs: 60_000, max: 60 },
+  // Burst cap per thread: prevents a single conversation from hammering the
+  // run loop even when the user/family buckets have headroom.
+  "run.start:thread": { windowMs: 30_000, max: 6 },
   "tool.create_task:family": { windowMs: 3_600_000, max: 50 },
   "tool.invite_member:family": { windowMs: 3_600_000, max: 10 },
   "tool.draft_revision:family": { windowMs: 3_600_000, max: 30 },

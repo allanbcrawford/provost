@@ -1,9 +1,10 @@
 "use client";
 import type { ToolSurface } from "@provost/agent";
 import type { RunEvent } from "@provost/schemas/runs";
+import * as Sentry from "@sentry/nextjs";
 import { useMutation } from "convex/react";
 import { ConvexError } from "convex/values";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { useRunEvents } from "./use-run-events";
@@ -12,6 +13,7 @@ type SendContext = {
   route?: ToolSurface;
   selection?: { kind: string; id: string } | null;
   visibleState?: Record<string, unknown>;
+  fileIds?: Id<"files">[];
 };
 
 export type RateLimitNotice = {
@@ -59,6 +61,7 @@ export function useRun(threadId: Id<"threads"> | null) {
           route: ctx?.route ?? "any",
           selection: ctx?.selection ?? null,
           visibleState: ctx?.visibleState,
+          fileIds: ctx?.fileIds,
         });
         setRateLimit(null);
         setCurrentRunId(runId);
@@ -94,6 +97,27 @@ export function useRun(threadId: Id<"threads"> | null) {
     if (events.length === 0) return false;
     return !events.some((e) => e.type === "run_finished" || e.type === "run_error");
   }, [events]);
+
+  // Phase I: surface Convex-side run failures to Sentry. The run loop runs in
+  // a Convex action that can't talk to @sentry/nextjs directly, so we bridge
+  // the run_error events back through the client.
+  const reportedRunErrors = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!currentRunId) return;
+    for (const e of events) {
+      if (e.type !== "run_error") continue;
+      const key = `${currentRunId}:${e.sequence}`;
+      if (reportedRunErrors.current.has(key)) continue;
+      reportedRunErrors.current.add(key);
+      const data = (e.data ?? {}) as { error?: string; message?: string };
+      const message = data.error ?? data.message ?? "run_error";
+      Sentry.captureMessage(`Provost run_error: ${message}`, {
+        level: "error",
+        tags: { component: "provost.run", runId: currentRunId },
+        extra: { runId: currentRunId, sequence: e.sequence, data: e.data },
+      });
+    }
+  }, [events, currentRunId]);
 
   return {
     currentRunId,
