@@ -1,28 +1,52 @@
-// TODO(phase-6): Reconcile with packages/agent/src/prompts/provost.ts.
-// The Convex runtime bundles this file in isolation, so we inline a shorter
-// stub here rather than cross-importing. The full Provost prompt (with
-// communication guidelines, constraints, guidelines for tool usage, etc.)
-// lives at packages/agent/src/prompts/provost.ts and will be wired in
-// during Phase 6 when prompt plumbing is finalized.
+import { PROVOST_INSTRUCTIONS } from "@provost/agent";
 
-export const PROVOST_SYSTEM = `You are Provost, an AI advisor guiding families in multi-generational wealth stewardship. You are educational, patient, and discreet. You never provide legal, tax, or investment advice — always recommend that families consult licensed professionals. Use the available tools when appropriate.`;
+export type FamilyRosterEntry = {
+  name: string;
+  role: string;
+  generation: number;
+};
 
 export interface ProvostPromptContext {
   route?: string;
   familyName?: string;
   selection?: { kind: string; id: string } | null;
   visibleState?: Record<string, unknown>;
+  members?: FamilyRosterEntry[];
+  memories?: Array<{ text: string; createdAt: number }>;
+}
+
+function renderRoster(members: FamilyRosterEntry[]): string {
+  if (members.length === 0) return "";
+  const lines = members.map(
+    (m) => `  <member><name>${m.name}</name> (role: ${m.role}, gen: ${m.generation})</member>`,
+  );
+  return `\n\n<family_roster>\n${lines.join("\n")}\n</family_roster>`;
 }
 
 export function buildSystemPrompt(context: ProvostPromptContext): string {
-  const parts = [PROVOST_SYSTEM];
-  if (context.familyName) parts.push(`\n\nCurrent family: ${context.familyName}`);
-  if (context.route) parts.push(`\n\nUser is on route: ${context.route}`);
+  const parts: string[] = [PROVOST_INSTRUCTIONS];
+
+  const runtime: string[] = [];
+  if (context.familyName) runtime.push(`Current family: ${context.familyName}`);
+  if (context.route) runtime.push(`User is on route: ${context.route}`);
   if (context.selection) {
-    parts.push(`\n\nSelected entity: ${context.selection.kind} (${context.selection.id})`);
+    runtime.push(`Selected entity: ${context.selection.kind} (${context.selection.id})`);
   }
   if (context.visibleState && Object.keys(context.visibleState).length > 0) {
-    parts.push(`\n\nVisible UI state:\n${JSON.stringify(context.visibleState, null, 2)}`);
+    runtime.push(`Visible UI state:\n${JSON.stringify(context.visibleState, null, 2)}`);
   }
+  if (runtime.length > 0) {
+    parts.push(`\n\n<runtime_context>\n${runtime.join("\n\n")}\n</runtime_context>`);
+  }
+
+  if (context.members && context.members.length > 0) {
+    parts.push(renderRoster(context.members));
+  }
+
+  if (context.memories && context.memories.length > 0) {
+    const memLines = context.memories.map((m) => `  <memory>${m.text}</memory>`);
+    parts.push(`\n\n<family_memory>\n${memLines.join("\n")}\n</family_memory>`);
+  }
+
   return parts.join("");
 }

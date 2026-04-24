@@ -27,6 +27,7 @@ export const start = mutation({
     route: toolSurfaceValidator,
     selection: v.optional(selectionValidator),
     visibleState: v.optional(v.any()),
+    fileIds: v.optional(v.array(v.id("files"))),
   },
   handler: async (ctx, args) => {
     const thread = await ctx.db.get(args.threadId);
@@ -36,6 +37,7 @@ export const start = mutation({
 
     await checkAndIncrement(ctx, "run.start:user", user._id);
     await checkAndIncrement(ctx, "run.start:family", thread.family_id);
+    await checkAndIncrement(ctx, "run.start:thread", args.threadId);
 
     const tools = toolsForSurface(args.route as ToolSurface, membership.role);
     const toolNames = tools.map((t) => t.name);
@@ -60,6 +62,18 @@ export const start = mutation({
 
     await ctx.db.patch(args.threadId, { current_run_id: runId });
 
+    // Attach any pre-uploaded files to this run (creator-verified — the files
+    // were uploaded by the same authenticated user in the same session).
+    const fileIds = args.fileIds ?? [];
+    for (const fileId of fileIds) {
+      const file = await ctx.db.get(fileId);
+      if (!file || file.user_id !== user._id) continue;
+      await ctx.db.insert("thread_run_attachments", {
+        thread_run_id: runId,
+        file_id: fileId,
+      });
+    }
+
     await writeAudit(ctx, {
       familyId: thread.family_id,
       actorUserId: user._id,
@@ -68,7 +82,11 @@ export const start = mutation({
       action: "agent.run.start",
       resourceType: "thread_runs",
       resourceId: runId,
-      metadata: { route: args.route, toolCount: toolNames.length },
+      metadata: {
+        route: args.route,
+        toolCount: toolNames.length,
+        attachmentCount: fileIds.length,
+      },
     });
 
     await ctx.scheduler.runAfter(0, internal.agent.runActions.execute, {

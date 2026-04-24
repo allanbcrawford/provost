@@ -3,10 +3,18 @@ import type { Doc } from "../_generated/dataModel";
 import { internalMutation, internalQuery } from "../_generated/server";
 import { writeAudit } from "../lib/audit";
 
+type RosterEntry = {
+  name: string;
+  role: string;
+  generation: number;
+};
+
 type RunContext = {
   run: Doc<"thread_runs">;
   thread: Doc<"threads">;
   familyName: string | null;
+  members: RosterEntry[];
+  memories: Array<{ text: string; createdAt: number }>;
 };
 
 export const loadRunContext = internalQuery({
@@ -17,7 +25,31 @@ export const loadRunContext = internalQuery({
     const thread = await ctx.db.get(run.thread_id);
     if (!thread) throw new Error("thread not found");
     const family = await ctx.db.get(run.family_id);
-    return { run, thread, familyName: family?.name ?? null };
+
+    const memberships = await ctx.db
+      .query("family_users")
+      .withIndex("by_family", (q) => q.eq("family_id", run.family_id))
+      .collect();
+    const members: RosterEntry[] = [];
+    for (const m of memberships) {
+      const u = await ctx.db.get(m.user_id);
+      if (!u || u.deleted_at) continue;
+      const name = [u.first_name, u.last_name].filter(Boolean).join(" ").trim() || u.email;
+      members.push({ name, role: m.role, generation: u.generation });
+    }
+    members.sort((a, b) => a.generation - b.generation || a.name.localeCompare(b.name));
+
+    const memoryRows = await ctx.db
+      .query("family_memories")
+      .withIndex("by_family", (q) => q.eq("family_id", run.family_id))
+      .collect();
+    memoryRows.sort((a, b) => b._creationTime - a._creationTime);
+    const memories = memoryRows.slice(0, 10).map((r) => ({
+      text: r.text,
+      createdAt: r._creationTime,
+    }));
+
+    return { run, thread, familyName: family?.name ?? null, members, memories };
   },
 });
 
@@ -207,6 +239,7 @@ export const patchRunStatus = internalMutation({
       v.literal("waiting_for_approval"),
       v.literal("completed"),
       v.literal("failed"),
+      v.literal("cancelled"),
     ),
     finishedAt: v.optional(v.number()),
     pendingToolCalls: v.optional(v.array(v.any())),
@@ -320,5 +353,56 @@ export const loadApprovals = internalQuery({
       .query("tool_call_approvals")
       .withIndex("by_run", (q) => q.eq("thread_run_id", args.runId))
       .collect();
+  },
+});
+
+export const getRunStatus = internalQuery({
+  args: { runId: v.id("thread_runs") },
+  handler: async (ctx, args) => {
+    const run = await ctx.db.get(args.runId);
+    if (!run) return null;
+    return run.status;
+  },
+});
+
+export const redactToolMessage = internalMutation({
+  args: {
+    threadId: v.id("threads"),
+    runId: v.id("thread_runs"),
+    toolCallId: v.string(),
+    newContent: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const thread = await ctx.db.get(args.threadId);
+    if (!thread) return;
+    const messages = [...(thread.messages ?? [])] as Array<{
+      role: string;
+      content: unknown;
+      tool_call_id?: string;
+    }>;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i];
+      if (m && m.role === "tool" && m.tool_call_id === args.toolCallId) {
+        messages[i] = { ...m, content: args.newContent };
+        break;
+      }
+    }
+    await ctx.db.patch(args.threadId, { messages });
+    const run = await ctx.db.get(args.runId);
+    if (run) {
+      const history = [...(run.history ?? [])] as Array<{
+        role: string;
+        content: unknown;
+        tool_call_id?: string;
+      }>;
+      for (let i = history.length - 1; i >= 0; i--) {
+        const h = history[i];
+        if (h && h.role === "tool" && h.tool_call_id === args.toolCallId) {
+          history[i] = { ...h, content: args.newContent };
+          break;
+        }
+      }
+      await ctx.db.patch(args.runId, { history });
+    }
   },
 });

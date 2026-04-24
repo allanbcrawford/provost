@@ -80,9 +80,14 @@ export const platformTables = {
     decided_by: v.optional(v.id("users")),
     decided_at: v.optional(v.number()),
     decision_reason: v.optional(v.string()),
+    // User-supplied tool-call result (e.g. a form widget submission). If set,
+    // the resume loop uses this instead of invoking the tool handler. Matches
+    // the FastAPI submit-tool-call flow.
+    submitted_result: v.optional(v.any()),
   })
     .index("by_run", ["thread_run_id"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .index("by_tool_call_id", ["tool_call_id"]),
 
   rate_limits: defineTable({
     key: v.string(),
@@ -95,4 +100,11 @@ export const platformTables = {
     key: v.string(),
     value: v.any(),
   }).index("by_family_and_key", ["family_id", "key"]),
+
+  family_memories: defineTable({
+    family_id: v.id("families"),
+    text: v.string(),
+    source_run_id: v.optional(v.id("thread_runs")),
+    created_by_user_id: v.optional(v.id("users")),
+  }).index("by_family", ["family_id"]),
 };

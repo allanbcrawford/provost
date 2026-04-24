@@ -50,8 +50,10 @@ const APPROVAL_REQUIRED_TOOLS: Record<string, boolean> = {
   summarize_lesson: false,
   assign_lesson: true,
   invite_member: true,
-  attach_file: false,
+  attach_file: true,
   list_observations: false,
+  search_knowledge: false,
+  remember: true,
 };
 
 function requiresApproval(toolName: string, registryFlag: boolean | undefined): boolean {
@@ -73,8 +75,15 @@ async function dispatchTool(
 ): Promise<unknown> {
   switch (toolName) {
     case "navigate":
+      return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
+        internal.agent.tools.navigate.handle,
+        { args: toolArgs, toolCallId: toolCallId ?? "", runId },
+      );
     case "form":
-      return { ok: true, echo: { tool: toolName, args: toolArgs } };
+      return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
+        internal.agent.tools.form.handle,
+        { args: toolArgs, toolCallId: toolCallId ?? "", runId },
+      );
     case "render_waterfall_simulation":
       return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
         internal.agent.tools.renderWaterfallSimulation.handle,
@@ -120,6 +129,16 @@ async function dispatchTool(
         internal.agent.tools.listObservations.handle,
         { args: toolArgs, toolCallId: toolCallId ?? "", runId },
       );
+    case "search_knowledge":
+      return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
+        internal.agent.tools.searchKnowledge.handle,
+        { args: toolArgs, toolCallId: toolCallId ?? "", runId },
+      );
+    case "remember":
+      return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
+        internal.agent.tools.remember.handle,
+        { args: toolArgs, toolCallId: toolCallId ?? "", runId },
+      );
     case "summarize_lesson":
       return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
         internal.agent.tools.summarizeLesson.handle,
@@ -160,7 +179,7 @@ export const execute = internalAction({
     const context = await ctx.runQuery(internal.agent.runInternal.loadRunContext, {
       runId: args.runId,
     });
-    const { run, thread, familyName } = context;
+    const { run, thread, familyName, members, memories } = context;
 
     let sequence = 0;
     const nextSeq = () => ++sequence;
@@ -256,6 +275,51 @@ export const execute = internalAction({
             });
           }
         }
+
+        // Tool-message guardrail: form submissions (and other user-supplied
+        // tool results) arrive after the last `user` message and bypass the
+        // pass above. Scan the latest tool message too so SSNs pasted into a
+        // form field still get redacted.
+        if (piiRedactionEnabled) {
+          for (let i = history.length - 1; i >= 0; i--) {
+            const m = history[i];
+            if (!m || m.role !== "tool") continue;
+            const toolCallId = (m as { tool_call_id?: string }).tool_call_id ?? "";
+            const toolText =
+              typeof m.content === "string" ? m.content : JSON.stringify(m.content ?? "");
+            if (toolText.trim().length === 0) break;
+            const toolGuard: {
+              category: "safe" | "non_advice" | "pii_detected";
+              reason?: string;
+              redactedText?: string | null;
+            } = await ctx.runAction(internal.guardrails.classifyMessage, {
+              text: toolText,
+            });
+            if (toolGuard.category === "pii_detected" && toolCallId) {
+              const redacted =
+                toolGuard.redactedText && toolGuard.redactedText.trim().length > 0
+                  ? toolGuard.redactedText
+                  : toolText.replace(/\b\d{3}-?\d{2}-?\d{4}\b/g, "[REDACTED]");
+              history[i] = { ...(m as ChatMessage), content: redacted } as ChatMessage;
+              await ctx.runMutation(internal.agent.runInternal.redactToolMessage, {
+                threadId: thread._id,
+                runId: args.runId,
+                toolCallId,
+                newContent: redacted,
+              });
+              await ctx.runMutation(internal.agent.runInternal.writeGuardrailAudit, {
+                runId: args.runId,
+                action: "guardrail.pii_redacted",
+                metadata: {
+                  reason: toolGuard.reason ?? "pii_detected",
+                  source: "tool_message",
+                  toolCallId,
+                },
+              });
+            }
+            break;
+          }
+        }
       }
       // --- end guardrails ---
 
@@ -264,13 +328,30 @@ export const execute = internalAction({
         familyName: familyName ?? undefined,
         selection: args.selection ?? null,
         visibleState: args.visibleState,
+        members,
+        memories,
       });
 
       const systemContent = guardDisclaimer
         ? `${systemPrompt}\n\n${guardDisclaimer}`
         : systemPrompt;
 
-      let messages: ChatMessage[] = [{ role: "system", content: systemContent }, ...history];
+      // Rolling-summary trim (Phase H): if the thread has a stored summary
+      // covering an older prefix, replace that prefix with a single recap
+      // note in the prompt-side history. The persisted history is untouched.
+      const summaryUpTo = thread.summarized_up_to_index ?? 0;
+      const promptHistory: ChatMessage[] =
+        thread.summary && summaryUpTo > 0 && summaryUpTo < history.length
+          ? [
+              {
+                role: "system",
+                content: `Summary of earlier conversation: ${thread.summary}`,
+              } as ChatMessage,
+              ...history.slice(summaryUpTo),
+            ]
+          : history;
+
+      let messages: ChatMessage[] = [{ role: "system", content: systemContent }, ...promptHistory];
 
       const toolDefs = toolsForSurface(args.route as ToolSurface);
       const toolsByName = new Map(toolDefs.map((t) => [t.name, t]));
@@ -278,6 +359,36 @@ export const execute = internalAction({
       const openai = getOpenAI();
 
       for (let turn = 0; turn < MAX_TURNS; turn++) {
+        // Cooperative cancellation: if runs.cancel was called while we were
+        // idle, bail before hitting OpenAI again.
+        const currentStatus: string | null = await ctx.runQuery(
+          internal.agent.runInternal.getRunStatus,
+          { runId: args.runId },
+        );
+        if (currentStatus === "cancelled") {
+          await ctx.runMutation(internal.agent.runInternal.appendMessages, {
+            threadId: thread._id,
+            runId: args.runId,
+            messages: messages.slice(1),
+          });
+          await ctx.runMutation(internal.agent.runInternal.writeEvent, {
+            runId: args.runId,
+            threadId: thread._id,
+            sequence: nextSeq(),
+            type: "run_finished",
+            data: { reason: "cancelled" },
+          });
+          return;
+        }
+
+        await ctx.runMutation(internal.agent.runInternal.writeEvent, {
+          runId: args.runId,
+          threadId: thread._id,
+          sequence: nextSeq(),
+          type: "step_started",
+          data: { turn },
+        });
+
         const stream = await openai.chat.completions.create({
           model: "gpt-4.1",
           messages,
@@ -295,6 +406,7 @@ export const execute = internalAction({
         });
 
         let assistantContent = "";
+        let contentOpened = false;
         const toolCallAccum: Record<number, PendingToolCall> = {};
         let finishReason: string | null = null;
 
@@ -304,6 +416,16 @@ export const execute = internalAction({
           const delta = choice.delta;
 
           if (delta.content) {
+            if (!contentOpened) {
+              contentOpened = true;
+              await ctx.runMutation(internal.agent.runInternal.writeEvent, {
+                runId: args.runId,
+                threadId: thread._id,
+                sequence: nextSeq(),
+                type: "content_started",
+                data: { turn },
+              });
+            }
             assistantContent += delta.content;
             await ctx.runMutation(internal.agent.runInternal.writeEvent, {
               runId: args.runId,
@@ -346,6 +468,16 @@ export const execute = internalAction({
           if (choice.finish_reason) finishReason = choice.finish_reason;
         }
 
+        if (contentOpened) {
+          await ctx.runMutation(internal.agent.runInternal.writeEvent, {
+            runId: args.runId,
+            threadId: thread._id,
+            sequence: nextSeq(),
+            type: "content_finished",
+            data: { turn, text: assistantContent },
+          });
+        }
+
         await ctx.runMutation(internal.agent.runInternal.writeEvent, {
           runId: args.runId,
           threadId: thread._id,
@@ -372,6 +504,13 @@ export const execute = internalAction({
         messages = [...messages, assistantMsg];
 
         if (pendingCalls.length === 0) {
+          await ctx.runMutation(internal.agent.runInternal.writeEvent, {
+            runId: args.runId,
+            threadId: thread._id,
+            sequence: nextSeq(),
+            type: "step_finished",
+            data: { turn, finishReason },
+          });
           await ctx.runMutation(internal.agent.runInternal.appendMessages, {
             threadId: thread._id,
             runId: args.runId,
@@ -435,6 +574,13 @@ export const execute = internalAction({
             runId: args.runId,
             threadId: thread._id,
             sequence: nextSeq(),
+            type: "step_finished",
+            data: { turn, finishReason: "awaiting_tool_approval" },
+          });
+          await ctx.runMutation(internal.agent.runInternal.writeEvent, {
+            runId: args.runId,
+            threadId: thread._id,
+            sequence: nextSeq(),
             type: "run_paused",
             data: { reason: "awaiting_tool_approval" },
           });
@@ -458,6 +604,14 @@ export const execute = internalAction({
             },
           ];
         }
+
+        await ctx.runMutation(internal.agent.runInternal.writeEvent, {
+          runId: args.runId,
+          threadId: thread._id,
+          sequence: nextSeq(),
+          type: "step_finished",
+          data: { turn, finishReason },
+        });
       }
 
       await ctx.runMutation(internal.agent.runInternal.appendMessages, {
@@ -522,8 +676,20 @@ export const resumeAfterApproval = internalAction({
     });
     const decisionByToolCallId = new Map(
       approvals.map(
-        (a: { tool_call_id: string; status: string; decision_reason?: string }) =>
-          [a.tool_call_id, { status: a.status, reason: a.decision_reason }] as const,
+        (a: {
+          tool_call_id: string;
+          status: string;
+          decision_reason?: string;
+          submitted_result?: unknown;
+        }) =>
+          [
+            a.tool_call_id,
+            {
+              status: a.status,
+              reason: a.decision_reason,
+              submittedResult: a.submitted_result,
+            },
+          ] as const,
       ),
     );
 
@@ -533,13 +699,10 @@ export const resumeAfterApproval = internalAction({
       const decision = decisionByToolCallId.get(call.id);
       let toolContent: string;
       if (decision?.status === "approved") {
-        const result = await dispatchTool(
-          ctx,
-          call.name,
-          safeParseJson(call.argsJson),
-          call.id,
-          args.runId,
-        );
+        const result =
+          decision.submittedResult !== undefined
+            ? decision.submittedResult
+            : await dispatchTool(ctx, call.name, safeParseJson(call.argsJson), call.id, args.runId);
         toolContent = JSON.stringify(result);
         await ctx.runMutation(internal.agent.runInternal.writeEvent, {
           runId: args.runId,
