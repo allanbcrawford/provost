@@ -9,6 +9,14 @@ export {
 } from "./content-card";
 export * from "./chat";
 export {
+  Badge,
+  ContentCard,
+  ContentMetadata,
+  DotSeparator,
+  ProgressBar,
+  ThumbnailImage,
+} from "./content-card";
+export {
   Dialog,
   DialogClose,
   DialogContent,
