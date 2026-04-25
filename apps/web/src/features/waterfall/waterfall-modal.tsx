@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AiDisclaimer } from "@/components/ai-disclaimer";
+import { AgreementsSelector } from "./agreements-selector";
 import { DeltaSummary } from "./delta-summary";
 import { NodeEditorDrawer } from "./node-editor-drawer";
 import { RevisionsList } from "./revisions-list";
@@ -12,7 +13,9 @@ import {
   type EditableNodeId,
   type RevisionKey,
   type RevisionState,
+  type SelectedAgreement,
 } from "./types";
+import { UnallocatedSummary } from "./unallocated-summary";
 import { WaterfallDiagram } from "./waterfall-diagram";
 
 type Props = {
@@ -112,6 +115,16 @@ export function WaterfallModal({ open, onClose, initialRevisions, initialCustomE
 
         <div className="relative flex min-h-0 flex-1">
           <div className="flex-1 overflow-y-auto px-6 py-5">
+            <section className="mb-5 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
+              <AgreementsSelector
+                selected={customEdits.selectedAgreements ?? []}
+                onChange={(next) =>
+                  setCustomEdits((prev) => ({ ...prev, selectedAgreements: next }))
+                }
+              />
+              <UnallocatedSummary selectedAgreements={customEdits.selectedAgreements ?? []} />
+            </section>
+
             <section className="mb-5">
               <p className="mb-2 font-semibold text-[10.5px] text-provost-text-tertiary uppercase tracking-wider">
                 Proposed revisions
