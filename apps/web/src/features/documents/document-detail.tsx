@@ -14,6 +14,7 @@ const PDFViewer = dynamic(() => import("@provost/ui/pdf").then((m) => m.PDFViewe
 import { usePageContext } from "@/hooks/use-page-context";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
+import { DocumentOverview } from "./document-overview";
 import { ObservationsPanel } from "./observations-panel";
 
 type DocumentDetailProps = {
@@ -144,9 +145,7 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
               )}
             </>
           ) : (
-            <div className="flex h-full items-center justify-center p-8 text-provost-text-secondary text-sm">
-              No PDF attached to this document.
-            </div>
+            <DocumentOverview document={document} pages={pages} />
           )}
         </div>
 
