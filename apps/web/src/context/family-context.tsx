@@ -26,15 +26,16 @@ export function FamilyProvider({
 }
 
 export function useSelectedFamily(): Family {
-  // Gate the family on Clerk's signed-in state. During sign-out the family
-  // can briefly remain in context after Clerk has cleared identity, which
-  // would otherwise let family-scoped Convex queries fire unauthenticated
-  // and throw (e.g. requireFamilyMember). On sign-in, gate the same way
-  // until Clerk has finished hydrating, so the cookie-seeded family doesn't
-  // surface before ConvexProviderWithClerk has attached the user's token.
+  // Suppress the family during a *confirmed* signed-out state. During SSR
+  // and Clerk's hydration window isSignedIn is undefined; we keep the
+  // family available so server-seeded data (apps/web/src/app/(app)/layout.tsx)
+  // and the cookie hint can render content on first paint. Only flip to
+  // null once Clerk has actively reported signed-out — that's the window
+  // where family-scoped Convex queries would otherwise fire with stale
+  // identity and throw via requireFamilyMember.
   const { isSignedIn } = useAuth();
   const family = useContext(FamilyContext)?.family ?? null;
-  return isSignedIn ? family : null;
+  return isSignedIn === false ? null : family;
 }
 
 export function useFamilyContext(): FamilyContextValue {
