@@ -172,39 +172,37 @@ function ThreadsSection() {
 
   return (
     <div className="mt-1 border-provost-border-subtle border-t pt-1">
-      <div
-        className={`nav-item flex items-center px-5 py-3 text-[17px] text-provost-neutral-550 transition-colors hover:bg-provost-bg-menu-hover ${
-          expanded ? "" : ""
-        }`}
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="nav-item flex w-full items-center px-5 py-3 text-[17px] text-provost-neutral-550 transition-colors hover:bg-provost-bg-menu-hover"
+        aria-expanded={expanded}
+        aria-controls="threads-list"
       >
-        <button
-          type="button"
-          onClick={() => setExpanded((v) => !v)}
-          className="flex flex-1 items-center"
-          aria-expanded={expanded}
-          aria-controls="threads-list"
-        >
-          <span className="flex h-6 w-6 items-center justify-center text-gray-500">
-            <Icon name="asterisk" size={24} weight={200} />
-          </span>
-          <span className="ml-[15px] flex-1 text-left">Threads</span>
-          <Icon
-            name={expanded ? "keyboard_arrow_up" : "keyboard_arrow_down"}
-            size={20}
-            className="text-provost-text-secondary"
-          />
-        </button>
-        <button
-          type="button"
-          onClick={handleNewThread}
-          className="ml-1 rounded p-1 text-provost-text-secondary transition-colors hover:bg-provost-bg-secondary"
-          aria-label="New thread"
-        >
-          <Icon name="add" size={20} />
-        </button>
-      </div>
+        <span className="flex h-6 w-6 items-center justify-center text-gray-500">
+          <Icon name="asterisk" size={24} weight={200} />
+        </span>
+        <span className="ml-[15px] flex-1 text-left">Threads</span>
+        <Icon
+          name={expanded ? "keyboard_arrow_up" : "keyboard_arrow_down"}
+          size={20}
+          className="text-provost-text-secondary"
+        />
+      </button>
       {expanded && (
         <ul id="threads-list" className="pb-2">
+          <li>
+            <button
+              type="button"
+              onClick={handleNewThread}
+              className="flex w-full items-center px-5 py-2 text-left text-[14px] text-provost-text-primary transition-colors hover:bg-provost-bg-menu-hover"
+            >
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center">
+                <Icon name="add" size={16} className="text-provost-text-secondary" />
+              </span>
+              <span className="ml-[15px]">New Thread</span>
+            </button>
+          </li>
           {threads === undefined ? (
             <li className="px-5 py-2 text-[13px] text-provost-text-secondary">Loading…</li>
           ) : threads.length === 0 ? (
