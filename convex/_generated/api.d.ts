@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as __tests____helpers from "../__tests__/_helpers.js";
 import type * as acl from "../acl.js";
 import type * as aclBackfill from "../aclBackfill.js";
 import type * as agent_approvals from "../agent/approvals.js";
@@ -98,6 +99,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "__tests__/_helpers": typeof __tests____helpers;
   acl: typeof acl;
   aclBackfill: typeof aclBackfill;
   "agent/approvals": typeof agent_approvals;

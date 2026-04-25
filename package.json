@@ -14,6 +14,8 @@
     "test": "turbo run test",
     "lint": "turbo run lint",
     "convex:dev": "convex dev",
+    "convex:test": "vitest run",
+    "convex:test:watch": "vitest",
     "deploy:convex:prod": "convex deploy --prod --yes",
     "prepare": "husky"
   },
@@ -24,9 +26,12 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.4",
+    "@edge-runtime/vm": "^5.0.0",
+    "convex-test": "^0.0.50",
     "husky": "^9.1.7",
     "lint-staged": "^15.2.11",
-    "turbo": "^2.3.0"
+    "turbo": "^2.3.0",
+    "vitest": "^2.1.8"
   },
   "dependencies": {
     "@provost/agent": "workspace:^",
