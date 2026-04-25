@@ -95,6 +95,8 @@ import type * as users from "../users.js";
 import type * as waterfallBackfill from "../waterfallBackfill.js";
 import type * as waterfallEngine from "../waterfallEngine.js";
 import type * as waterfalls from "../waterfalls.js";
+import type * as williamsBackfill from "../williamsBackfill.js";
+import type * as williamsBackfillInternal from "../williamsBackfillInternal.js";
 
 import type {
   ApiFromModules,
@@ -190,6 +192,8 @@ declare const fullApi: ApiFromModules<{
   waterfallBackfill: typeof waterfallBackfill;
   waterfallEngine: typeof waterfallEngine;
   waterfalls: typeof waterfalls;
+  williamsBackfill: typeof williamsBackfill;
+  williamsBackfillInternal: typeof williamsBackfillInternal;
 }>;
 
 /**
