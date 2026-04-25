@@ -20,8 +20,11 @@
 //   5. Drop lesson_users.due_date by patching it to undefined (Convex permits
 //      removing optional fields via patch with `undefined`).
 
+import { ConvexError, v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
-import { internalMutation } from "./_generated/server";
+import { internalMutation, mutation } from "./_generated/server";
+import { writeAudit } from "./lib/audit";
+import { requireSiteAdmin } from "./lib/authz";
 
 const PHASES = ["emerging", "developing", "operating", "enduring"] as const;
 type Phase = (typeof PHASES)[number];
@@ -397,6 +400,36 @@ export const migrateArticles = internalMutation({
       converted++;
     }
     return { converted, skipped, total: lessons.length };
+  },
+});
+
+// Site-admin-only single-lesson variant of `migrateArticles`. Uses the same
+// deterministic slides→Markdown converter so a curator can re-run the
+// conversion after editing slide content. Always overwrites
+// article_markdown — call this from the in-browser editor's "Regenerate
+// from slides" button.
+export const regenerateArticleForLesson = mutation({
+  args: { lessonId: v.id("lessons") },
+  handler: async (ctx, { lessonId }) => {
+    const admin = await requireSiteAdmin(ctx);
+    const lesson = await ctx.db.get(lessonId);
+    if (!lesson || lesson.deleted_at) throw new ConvexError({ code: "NOT_FOUND" });
+    const md = slidesToMarkdown(lesson.title, lesson.description, lesson.content);
+    await ctx.db.patch(lessonId, {
+      article_markdown: md,
+      format: "article",
+    });
+    await writeAudit(ctx, {
+      familyId: lesson.family_id,
+      actorUserId: admin._id,
+      actorKind: "user",
+      category: "mutation",
+      action: "lessons.regenerate_article",
+      resourceType: "lessons",
+      resourceId: lessonId,
+      metadata: { length: md.length },
+    });
+    return { articleMarkdown: md };
   },
 });
 

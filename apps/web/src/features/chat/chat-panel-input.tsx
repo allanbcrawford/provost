@@ -200,7 +200,7 @@ export function ChatPanelInput({
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
         disabled={disabled}
-        className="min-h-[48px] max-h-[120px] w-full resize-none bg-transparent px-2 py-2 text-[15px] placeholder:text-provost-text-muted focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+        className="max-h-[120px] min-h-[48px] w-full resize-none bg-transparent px-2 py-2 text-[15px] placeholder:text-provost-text-muted focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         placeholder={placeholder}
         rows={1}
       />
@@ -211,10 +211,10 @@ export function ChatPanelInput({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading || disabled}
-            className="inline-flex h-[35px] items-center gap-1 rounded-full border border-provost-border-default bg-white pl-3 pr-4 text-provost-text-primary transition-colors hover:bg-provost-bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-[35px] items-center gap-1 rounded-full border border-provost-border-default bg-white pr-4 pl-3 text-provost-text-primary transition-colors hover:bg-provost-bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Icon name="add" size={20} />
-            <span className="text-[14px] font-normal">Upload</span>
+            <span className="font-normal text-[14px]">Upload</span>
           </button>
           <button
             type="button"
@@ -222,7 +222,7 @@ export function ChatPanelInput({
             className="inline-flex h-[35px] items-center gap-1 rounded-full border border-provost-border-default bg-white px-4 text-provost-text-primary transition-colors hover:bg-provost-bg-secondary"
           >
             <Icon name="asterisk" size={20} />
-            <span className="text-[14px] font-normal">Prompt ideas</span>
+            <span className="font-normal text-[14px]">Prompt ideas</span>
           </button>
         </div>
 

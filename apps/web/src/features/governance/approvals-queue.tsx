@@ -90,13 +90,13 @@ function PendingList({ familyId }: { familyId: Id<"families"> }) {
 
   if (pending === undefined) {
     return (
-      <div className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">Loading…</div>
+      <div className="text-[14px] text-provost-text-secondary tracking-[-0.42px]">Loading…</div>
     );
   }
 
   if (pending.length === 0) {
     return (
-      <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+      <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] text-provost-text-secondary tracking-[-0.42px]">
         No pending approvals.
       </div>
     );
@@ -114,20 +114,20 @@ function PendingList({ familyId }: { familyId: Id<"families"> }) {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex min-w-0 flex-1 flex-col gap-2">
                     <div className="flex items-center gap-2">
-                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[12px] font-medium text-amber-800">
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 font-medium text-[12px] text-amber-800">
                         pending
                       </span>
-                      <h3 className="font-mono text-[14px] font-medium tracking-[-0.42px] text-provost-text-primary">
+                      <h3 className="font-medium font-mono text-[14px] text-provost-text-primary tracking-[-0.42px]">
                         {a.tool_name}
                       </h3>
                     </div>
-                    <p className="text-[13px] tracking-[-0.39px] text-provost-text-secondary">
+                    <p className="text-[13px] text-provost-text-secondary tracking-[-0.39px]">
                       Requested by {a.requester?.name ?? "—"} ·{" "}
                       {new Date(a._creationTime).toLocaleString()}
                     </p>
                     <Link
                       href={`/governance/audit?search=${a.thread_run_id}`}
-                      className="self-start text-[13px] tracking-[-0.39px] text-provost-text-secondary underline hover:text-provost-text-primary"
+                      className="self-start text-[13px] text-provost-text-secondary tracking-[-0.39px] underline hover:text-provost-text-primary"
                     >
                       Context: thread/run {a.thread_run_id.slice(-6)}
                     </Link>
@@ -138,7 +138,7 @@ function PendingList({ familyId }: { familyId: Id<"families"> }) {
                       variant="outline"
                       onClick={() => setRejectTarget(a)}
                       disabled={busy === a.tool_call_id}
-                      className="h-[35px] rounded-full px-4 text-[13px] font-medium"
+                      className="h-[35px] rounded-full px-4 font-medium text-[13px]"
                     >
                       Reject
                     </Button>
@@ -146,7 +146,7 @@ function PendingList({ familyId }: { familyId: Id<"families"> }) {
                       size="sm"
                       onClick={() => onApprove(a.tool_call_id)}
                       disabled={busy === a.tool_call_id}
-                      className="h-[35px] rounded-full px-4 text-[13px] font-medium"
+                      className="h-[35px] rounded-full px-4 font-medium text-[13px]"
                     >
                       Approve
                     </Button>
@@ -155,7 +155,7 @@ function PendingList({ familyId }: { familyId: Id<"families"> }) {
                 <button
                   type="button"
                   onClick={() => toggleExpand(a._id)}
-                  className="self-start text-[13px] tracking-[-0.39px] text-provost-text-secondary underline hover:text-provost-text-primary"
+                  className="self-start text-[13px] text-provost-text-secondary tracking-[-0.39px] underline hover:text-provost-text-primary"
                 >
                   {isOpen ? "Hide arguments" : "Show arguments"}
                 </button>
@@ -197,7 +197,7 @@ function PendingList({ familyId }: { familyId: Id<"families"> }) {
                 onChange={(e) => setRejectReason(e.target.value)}
                 rows={4}
                 placeholder="Reason (optional)"
-                className="w-full rounded-[8px] border border-provost-border-subtle bg-white p-3 text-[14px] tracking-[-0.42px] text-provost-text-primary shadow-xs outline-none placeholder:text-provost-text-secondary focus-visible:border-provost-border-default focus-visible:ring-2 focus-visible:ring-provost-border-default/30"
+                className="w-full rounded-[8px] border border-provost-border-subtle bg-white p-3 text-[14px] text-provost-text-primary tracking-[-0.42px] shadow-xs outline-none placeholder:text-provost-text-secondary focus-visible:border-provost-border-default focus-visible:ring-2 focus-visible:ring-provost-border-default/30"
               />
             </div>
           )}
@@ -227,13 +227,13 @@ function RecentDecisionsList({ familyId }: { familyId: Id<"families"> }) {
 
   if (decisions === undefined) {
     return (
-      <div className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">Loading…</div>
+      <div className="text-[14px] text-provost-text-secondary tracking-[-0.42px]">Loading…</div>
     );
   }
 
   if (decisions.length === 0) {
     return (
-      <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+      <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] text-provost-text-secondary tracking-[-0.42px]">
         No decisions yet.
       </div>
     );
@@ -253,33 +253,33 @@ function RecentDecisionsList({ familyId }: { familyId: Id<"families"> }) {
                     <span
                       className={
                         isApproved
-                          ? "rounded-full bg-emerald-100 px-2 py-0.5 text-[12px] font-medium text-emerald-800"
-                          : "rounded-full bg-rose-100 px-2 py-0.5 text-[12px] font-medium text-rose-800"
+                          ? "rounded-full bg-emerald-100 px-2 py-0.5 font-medium text-[12px] text-emerald-800"
+                          : "rounded-full bg-rose-100 px-2 py-0.5 font-medium text-[12px] text-rose-800"
                       }
                     >
                       {a.status}
                     </span>
-                    <h3 className="font-mono text-[14px] font-medium tracking-[-0.42px] text-provost-text-primary">
+                    <h3 className="font-medium font-mono text-[14px] text-provost-text-primary tracking-[-0.42px]">
                       {a.tool_name}
                     </h3>
                   </div>
-                  <p className="text-[13px] tracking-[-0.39px] text-provost-text-secondary">
+                  <p className="text-[13px] text-provost-text-secondary tracking-[-0.39px]">
                     Decided by {a.decider?.name ?? "—"} ·{" "}
                     {a.decided_at ? new Date(a.decided_at).toLocaleString() : "—"}
                   </p>
-                  <p className="text-[13px] tracking-[-0.39px] text-provost-text-secondary">
+                  <p className="text-[13px] text-provost-text-secondary tracking-[-0.39px]">
                     Requested by {a.requester?.name ?? "—"}
                   </p>
                 </div>
                 <Link
                   href={`/governance/audit?search=${a.thread_run_id}`}
-                  className="text-[13px] tracking-[-0.39px] text-provost-text-secondary underline hover:text-provost-text-primary"
+                  className="text-[13px] text-provost-text-secondary tracking-[-0.39px] underline hover:text-provost-text-primary"
                 >
                   Context
                 </Link>
               </div>
               {a.decision_reason && (
-                <p className="rounded-[8px] bg-provost-bg-muted p-2 text-[13px] tracking-[-0.39px] text-provost-text-primary">
+                <p className="rounded-[8px] bg-provost-bg-muted p-2 text-[13px] text-provost-text-primary tracking-[-0.39px]">
                   Reason: {a.decision_reason}
                 </p>
               )}

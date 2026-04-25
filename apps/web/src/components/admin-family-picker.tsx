@@ -30,7 +30,7 @@ export function AdminFamilyPicker({ value, onChange }: AdminFamilyPickerProps) {
     <div className="mb-6 flex items-center gap-3">
       <label
         htmlFor="admin-family-select"
-        className="text-[12px] font-semibold uppercase tracking-[0.1em] text-provost-text-tertiary"
+        className="font-semibold text-[12px] text-provost-text-tertiary uppercase tracking-[0.1em]"
       >
         Family
       </label>
@@ -38,7 +38,7 @@ export function AdminFamilyPicker({ value, onChange }: AdminFamilyPickerProps) {
         id="admin-family-select"
         value={value ?? ""}
         onChange={(e) => onChange((e.target.value || null) as Id<"families"> | null)}
-        className="h-[36px] rounded-[8px] border border-provost-border-subtle bg-white px-3 text-[14px] tracking-[-0.42px] text-provost-text-primary focus:border-provost-text-primary focus:outline-none"
+        className="h-[36px] rounded-[8px] border border-provost-border-subtle bg-white px-3 text-[14px] text-provost-text-primary tracking-[-0.42px] focus:border-provost-text-primary focus:outline-none"
       >
         <option value="">Select a family…</option>
         {families.map((f) => (

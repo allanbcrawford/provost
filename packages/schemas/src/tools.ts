@@ -156,3 +156,13 @@ export const RememberArgsSchema = z.object({
   text: z.string().min(1).max(1_000),
 });
 export type RememberArgs = z.infer<typeof RememberArgsSchema>;
+
+// Placeholder schema for the future LLM-driven waterfall-state extraction
+// tool. Today the handler returns an "approval pending / not yet
+// implemented" envelope; once the extractor lands it will read a document
+// + propose a structured WaterfallState patch for human review.
+export const ExtractWaterfallStateArgsSchema = z.object({
+  documentId: z.string(),
+  notes: z.string().optional(),
+});
+export type ExtractWaterfallStateArgs = z.infer<typeof ExtractWaterfallStateArgsSchema>;

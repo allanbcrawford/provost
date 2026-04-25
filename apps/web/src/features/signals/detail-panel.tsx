@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { formatDate, formatName, shortName } from "@/features/graph/format";
 import type {
   Document,
@@ -12,6 +12,7 @@ import type {
   SignalCategory,
   SignalSeverity,
 } from "@/features/graph/types";
+import { usePageContext } from "@/hooks/use-page-context";
 
 type Props = {
   selected: SelectedNode;
@@ -78,6 +79,28 @@ export function DetailPanel({
   activeHighlightSignalId,
 }: Props) {
   const [tab, setTab] = useState<"detail" | "signals">("detail");
+
+  // Map the graph node selection onto the chat agent's selection schema.
+  // member -> family_member, signal -> signal, document -> document,
+  // professional -> professional. visibleState carries the active tab so
+  // the agent knows whether the user is looking at details or signals.
+  const pageSelection = useMemo(() => {
+    if (!selected) return null;
+    const kind =
+      selected.kind === "member"
+        ? "family_member"
+        : selected.kind === "signal"
+          ? "signal"
+          : selected.kind === "document"
+            ? "document"
+            : "professional";
+    return { kind, id: selected.id };
+  }, [selected]);
+  usePageContext({
+    selection: pageSelection,
+    visibleState: selected ? { tab } : undefined,
+    enabled: Boolean(selected),
+  });
 
   if (!selected) return null;
 

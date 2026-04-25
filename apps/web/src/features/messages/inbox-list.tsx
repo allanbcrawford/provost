@@ -21,11 +21,11 @@ export function InboxList({
   selectedId: Id<"message_threads"> | null;
 }) {
   if (threads === null) {
-    return <p className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">Loading…</p>;
+    return <p className="text-[14px] text-provost-text-secondary tracking-[-0.42px]">Loading…</p>;
   }
   if (threads.length === 0) {
     return (
-      <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+      <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] text-provost-text-secondary tracking-[-0.42px]">
         No conversations yet.
       </div>
     );
@@ -35,7 +35,7 @@ export function InboxList({
       {threads.map((t, i) => {
         const isSelected = selectedId === t._id;
         return (
-          <li key={t._id} className={i > 0 ? "border-t border-provost-border-subtle" : ""}>
+          <li key={t._id} className={i > 0 ? "border-provost-border-subtle border-t" : ""}>
             <button
               type="button"
               onClick={() => onSelect(t._id)}
@@ -45,23 +45,23 @@ export function InboxList({
             >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="truncate text-[15px] font-medium tracking-[-0.45px] text-provost-text-primary">
+                  <span className="truncate font-medium text-[15px] text-provost-text-primary tracking-[-0.45px]">
                     {t.participantNames.join(", ") || "(no other participants)"}
                   </span>
                   {t.unread > 0 && (
-                    <span className="rounded-full bg-provost-text-primary px-2 py-0.5 text-[11px] font-medium text-white">
+                    <span className="rounded-full bg-provost-text-primary px-2 py-0.5 font-medium text-[11px] text-white">
                       {t.unread}
                     </span>
                   )}
                 </div>
-                <div className="mt-0.5 truncate text-[13px] font-medium tracking-[-0.39px] text-provost-text-primary">
+                <div className="mt-0.5 truncate font-medium text-[13px] text-provost-text-primary tracking-[-0.39px]">
                   {t.subject}
                 </div>
-                <div className="mt-1 truncate text-[13px] tracking-[-0.39px] text-provost-text-secondary">
+                <div className="mt-1 truncate text-[13px] text-provost-text-secondary tracking-[-0.39px]">
                   {t.lastBody}
                 </div>
               </div>
-              <div className="text-[12px] tracking-[-0.36px] text-provost-text-secondary whitespace-nowrap">
+              <div className="whitespace-nowrap text-[12px] text-provost-text-secondary tracking-[-0.36px]">
                 {new Date(t.lastSentAt).toLocaleDateString()}
               </div>
             </button>

@@ -8,9 +8,10 @@ import { useEffect, useState } from "react";
 
 const PDFViewer = dynamic(() => import("@provost/ui/pdf").then((m) => m.PDFViewer), {
   ssr: false,
-  loading: () => <div className="p-4 text-sm text-provost-text-secondary">Loading PDF…</div>,
+  loading: () => <div className="p-4 text-provost-text-secondary text-sm">Loading PDF…</div>,
 });
 
+import { usePageContext } from "@/hooks/use-page-context";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 import { ObservationsPanel } from "./observations-panel";
@@ -25,15 +26,31 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
   const versions = useQuery(api.documents.listVersions, { documentId });
   const [page, setPage] = useState(1);
 
+  // Surface what the user is viewing to the chat agent. The doc name/type
+  // make follow-up questions like "summarize this" actionable without
+  // requiring the user to repeat context.
+  usePageContext({
+    selection: { kind: "document", id: documentId },
+    visibleState: document
+      ? {
+          documentName: document.name,
+          documentType: document.type,
+          page,
+          pageCount: pages?.length ?? 0,
+        }
+      : { page },
+    enabled: document !== null,
+  });
+
   useEffect(() => {
     import("@provost/ui/pdf").then((m) => m.setupPdfWorker());
   }, []);
 
   if (document === undefined) {
-    return <div className="p-8 text-sm text-provost-text-secondary">Loading…</div>;
+    return <div className="p-8 text-provost-text-secondary text-sm">Loading…</div>;
   }
   if (document === null) {
-    return <div className="p-8 text-sm text-provost-text-secondary">Document not found.</div>;
+    return <div className="p-8 text-provost-text-secondary text-sm">Document not found.</div>;
   }
 
   const pageCount = pages?.length ?? 0;
@@ -49,7 +66,7 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
               Back to Library
             </Link>
           </Button>
-          <h1 className="truncate font-dm-serif text-[36px] font-medium leading-[1.2] tracking-[-0.72px] text-provost-text-primary">
+          <h1 className="truncate font-dm-serif font-medium text-[36px] text-provost-text-primary leading-[1.2] tracking-[-0.72px]">
             {document.name}
           </h1>
           <p className="mt-1 text-[13px] text-provost-text-secondary">
@@ -57,7 +74,7 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
             {document.creator_name ? `  ·  By ${document.creator_name}` : ""}
           </p>
           {versions && versions.length > 1 && (
-            <div className="mt-2 flex items-center gap-2 text-[13px] tracking-[-0.39px] text-provost-text-secondary">
+            <div className="mt-2 flex items-center gap-2 text-[13px] text-provost-text-secondary tracking-[-0.39px]">
               <span>Version</span>
               <select
                 value={documentId}
@@ -84,7 +101,7 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
             </div>
           )}
           {document.summary && (
-            <p className="mt-2 max-w-3xl text-[15px] tracking-[-0.4px] text-provost-text-secondary">
+            <p className="mt-2 max-w-3xl text-[15px] text-provost-text-secondary tracking-[-0.4px]">
               {document.summary}
             </p>
           )}
@@ -98,10 +115,12 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
           {hasPdf ? (
             <>
               <div className="min-h-0 flex-1 overflow-auto">
-                <PDFViewer fileUrl={document.fileUrl!} page={page} onPageChange={setPage} />
+                {document.fileUrl && (
+                  <PDFViewer fileUrl={document.fileUrl} page={page} onPageChange={setPage} />
+                )}
               </div>
               {pageCount > 0 && (
-                <div className="flex items-center justify-between border-t border-provost-border-default px-3 py-2 text-xs text-provost-text-secondary">
+                <div className="flex items-center justify-between border-provost-border-default border-t px-3 py-2 text-provost-text-secondary text-xs">
                   <Button
                     size="sm"
                     variant="outline"
@@ -125,7 +144,7 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
               )}
             </>
           ) : (
-            <div className="flex h-full items-center justify-center p-8 text-sm text-provost-text-secondary">
+            <div className="flex h-full items-center justify-center p-8 text-provost-text-secondary text-sm">
               No PDF attached to this document.
             </div>
           )}

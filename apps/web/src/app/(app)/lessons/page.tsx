@@ -60,7 +60,7 @@ function LessonsPage() {
   return (
     <div className="p-8">
       <div className="mb-8 flex items-center justify-between">
-        <h1 className="font-dm-serif text-[42px] font-medium tracking-[-0.84px] text-provost-text-primary">
+        <h1 className="font-dm-serif font-medium text-[42px] text-provost-text-primary tracking-[-0.84px]">
           Lessons
         </h1>
       </div>
@@ -78,7 +78,7 @@ function LessonsPage() {
 
         <TabsContent value="my">
           {activeLessons === undefined ? (
-            <p className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">Loading…</p>
+            <p className="text-[14px] text-provost-text-secondary tracking-[-0.42px]">Loading…</p>
           ) : (
             <LessonsList
               lessons={myLessonsForList}
@@ -107,4 +107,4 @@ function LessonsPage() {
   );
 }
 
-export default withRoleGuard(LessonsPage, APP_ROLES.LESSONS!);
+export default withRoleGuard(LessonsPage, APP_ROLES.LESSONS ?? []);

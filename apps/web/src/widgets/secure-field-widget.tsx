@@ -45,7 +45,7 @@ export function SecureFieldWidget({ message, reason }: SecureFieldWidgetProps) {
           <button
             type="submit"
             disabled={value.length === 0}
-            className="rounded-[6px] border border-provost-border-subtle bg-provost-bg-primary px-3 py-1.5 text-[12px] font-medium text-provost-text-primary hover:bg-provost-bg-hover disabled:opacity-50"
+            className="rounded-[6px] border border-provost-border-subtle bg-provost-bg-primary px-3 py-1.5 font-medium text-[12px] text-provost-text-primary hover:bg-provost-bg-hover disabled:opacity-50"
           >
             Submit
           </button>

@@ -21,18 +21,18 @@ export function LessonsCard({ variant = "admin" }: LessonsCardProps) {
     <HighlightsCard href={href} className="bg-provost-card-green-light p-[18px]">
       <div className="flex h-full flex-col justify-between">
         <div className="flex flex-col pr-6">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="mb-2 flex items-center gap-2">
             <HighlightsIcon className="text-provost-card-green-dark" />
-            <span className="text-provost-card-green-dark text-[16px] font-semibold opacity-80">
+            <span className="font-semibold text-[16px] text-provost-card-green-dark opacity-80">
               Lessons
             </span>
           </div>
-          <p className="text-provost-card-green-dark text-[23px] leading-[1.3] tracking-[-0.69px] font-serif">
+          <p className="font-serif text-[23px] text-provost-card-green-dark leading-[1.3] tracking-[-0.69px]">
             {CONTENT[variant]}
           </p>
         </div>
 
-        <div className="flex justify-end pb-0 pr-3">
+        <div className="flex justify-end pr-3 pb-0">
           <Image src="/images/lessons-code.png" alt="" width={110} height={90} />
         </div>
       </div>

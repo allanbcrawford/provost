@@ -29,7 +29,7 @@ export const Basic: Story = {
           <DialogTitle>Confirm action</DialogTitle>
           <DialogDescription>Are you sure you want to proceed?</DialogDescription>
         </DialogHeader>
-        <p className="text-sm text-provost-text-secondary">
+        <p className="text-provost-text-secondary text-sm">
           This will save your changes and close the dialog.
         </p>
         <DialogFooter>

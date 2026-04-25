@@ -20,7 +20,7 @@ export function TaskToolWidget({ taskId, title, assigneeType, status }: TaskTool
     <div className="rounded-[8px] border border-provost-border-subtle bg-provost-bg-muted px-3 py-2.5 text-[12.5px] text-provost-text-secondary">
       <div className="mb-1 flex items-center justify-between gap-2">
         <span className="font-semibold text-provost-text-primary">Task created</span>
-        <span className="rounded-[4px] bg-provost-bg-primary px-1.5 py-0.5 text-[11px] font-medium text-provost-text-primary">
+        <span className="rounded-[4px] bg-provost-bg-primary px-1.5 py-0.5 font-medium text-[11px] text-provost-text-primary">
           {status}
         </span>
       </div>
@@ -30,7 +30,7 @@ export function TaskToolWidget({ taskId, title, assigneeType, status }: TaskTool
       </div>
       <Link
         href="/governance"
-        className="inline-block rounded-[6px] border border-provost-border-subtle bg-provost-bg-primary px-2.5 py-1 text-[11.5px] font-medium text-provost-text-primary hover:bg-provost-bg-hover"
+        className="inline-block rounded-[6px] border border-provost-border-subtle bg-provost-bg-primary px-2.5 py-1 font-medium text-[11.5px] text-provost-text-primary hover:bg-provost-bg-hover"
         data-task-id={taskId}
       >
         View in /governance

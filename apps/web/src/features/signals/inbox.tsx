@@ -49,7 +49,7 @@ export function SignalsInbox() {
 
   if (!family) {
     return (
-      <div className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+      <div className="text-[14px] text-provost-text-secondary tracking-[-0.42px]">
         Select a family to view the inbox.
       </div>
     );
@@ -57,7 +57,7 @@ export function SignalsInbox() {
 
   if (signals === undefined || observations === undefined) {
     return (
-      <div className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+      <div className="text-[14px] text-provost-text-secondary tracking-[-0.42px]">
         Loading inbox…
       </div>
     );
@@ -68,13 +68,13 @@ export function SignalsInbox() {
 
   return (
     <div className="flex flex-col gap-10">
-      <p className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+      <p className="text-[14px] text-provost-text-secondary tracking-[-0.42px]">
         {totalSignals} open signal{totalSignals === 1 ? "" : "s"} · {totalObservations} observation
         {totalObservations === 1 ? "" : "s"}
       </p>
 
       {totalSignals === 0 && totalObservations === 0 ? (
-        <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+        <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] text-provost-text-secondary tracking-[-0.42px]">
           Nothing to review right now.
         </div>
       ) : null}
@@ -84,7 +84,7 @@ export function SignalsInbox() {
         if (list.length === 0) return null;
         return (
           <section key={sev}>
-            <h2 className="mb-3 text-[12px] font-semibold uppercase tracking-wider text-provost-text-tertiary">
+            <h2 className="mb-3 font-semibold text-[12px] text-provost-text-tertiary uppercase tracking-wider">
               {SEVERITY_LABEL[sev]} ({list.length})
             </h2>
             <ul className="flex flex-col">
@@ -107,7 +107,7 @@ export function SignalsInbox() {
 
       {observations.length > 0 ? (
         <section>
-          <h2 className="mb-3 text-[12px] font-semibold uppercase tracking-wider text-provost-text-tertiary">
+          <h2 className="mb-3 font-semibold text-[12px] text-provost-text-tertiary uppercase tracking-wider">
             Observations ({observations.length})
           </h2>
           <ul className="flex flex-col">
@@ -140,25 +140,25 @@ function SignalRow({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span
-            className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[12px] font-medium ${SEVERITY_CHIP[signal.severity]}`}
+            className={`inline-flex items-center rounded-full border px-2 py-0.5 font-medium text-[12px] ${SEVERITY_CHIP[signal.severity]}`}
           >
             {SEVERITY_LABEL[signal.severity]}
           </span>
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-provost-text-tertiary">
+          <span className="font-semibold text-[11px] text-provost-text-tertiary uppercase tracking-wider">
             {signal.category}
           </span>
           {signal.status === "drafting" ? (
-            <span className="text-[12px] font-medium text-provost-accent-blue">Drafting</span>
+            <span className="font-medium text-[12px] text-provost-accent-blue">Drafting</span>
           ) : null}
         </div>
-        <h3 className="mt-2 text-[22px] font-bold leading-[1.26] tracking-[-0.88px] text-provost-text-primary">
+        <h3 className="mt-2 font-bold text-[22px] text-provost-text-primary leading-[1.26] tracking-[-0.88px]">
           {signal.title}
         </h3>
-        <p className="mt-2 text-[14px] tracking-[-0.42px] text-provost-text-primary">
+        <p className="mt-2 text-[14px] text-provost-text-primary tracking-[-0.42px]">
           {signal.reason}
         </p>
         {signal.suggested_action ? (
-          <p className="mt-2 text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+          <p className="mt-2 text-[14px] text-provost-text-secondary tracking-[-0.42px]">
             <span className="font-medium text-provost-text-primary">Suggested:</span>{" "}
             {signal.suggested_action}
           </p>
@@ -168,14 +168,14 @@ function SignalRow({
         <button
           type="button"
           onClick={onDraft}
-          className="h-[35px] rounded-full border border-provost-border-default bg-white px-4 text-[13px] font-medium text-provost-text-primary hover:bg-provost-bg-muted"
+          className="h-[35px] rounded-full border border-provost-border-default bg-white px-4 font-medium text-[13px] text-provost-text-primary hover:bg-provost-bg-muted"
         >
           Draft revision →
         </button>
         <button
           type="button"
           onClick={onResolve}
-          className="h-[35px] rounded-full px-4 text-[13px] font-medium text-provost-text-secondary hover:bg-provost-bg-muted"
+          className="h-[35px] rounded-full px-4 font-medium text-[13px] text-provost-text-secondary hover:bg-provost-bg-muted"
         >
           Mark resolved
         </button>
@@ -189,29 +189,29 @@ function ObservationRow({ observation }: { observation: Observation }) {
     <div className="flex items-start gap-6 py-6">
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[12px] font-medium text-sky-700">
+          <span className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 font-medium text-[12px] text-sky-700">
             Observation
           </span>
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-provost-text-tertiary">
+          <span className="font-semibold text-[11px] text-provost-text-tertiary uppercase tracking-wider">
             {observation.status}
           </span>
         </div>
-        <h3 className="mt-2 text-[22px] font-bold leading-[1.26] tracking-[-0.88px] text-provost-text-primary">
+        <h3 className="mt-2 font-bold text-[22px] text-provost-text-primary leading-[1.26] tracking-[-0.88px]">
           {observation.title}
         </h3>
-        <p className="mt-2 text-[14px] tracking-[-0.42px] text-provost-text-primary">
+        <p className="mt-2 text-[14px] text-provost-text-primary tracking-[-0.42px]">
           {observation.description}
         </p>
-        <p className="mt-2 text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+        <p className="mt-2 text-[14px] text-provost-text-secondary tracking-[-0.42px]">
           <span className="font-medium text-provost-text-primary">Why this matters:</span>{" "}
           {observation.why_this_matters}
         </p>
-        <p className="mt-1 text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+        <p className="mt-1 text-[14px] text-provost-text-secondary tracking-[-0.42px]">
           <span className="font-medium text-provost-text-primary">Recommendation:</span>{" "}
           {observation.recommendation}
         </p>
         {observation.next_best_actions.length > 0 ? (
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-[14px] text-provost-text-secondary tracking-[-0.42px]">
             {observation.next_best_actions.map((a) => (
               <li key={a}>{a}</li>
             ))}

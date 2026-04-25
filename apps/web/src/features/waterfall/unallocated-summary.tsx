@@ -1,21 +1,14 @@
 "use client";
 
 // Unallocated assets lane (P3.4 / Q31.2 = A). Reads the family's assets
-// total and shows it alongside an "allocated" estimate so unallocated
-// dollars surface as a separate flow lane in the waterfall side panel.
-//
-// "Allocated" is approximated today — we don't yet have a parser that
-// reads each agreement's funding to compute precise allocation. We treat
-// "allocated" as 0 unless agreements are selected, at which point we
-// estimate at 90% of total (placeholder until the engine can read each
-// agreement's `state` blob). This lets the lane render with realistic
-// behavior so the UX is testable; precise math is a follow-up.
+// total + the live engine output, so "allocated" / "unallocated" reflect
+// real distribution math instead of the previous 90% placeholder.
 
 import { useQuery } from "convex/react";
 import { useSelectedFamily } from "@/context/family-context";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
-import type { SelectedAgreement } from "./types";
+import type { CustomEdits, RevisionState, SelectedAgreement } from "./types";
 
 function formatCurrency(value: number, currency: string): string {
   try {
@@ -31,14 +24,37 @@ function formatCurrency(value: number, currency: string): string {
 
 export function UnallocatedSummary({
   selectedAgreements,
+  customEdits,
+  revisions,
 }: {
   selectedAgreements: SelectedAgreement[];
+  customEdits?: CustomEdits;
+  revisions?: RevisionState;
 }) {
   const family = useSelectedFamily();
   const familyId = family?._id as Id<"families"> | undefined;
   const summary = useQuery(api.assets.summary, familyId ? { familyId } : "skip") as
     | { total: number; currency: string; count: number; byType: { type: string; value: number }[] }
     | undefined;
+
+  const selectedIds = selectedAgreements.map((s) => s.documentId as Id<"documents">);
+  const deathOrder = customEdits?.deathOrder ?? "robert-first";
+  const engineRevisions = revisions
+    ? { addResiduaryToSpouse: !!revisions.addResiduaryToSpouse }
+    : {};
+
+  const engine = useQuery(
+    api.waterfalls.compute,
+    familyId && selectedIds.length > 0
+      ? {
+          familyId,
+          selectedDocumentIds: selectedIds,
+          deathOrder,
+          customEdits: { ...(customEdits ?? {}) },
+          revisions: engineRevisions,
+        }
+      : "skip",
+  );
 
   if (!summary) {
     return (
@@ -51,10 +67,14 @@ export function UnallocatedSummary({
     return null;
   }
 
-  // Placeholder allocation estimate. Real engine work is tracked separately.
-  const allocatedShare = selectedAgreements.length === 0 ? 0 : 0.9;
-  const allocated = Math.round(summary.total * allocatedShare);
-  const unallocated = summary.total - allocated;
+  // When no agreements are selected the engine isn't called; nothing is
+  // allocated by definition. Otherwise wait for the engine result before
+  // reporting numbers so we don't flash a stale placeholder.
+  const engineReady = selectedIds.length === 0 ? true : engine !== undefined;
+  const unallocated = selectedIds.length === 0 ? summary.total : (engine?.unallocated ?? 0);
+  const allocated = summary.total - unallocated;
+  const unallocatedAssetCount =
+    selectedIds.length === 0 ? summary.count : (engine?.unallocatedAssetIds.length ?? 0);
 
   return (
     <div className="rounded-[14px] border border-provost-accent-blue/30 bg-white p-4">
@@ -73,7 +93,7 @@ export function UnallocatedSummary({
             Allocated
           </p>
           <p className="mt-1 font-dm-serif text-[20px] text-provost-text-primary">
-            {formatCurrency(allocated, summary.currency)}
+            {engineReady ? formatCurrency(allocated, summary.currency) : "…"}
           </p>
         </div>
         <div>
@@ -85,14 +105,15 @@ export function UnallocatedSummary({
               unallocated > 0 ? "text-amber-700" : "text-provost-text-primary"
             }`}
           >
-            {formatCurrency(unallocated, summary.currency)}
+            {engineReady ? formatCurrency(unallocated, summary.currency) : "…"}
           </p>
         </div>
       </div>
-      {unallocated > 0 && selectedAgreements.length > 0 && (
-        <p className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-[12px] tracking-[-0.36px] text-amber-900">
-          Assets not covered by the selected agreements default to spouse / intestacy. Add a trust
-          or will to absorb the remainder.
+      {engineReady && unallocated > 0 && selectedAgreements.length > 0 && (
+        <p className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-[12px] text-amber-900 tracking-[-0.36px]">
+          {unallocatedAssetCount} asset{unallocatedAssetCount === 1 ? "" : "s"} not covered by the
+          selected agreements. Toggle "Residuary clause to surviving spouse" to absorb the remainder
+          into the surviving spouse's share.
         </p>
       )}
       {selectedAgreements.length === 0 && (

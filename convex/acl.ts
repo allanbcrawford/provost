@@ -46,7 +46,7 @@ export const listParties = query({
   },
   handler: async (ctx, { resourceType, resourceId }) => {
     const resolved = await resolveResourceFamily(ctx, resourceType, resourceId);
-    if (!resolved || !resolved.resourceExists) {
+    if (!resolved?.resourceExists) {
       throw new ConvexError({ code: "NOT_FOUND" });
     }
     await requireFamilyMember(ctx, resolved.familyId);
@@ -96,7 +96,7 @@ export const addParty = mutation({
   },
   handler: async (ctx, { resourceType, resourceId, userId, role }) => {
     const resolved = await resolveResourceFamily(ctx, resourceType, resourceId);
-    if (!resolved || !resolved.resourceExists) {
+    if (!resolved?.resourceExists) {
       throw new ConvexError({ code: "NOT_FOUND" });
     }
     const { user, membership } = await requireFamilyMember(ctx, resolved.familyId);
@@ -163,7 +163,7 @@ export const removeParty = mutation({
   },
   handler: async (ctx, { resourceType, resourceId, userId }) => {
     const resolved = await resolveResourceFamily(ctx, resourceType, resourceId);
-    if (!resolved || !resolved.resourceExists) {
+    if (!resolved?.resourceExists) {
       throw new ConvexError({ code: "NOT_FOUND" });
     }
     const { user, membership } = await requireFamilyMember(ctx, resolved.familyId);

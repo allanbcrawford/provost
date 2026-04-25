@@ -15,10 +15,10 @@ export default function AdminGovernancePage() {
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="font-dm-serif text-[42px] font-medium tracking-[-0.84px] text-provost-text-primary">
+        <h1 className="font-dm-serif font-medium text-[42px] text-provost-text-primary tracking-[-0.84px]">
           Governance
         </h1>
-        <p className="mt-2 text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+        <p className="mt-2 text-[14px] text-provost-text-secondary tracking-[-0.42px]">
           Audit log, approvals queue, tasks, and compliance settings per family.
         </p>
       </div>
@@ -26,7 +26,7 @@ export default function AdminGovernancePage() {
       <AdminFamilyPicker value={familyId} onChange={setFamilyId} />
 
       {!familyId ? (
-        <div className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+        <div className="text-[14px] text-provost-text-secondary tracking-[-0.42px]">
           Select a family to continue.
         </div>
       ) : (

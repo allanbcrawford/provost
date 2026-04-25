@@ -35,10 +35,10 @@ export function SimulationsList({ saved, onNew, onOpen }: Props) {
           <span className="material-symbols-outlined text-[22px]">add</span>
         </span>
         <span>
-          <p className="font-dm-serif text-[22px] font-medium leading-[1.1] tracking-[-0.44px] text-provost-text-primary">
+          <p className="font-dm-serif font-medium text-[22px] text-provost-text-primary leading-[1.1] tracking-[-0.44px]">
             New Inheritance Waterfall
           </p>
-          <p className="mt-2 text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+          <p className="mt-2 text-[14px] text-provost-text-secondary tracking-[-0.42px]">
             Model how amendments reshape the estate flow.
           </p>
         </span>
@@ -50,20 +50,20 @@ export function SimulationsList({ saved, onNew, onOpen }: Props) {
           className="flex min-h-[180px] flex-col justify-between rounded-[14px] border border-provost-border-subtle bg-white p-6"
         >
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-provost-text-tertiary">
+            <p className="font-semibold text-[11px] text-provost-text-tertiary uppercase tracking-wider">
               Inheritance Waterfall
             </p>
-            <p className="mt-2 font-dm-serif text-[22px] font-medium leading-[1.1] tracking-[-0.44px] text-provost-text-primary">
+            <p className="mt-2 font-dm-serif font-medium text-[22px] text-provost-text-primary leading-[1.1] tracking-[-0.44px]">
               {sim.name}
             </p>
-            <p className="mt-1 text-[13px] tracking-[-0.39px] text-provost-text-tertiary">
+            <p className="mt-1 text-[13px] text-provost-text-tertiary tracking-[-0.39px]">
               Saved {formatDate(sim._creationTime)}
             </p>
           </div>
           <button
             type="button"
             onClick={() => onOpen(sim)}
-            className="mt-4 inline-flex w-fit items-center gap-1.5 rounded-full border border-provost-border-subtle bg-provost-bg-muted px-4 py-1.5 text-[13px] font-medium text-provost-text-primary hover:bg-provost-bg-primary"
+            className="mt-4 inline-flex w-fit items-center gap-1.5 rounded-full border border-provost-border-subtle bg-provost-bg-muted px-4 py-1.5 font-medium text-[13px] text-provost-text-primary hover:bg-provost-bg-primary"
           >
             <span className="material-symbols-outlined text-[16px]">open_in_new</span>
             Open

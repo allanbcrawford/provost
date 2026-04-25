@@ -87,7 +87,7 @@ describe("run loop resumeAfterApproval", () => {
     expect(msgs).toHaveLength(2);
     const [approvedMsg, rejectedMsg] = msgs;
     expect(approvedMsg).toMatchObject({ tool_call_id: "call_1" });
-    expect(JSON.parse(approvedMsg!.content)).toEqual({ ok: true, name: "invite_member" });
+    expect(JSON.parse(approvedMsg?.content)).toEqual({ ok: true, name: "invite_member" });
     expect(rejectedMsg).toEqual({
       tool_call_id: "call_2",
       content: "Approval denied. Reason: owner wants to review first",

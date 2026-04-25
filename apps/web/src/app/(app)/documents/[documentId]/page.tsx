@@ -11,10 +11,10 @@ function DocumentDetailPage() {
   const documentId = params?.documentId as Id<"documents"> | undefined;
 
   if (!documentId) {
-    return <div className="p-8 text-sm text-provost-text-secondary">Missing document id.</div>;
+    return <div className="p-8 text-provost-text-secondary text-sm">Missing document id.</div>;
   }
 
   return <DocumentDetail documentId={documentId} />;
 }
 
-export default withRoleGuard(DocumentDetailPage, APP_ROLES.DOCUMENTS!);
+export default withRoleGuard(DocumentDetailPage, APP_ROLES.DOCUMENTS ?? []);

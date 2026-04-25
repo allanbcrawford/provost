@@ -26,13 +26,19 @@ function formatDayLabel(key: string): string {
 
 // Lightweight "calendar" — events grouped by day. A real grid view is a v1.5
 // follow-up; this is enough to skim a month at a time.
-export function EventsCalendar({ events }: { events: Row[] | null }) {
+export function EventsCalendar({
+  events,
+  onSelect,
+}: {
+  events: Row[] | null;
+  onSelect?: (id: Id<"events">) => void;
+}) {
   if (events === null) {
-    return <p className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">Loading…</p>;
+    return <p className="text-[14px] text-provost-text-secondary tracking-[-0.42px]">Loading…</p>;
   }
   if (events.length === 0) {
     return (
-      <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+      <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] text-provost-text-secondary tracking-[-0.42px]">
         No events scheduled.
       </div>
     );
@@ -49,19 +55,32 @@ export function EventsCalendar({ events }: { events: Row[] | null }) {
     <div className="flex flex-col gap-5">
       {orderedKeys.map((key) => (
         <div key={key}>
-          <div className="mb-2 text-[12px] uppercase tracking-[1px] text-provost-text-secondary">
+          <div className="mb-2 text-[12px] text-provost-text-secondary uppercase tracking-[1px]">
             {formatDayLabel(key)}
           </div>
           <ul className="overflow-hidden rounded-[14px] border border-provost-border-subtle bg-white">
-            {groups.get(key)!.map((e, i) => {
+            {groups.get(key)?.map((e, i) => {
               const start = new Date(e.starts_at);
               const end = new Date(e.ends_at);
               return (
                 <li
                   key={e._id}
                   className={`flex items-center gap-4 px-5 py-3 ${
-                    i > 0 ? "border-t border-provost-border-subtle" : ""
-                  }`}
+                    i > 0 ? "border-provost-border-subtle border-t" : ""
+                  } ${onSelect ? "cursor-pointer hover:bg-provost-bg-secondary" : ""}`}
+                  onClick={onSelect ? () => onSelect(e._id) : undefined}
+                  onKeyDown={
+                    onSelect
+                      ? (ev) => {
+                          if (ev.key === "Enter" || ev.key === " ") {
+                            ev.preventDefault();
+                            onSelect(e._id);
+                          }
+                        }
+                      : undefined
+                  }
+                  role={onSelect ? "button" : undefined}
+                  tabIndex={onSelect ? 0 : undefined}
                 >
                   <Icon
                     name={e.location_type === "video" ? "videocam" : "calendar_today"}
@@ -69,12 +88,12 @@ export function EventsCalendar({ events }: { events: Row[] | null }) {
                     weight={300}
                     className="text-provost-text-secondary"
                   />
-                  <div className="text-[13px] font-medium tracking-[-0.39px] text-provost-text-primary whitespace-nowrap">
+                  <div className="whitespace-nowrap font-medium text-[13px] text-provost-text-primary tracking-[-0.39px]">
                     {start.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
                     {" – "}
                     {end.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
                   </div>
-                  <div className="min-w-0 flex-1 truncate text-[14px] tracking-[-0.42px] text-provost-text-primary">
+                  <div className="min-w-0 flex-1 truncate text-[14px] text-provost-text-primary tracking-[-0.42px]">
                     {e.title}
                   </div>
                 </li>

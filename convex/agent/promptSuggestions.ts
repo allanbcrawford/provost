@@ -35,7 +35,7 @@ function makeCacheKey(route: string, selection: string | null): string {
 }
 
 async function generateSuggestions(
-  ctx: ActionCtx,
+  _ctx: ActionCtx,
   args: { familyId: string; route: string; selection: string | null },
 ): Promise<string[]> {
   const openai = getOpenAI();

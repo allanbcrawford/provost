@@ -58,20 +58,20 @@ export function Header() {
   }, [family?.name]);
 
   return (
-    <header className="w-full h-[61px] flex items-center justify-between px-4 md:px-6 border-b border-provost-border-subtle bg-white shrink-0">
-      <div className="flex items-center gap-2 md:gap-4 min-w-0">
+    <header className="flex h-[61px] w-full shrink-0 items-center justify-between border-provost-border-subtle border-b bg-white px-4 md:px-6">
+      <div className="flex min-w-0 items-center gap-2 md:gap-4">
         <button
           type="button"
           onClick={toggleSidebar}
-          className="flex justify-center p-2 hover:bg-provost-bg-secondary rounded-lg transition-colors"
+          className="flex justify-center rounded-lg p-2 transition-colors hover:bg-provost-bg-secondary"
           aria-label="Toggle sidebar"
         >
           <Icon name="menu" size={25} className="text-provost-text-secondary" />
         </button>
-        <span className="font-dm-serif text-2xl md:text-[34px] truncate">{familyName}</span>
+        <span className="truncate font-dm-serif text-2xl md:text-[34px]">{familyName}</span>
         <button
           type="button"
-          className="hidden md:flex p-2 hover:bg-provost-bg-secondary rounded-lg transition-colors"
+          className="hidden rounded-lg p-2 transition-colors hover:bg-provost-bg-secondary md:flex"
           aria-label="Search"
         >
           <svg
@@ -101,7 +101,7 @@ export function Header() {
         {crumbs.length > 0 && (
           <nav
             aria-label="Breadcrumb"
-            className="hidden md:flex items-center text-[15px] font-light text-provost-text-secondary min-w-0"
+            className="hidden min-w-0 items-center font-light text-[15px] text-provost-text-secondary md:flex"
           >
             {crumbs.map((crumb, idx) => {
               const last = idx === crumbs.length - 1;
@@ -113,7 +113,7 @@ export function Header() {
                   ) : (
                     <Link
                       href={crumb.href}
-                      className="flex items-center hover:text-provost-text-primary transition-colors truncate"
+                      className="flex items-center truncate transition-colors hover:text-provost-text-primary"
                     >
                       {crumb.label}
                     </Link>
@@ -125,16 +125,16 @@ export function Header() {
         )}
       </div>
 
-      <div className="flex items-center gap-1 md:gap-2 shrink-0">
+      <div className="flex shrink-0 items-center gap-1 md:gap-2">
         <button
           type="button"
-          className="p-2 hover:bg-provost-bg-secondary rounded-lg transition-colors"
+          className="rounded-lg p-2 transition-colors hover:bg-provost-bg-secondary"
           aria-label="Notifications"
         >
           <Icon name="notifications" size={30} className="text-provost-text-secondary" />
         </button>
 
-        <div className="w-[45px] h-[45px] rounded-full overflow-hidden flex items-center justify-center">
+        <div className="flex h-[45px] w-[45px] items-center justify-center overflow-hidden rounded-full">
           <UserButton
             appearance={{
               elements: {
@@ -145,14 +145,14 @@ export function Header() {
           />
         </div>
 
-        <div className="hidden md:block h-[31px] w-px bg-provost-border-subtle mx-2" />
+        <div className="mx-2 hidden h-[31px] w-px bg-provost-border-subtle md:block" />
 
         {isFullScreen ? (
           // Full-screen chat is active. Per PRD: header shows non-clickable
           // "Chatting…" label and the floating-rail / open-chat affordances
           // are suppressed.
           <span
-            className="hidden md:flex items-center px-2 text-[14px] tracking-[-0.42px] text-provost-text-secondary"
+            className="hidden items-center px-2 text-[14px] text-provost-text-secondary tracking-[-0.42px] md:flex"
             aria-live="polite"
           >
             Chatting…
@@ -162,7 +162,7 @@ export function Header() {
             <button
               type="button"
               onClick={() => setChatPanelOpen(!isChatPanelOpen)}
-              className={`hidden md:flex p-2 rounded-lg transition-colors items-center ${
+              className={`hidden items-center rounded-lg p-2 transition-colors md:flex ${
                 isChatPanelOpen ? "bg-provost-bg-secondary" : "hover:bg-provost-bg-secondary"
               }`}
               aria-label={isChatPanelOpen ? "Close assistant" : "Open assistant"}
@@ -178,7 +178,7 @@ export function Header() {
             <button
               type="button"
               onClick={() => router.push("/chat")}
-              className="hidden md:flex p-2 rounded-lg transition-colors items-center hover:bg-provost-bg-secondary"
+              className="hidden items-center rounded-lg p-2 transition-colors hover:bg-provost-bg-secondary md:flex"
               aria-label="Open chat in full screen"
             >
               <Icon name="add" size={26} className="text-provost-text-secondary" />

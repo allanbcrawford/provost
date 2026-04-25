@@ -59,13 +59,13 @@ export function LessonItem({ lesson }: { lesson: LessonListItem }) {
         <Icon name="school" size={36} weight={300} />
       </div>
       <div className="min-w-0 flex-1">
-        <h3 className="truncate text-[22px] font-bold leading-[1.26] tracking-[-0.88px] text-provost-text-primary">
+        <h3 className="truncate font-bold text-[22px] text-provost-text-primary leading-[1.26] tracking-[-0.88px]">
           {lesson.title}
         </h3>
-        <p className="mt-2 truncate text-[16px] font-light leading-[1.26] tracking-[-0.48px] text-provost-text-secondary">
+        <p className="mt-2 truncate font-light text-[16px] text-provost-text-secondary leading-[1.26] tracking-[-0.48px]">
           {lesson.description}
         </p>
-        <div className="mt-3 flex items-center gap-2 text-[14px] tracking-[-0.42px] text-provost-neutral-600">
+        <div className="mt-3 flex items-center gap-2 text-[14px] text-provost-neutral-600 tracking-[-0.42px]">
           <span className="font-light">{lesson.category}</span>
           {lesson.status && (
             <>
@@ -77,7 +77,7 @@ export function LessonItem({ lesson }: { lesson: LessonListItem }) {
                 const d = statusDisplay(lesson.status);
                 return (
                   <span
-                    className={`rounded-full px-2 py-0.5 text-[12px] font-medium ${d.className}`}
+                    className={`rounded-full px-2 py-0.5 font-medium text-[12px] ${d.className}`}
                   >
                     {d.label}
                   </span>

@@ -18,17 +18,17 @@ export function MessagesCard({ variant = "admin" }: MessagesCardProps) {
   return (
     <HighlightsCard href="/messages" className="bg-provost-card-blue-accent p-[18px]">
       <div className="flex h-full gap-4">
-        <div className="flex flex-col flex-1">
-          <div className="flex items-center gap-2 mb-2">
+        <div className="flex flex-1 flex-col">
+          <div className="mb-2 flex items-center gap-2">
             <HighlightsIcon className="text-provost-card-blue-light" />
-            <span className="text-provost-card-blue-light text-[16px] font-semibold">Messages</span>
+            <span className="font-semibold text-[16px] text-provost-card-blue-light">Messages</span>
           </div>
-          <p className="text-provost-card-blue-light text-[18px] leading-[1.3] tracking-[-0.54px] font-serif">
+          <p className="font-serif text-[18px] text-provost-card-blue-light leading-[1.3] tracking-[-0.54px]">
             {CONTENT[variant]}
           </p>
         </div>
 
-        <div className="flex items-center mr-3">
+        <div className="mr-3 flex items-center">
           <Image src="/images/messages-bubble.png" alt="" width={80} height={86} />
         </div>
       </div>

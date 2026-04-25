@@ -25,7 +25,7 @@ function AssetsPage() {
   return (
     <div className="flex flex-col gap-6 p-8">
       <div className="flex items-center justify-between">
-        <h1 className="font-dm-serif text-[42px] font-medium tracking-[-0.84px] text-provost-text-primary">
+        <h1 className="font-dm-serif font-medium text-[42px] text-provost-text-primary tracking-[-0.84px]">
           Assets
         </h1>
       </div>
@@ -34,9 +34,9 @@ function AssetsPage() {
 
       <TypeFilter selected={type} onChange={setType} />
 
-      <AssetsList assets={assets ?? null} />
+      <AssetsList assets={assets ?? null} familyId={familyId} />
     </div>
   );
 }
 
-export default withRoleGuard(AssetsPage, APP_ROLES.ASSETS!);
+export default withRoleGuard(AssetsPage, APP_ROLES.ASSETS ?? []);

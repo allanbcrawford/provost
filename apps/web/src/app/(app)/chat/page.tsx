@@ -21,7 +21,7 @@ import type { Id } from "../../../../../../convex/_generated/dataModel";
 function ChatPage() {
   const family = useSelectedFamily();
   const familyId = family?._id as Id<"families"> | undefined;
-  const { openThreadId, setOpenThreadId } = useChatPanel();
+  const { openThreadId, setOpenThreadId, pageContext } = useChatPanel();
 
   const threads = useQuery(api.threads.list, familyId ? { familyId } : "skip") as
     | Array<{ _id: Id<"threads">; title: string | null; _creationTime: number }>
@@ -37,7 +37,7 @@ function ChatPage() {
     if (threads === undefined) return;
     if (threads.length > 0) {
       const sorted = [...threads].sort((a, b) => b._creationTime - a._creationTime);
-      setOpenThreadId(sorted[0]!._id);
+      setOpenThreadId(sorted[0]?._id);
       return;
     }
     createThread({ familyId, title: "Provost" })
@@ -47,15 +47,19 @@ function ChatPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="border-b border-provost-border-subtle bg-white px-6 py-4">
-        <h1 className="font-dm-serif text-[28px] font-medium tracking-[-0.56px] text-provost-text-primary">
+      <div className="border-provost-border-subtle border-b bg-white px-6 py-4">
+        <h1 className="font-dm-serif font-medium text-[28px] text-provost-text-primary tracking-[-0.56px]">
           Chat
         </h1>
       </div>
       <div className="flex min-h-0 flex-1">
         <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col">
           {openThreadId ? (
-            <FullScreenBody threadId={openThreadId as Id<"threads">} />
+            <FullScreenBody
+              threadId={openThreadId as Id<"threads">}
+              selection={pageContext.selection}
+              visibleState={pageContext.visibleState}
+            />
           ) : (
             <div className="p-8 text-[13px] text-provost-text-secondary">Loading…</div>
           )}
@@ -65,7 +69,15 @@ function ChatPage() {
   );
 }
 
-function FullScreenBody({ threadId }: { threadId: Id<"threads"> }) {
+function FullScreenBody({
+  threadId,
+  selection,
+  visibleState,
+}: {
+  threadId: Id<"threads">;
+  selection: { kind: string; id: string } | null;
+  visibleState: Record<string, unknown> | undefined;
+}) {
   const threadDoc = useThread(threadId);
   const {
     send,
@@ -93,7 +105,7 @@ function FullScreenBody({ threadId }: { threadId: Id<"threads"> }) {
       events={events}
       isStreaming={isStreaming}
       onSend={(text, fileIds) => {
-        void send(text, { fileIds });
+        void send(text, { fileIds, selection, visibleState });
       }}
       onApprove={(toolCallId) => {
         void approveToolCall(toolCallId);
@@ -107,4 +119,4 @@ function FullScreenBody({ threadId }: { threadId: Id<"threads"> }) {
   );
 }
 
-export default withRoleGuard(ChatPage, APP_ROLES.HOME!);
+export default withRoleGuard(ChatPage, APP_ROLES.HOME ?? []);

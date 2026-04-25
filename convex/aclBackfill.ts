@@ -324,7 +324,7 @@ export const backfillProfessionalsFamily = internalMutation({
         familyCount: families.length,
       };
     }
-    const familyId = families[0]!._id;
+    const familyId = families[0]?._id;
 
     const professionals = await ctx.db.query("professionals").collect();
     let assigned = 0;

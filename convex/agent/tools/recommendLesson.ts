@@ -1,6 +1,6 @@
 "use node";
 import { v } from "convex/values";
-import { api, internal } from "../../_generated/api";
+import { internal } from "../../_generated/api";
 import type { Id } from "../../_generated/dataModel";
 import { internalAction } from "../../_generated/server";
 

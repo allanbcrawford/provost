@@ -159,6 +159,11 @@ async function dispatchTool(
         internal.agent.tools.createTask.handle,
         { args: toolArgs, toolCallId: toolCallId ?? "", runId },
       );
+    case "extract_waterfall_state":
+      return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
+        internal.agent.tools.extractWaterfallState.handle,
+        { args: toolArgs, toolCallId: toolCallId ?? "", runId },
+      );
     default:
       return { ok: false, error: `tool handler not implemented: ${toolName}` };
   }

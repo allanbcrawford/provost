@@ -21,11 +21,11 @@ const PHASE_LABEL: Record<string, string> = {
 
 export function ProgressTable({ rows }: { rows: ProgressRow[] | null }) {
   if (rows === null) {
-    return <p className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">Loading…</p>;
+    return <p className="text-[14px] text-provost-text-secondary tracking-[-0.42px]">Loading…</p>;
   }
   if (rows.length === 0) {
     return (
-      <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+      <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] text-provost-text-secondary tracking-[-0.42px]">
         No members yet.
       </div>
     );
@@ -33,7 +33,7 @@ export function ProgressTable({ rows }: { rows: ProgressRow[] | null }) {
   return (
     <div className="overflow-hidden rounded-[14px] border border-provost-border-subtle bg-white">
       <table className="w-full text-left text-[14px] tracking-[-0.42px]">
-        <thead className="bg-provost-bg-muted/40 text-[12px] font-medium uppercase tracking-[1px] text-provost-text-secondary">
+        <thead className="bg-provost-bg-muted/40 font-medium text-[12px] text-provost-text-secondary uppercase tracking-[1px]">
           <tr>
             <th className="px-5 py-3">Member</th>
             <th className="px-5 py-3">Role</th>
@@ -45,7 +45,7 @@ export function ProgressTable({ rows }: { rows: ProgressRow[] | null }) {
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.user_id} className="border-t border-provost-border-subtle">
+            <tr key={r.user_id} className="border-provost-border-subtle border-t">
               <td className="px-5 py-3 font-medium text-provost-text-primary">{r.name}</td>
               <td className="px-5 py-3 text-provost-text-secondary">{r.role}</td>
               <td className="px-5 py-3 text-provost-text-secondary">

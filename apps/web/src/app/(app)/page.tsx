@@ -12,8 +12,8 @@ import {
 export default function DashboardPage() {
   return (
     <div className="p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 md:grid-rows-[137px_137px_293px_137px_137px] gap-4 max-w-[776px] mx-auto">
-        <div className="md:row-span-2 h-[293px] md:h-[290px]">
+      <div className="mx-auto grid max-w-[776px] grid-cols-1 gap-4 md:grid-cols-2 md:grid-rows-[137px_137px_293px_137px_137px]">
+        <div className="h-[293px] md:row-span-2 md:h-[290px]">
           <AssetsCard />
         </div>
 
@@ -32,7 +32,7 @@ export default function DashboardPage() {
           <ActivityCard />
         </div>
 
-        <div className="md:row-span-2 h-[293px] md:h-[290px]">
+        <div className="h-[293px] md:row-span-2 md:h-[290px]">
           <LessonsCard />
         </div>
         <div className="h-[137px]">

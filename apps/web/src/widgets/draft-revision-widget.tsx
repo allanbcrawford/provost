@@ -74,11 +74,11 @@ export function DraftRevisionWidget({
   return (
     <div className="rounded-[8px] border border-provost-border-subtle bg-provost-bg-muted px-3 py-2.5 text-[12.5px] text-provost-text-secondary">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-provost-text-tertiary">
+        <span className="font-semibold text-[11px] text-provost-text-tertiary uppercase tracking-wide">
           Draft revision
         </span>
         {hintLabel ? (
-          <span className="rounded-[4px] border border-provost-border-subtle bg-provost-bg-primary px-1.5 py-0.5 text-[11px] font-medium text-provost-text-primary">
+          <span className="rounded-[4px] border border-provost-border-subtle bg-provost-bg-primary px-1.5 py-0.5 font-medium text-[11px] text-provost-text-primary">
             Route to: {hintLabel}
           </span>
         ) : null}
@@ -91,8 +91,8 @@ export function DraftRevisionWidget({
       </div>
 
       {citations.length > 0 ? (
-        <div className="mt-3 space-y-1.5 border-t border-provost-border-subtle pt-2">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-provost-text-tertiary">
+        <div className="mt-3 space-y-1.5 border-provost-border-subtle border-t pt-2">
+          <div className="font-semibold text-[11px] text-provost-text-tertiary uppercase tracking-wide">
             Citations
           </div>
           {citations.map((c) => (
@@ -100,12 +100,12 @@ export function DraftRevisionWidget({
               {documentId ? (
                 <Link
                   href={`/documents/${documentId}?page=${c.page}`}
-                  className="shrink-0 rounded-[6px] border border-provost-border-subtle bg-provost-bg-primary px-2 py-0.5 text-[11px] font-medium text-provost-text-primary hover:bg-provost-bg-hover"
+                  className="shrink-0 rounded-[6px] border border-provost-border-subtle bg-provost-bg-primary px-2 py-0.5 font-medium text-[11px] text-provost-text-primary hover:bg-provost-bg-hover"
                 >
                   View p.{c.page}
                 </Link>
               ) : (
-                <span className="shrink-0 rounded-[6px] border border-provost-border-subtle bg-provost-bg-primary px-2 py-0.5 text-[11px] font-medium text-provost-text-primary">
+                <span className="shrink-0 rounded-[6px] border border-provost-border-subtle bg-provost-bg-primary px-2 py-0.5 font-medium text-[11px] text-provost-text-primary">
                   p.{c.page}
                 </span>
               )}
@@ -115,14 +115,14 @@ export function DraftRevisionWidget({
         </div>
       ) : null}
 
-      <div className="mt-3 flex items-center justify-between gap-2 border-t border-provost-border-subtle pt-2">
+      <div className="mt-3 flex items-center justify-between gap-2 border-provost-border-subtle border-t pt-2">
         <div className="text-[11.5px] text-provost-text-tertiary">
           Sends this redline as a task to a {hintLabel ?? "professional"} for review.
         </div>
         {sentTaskId ? (
           <Link
             href="/governance"
-            className="rounded-[6px] border border-provost-border-subtle bg-provost-bg-primary px-2.5 py-1 text-[11.5px] font-medium text-provost-text-primary hover:bg-provost-bg-hover"
+            className="rounded-[6px] border border-provost-border-subtle bg-provost-bg-primary px-2.5 py-1 font-medium text-[11.5px] text-provost-text-primary hover:bg-provost-bg-hover"
           >
             View task →
           </Link>
@@ -131,7 +131,7 @@ export function DraftRevisionWidget({
             type="button"
             onClick={handleSend}
             disabled={sending || !family}
-            className="rounded-[6px] border border-provost-border-subtle bg-provost-text-primary px-2.5 py-1 text-[11.5px] font-medium text-white hover:bg-black disabled:opacity-60"
+            className="rounded-[6px] border border-provost-border-subtle bg-provost-text-primary px-2.5 py-1 font-medium text-[11.5px] text-white hover:bg-black disabled:opacity-60"
           >
             {sending ? "Sending…" : "Send to planner →"}
           </button>

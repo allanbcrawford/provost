@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { query } from "./_generated/server";
-import { requireFamilyMember, requireSiteAdmin, requireUserRecord } from "./lib/authz";
+import { requireFamilyMember, requireSiteAdmin } from "./lib/authz";
 
 type TagEntry = { label: string; confidence?: number };
 

@@ -19,7 +19,7 @@ export function ObservationsPanel({ familyId, documentId }: ObservationsPanelPro
 
   if (observations === undefined) {
     return (
-      <div className="border-l border-provost-border-default p-4 text-sm text-provost-text-secondary">
+      <div className="border-provost-border-default border-l p-4 text-provost-text-secondary text-sm">
         Loading observations…
       </div>
     );
@@ -27,15 +27,15 @@ export function ObservationsPanel({ familyId, documentId }: ObservationsPanelPro
 
   if (observations.length === 0) {
     return (
-      <div className="border-l border-provost-border-default p-4 text-sm text-provost-text-secondary">
+      <div className="border-provost-border-default border-l p-4 text-provost-text-secondary text-sm">
         No observations yet.
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-3 border-l border-provost-border-default p-4">
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-provost-text-secondary">
+    <div className="flex flex-col gap-3 border-provost-border-default border-l p-4">
+      <h3 className="font-semibold text-provost-text-secondary text-sm uppercase tracking-wide">
         Observations
       </h3>
       {(observations as Doc<"observations">[]).map((obs: Doc<"observations">) => (
@@ -44,9 +44,9 @@ export function ObservationsPanel({ familyId, documentId }: ObservationsPanelPro
           className="flex flex-col gap-2 rounded-md border border-provost-border-default bg-white p-3"
         >
           <div className="flex items-start justify-between gap-2">
-            <h4 className="text-sm font-semibold text-provost-text-primary">{obs.title}</h4>
+            <h4 className="font-semibold text-provost-text-primary text-sm">{obs.title}</h4>
             <span
-              className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${
+              className={`rounded-full px-2 py-0.5 font-medium text-[10px] uppercase ${
                 obs.status === "done"
                   ? "bg-green-100 text-green-700"
                   : obs.status === "read"
@@ -57,9 +57,9 @@ export function ObservationsPanel({ familyId, documentId }: ObservationsPanelPro
               {obs.status}
             </span>
           </div>
-          <p className="text-xs text-provost-text-secondary">{obs.description}</p>
+          <p className="text-provost-text-secondary text-xs">{obs.description}</p>
           {obs.recommendation && (
-            <p className="text-xs text-provost-text-primary">
+            <p className="text-provost-text-primary text-xs">
               <span className="font-medium">Recommendation: </span>
               {obs.recommendation}
             </p>

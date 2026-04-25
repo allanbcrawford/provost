@@ -22,7 +22,7 @@ export const DropdownMenuContent = forwardRef<
       sideOffset={sideOffset}
       className={cn(
         "z-50 min-w-[8rem] overflow-hidden rounded-[8px] border border-provost-border-subtle bg-white p-1 shadow-md",
-        "data-[state=open]:animate-in data-[state=closed]:animate-out",
+        "data-[state=closed]:animate-out data-[state=open]:animate-in",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
         "data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2",
@@ -42,7 +42,7 @@ export const DropdownMenuItem = forwardRef<
   <DropdownMenuPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-3 py-2 text-sm text-provost-text-primary outline-none transition-colors",
+      "relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-3 py-2 text-provost-text-primary text-sm outline-none transition-colors",
       "focus:bg-provost-bg-secondary",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       inset && "pl-8",
@@ -60,7 +60,7 @@ export const DropdownMenuLabel = forwardRef<
   <DropdownMenuPrimitive.Label
     ref={ref}
     className={cn(
-      "px-3 py-1.5 text-xs font-medium text-provost-text-secondary",
+      "px-3 py-1.5 font-medium text-provost-text-secondary text-xs",
       inset && "pl-8",
       className,
     )}
@@ -84,7 +84,7 @@ DropdownMenuSeparator.displayName = "DropdownMenuSeparator";
 export function DropdownMenuShortcut({ className, ...props }: HTMLAttributes<HTMLSpanElement>) {
   return (
     <span
-      className={cn("ml-auto text-xs tracking-widest text-provost-text-secondary", className)}
+      className={cn("ml-auto text-provost-text-secondary text-xs tracking-widest", className)}
       {...props}
     />
   );

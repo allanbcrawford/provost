@@ -61,17 +61,17 @@ export default function TestersPage() {
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="font-dm-serif text-[42px] font-medium tracking-[-0.84px] text-provost-text-primary">
+        <h1 className="font-dm-serif font-medium text-[42px] text-provost-text-primary tracking-[-0.84px]">
           Internal Testers
         </h1>
-        <p className="mt-2 text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+        <p className="mt-2 text-[14px] text-provost-text-secondary tracking-[-0.42px]">
           Invite internal testers to the staging demo family. Admin only.
         </p>
       </div>
 
       <div className="flex flex-col gap-10">
         <section>
-          <h2 className="mb-3 text-[12px] font-semibold uppercase tracking-wider text-provost-text-tertiary">
+          <h2 className="mb-3 font-semibold text-[12px] text-provost-text-tertiary uppercase tracking-wider">
             Invite a tester
           </h2>
           <form onSubmit={handleInvite} className="flex gap-3">
@@ -81,12 +81,12 @@ export default function TestersPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="tester@example.com"
               required
-              className="h-[40px] flex-1 rounded-[8px] border border-provost-border-subtle bg-white px-3 text-[14px] tracking-[-0.42px] text-provost-text-primary focus:border-provost-text-primary focus:outline-none"
+              className="h-[40px] flex-1 rounded-[8px] border border-provost-border-subtle bg-white px-3 text-[14px] text-provost-text-primary tracking-[-0.42px] focus:border-provost-text-primary focus:outline-none"
             />
             <button
               type="submit"
               disabled={loading || !email.trim()}
-              className="h-[40px] rounded-full bg-provost-text-primary px-5 text-[15px] font-medium text-white disabled:opacity-50"
+              className="h-[40px] rounded-full bg-provost-text-primary px-5 font-medium text-[15px] text-white disabled:opacity-50"
             >
               {loading ? "Inviting…" : "Send invite"}
             </button>
@@ -94,7 +94,7 @@ export default function TestersPage() {
 
           {inviteUrl && (
             <div className="mt-3 rounded-[8px] bg-green-50 p-3">
-              <p className="mb-1 text-[12px] font-medium text-green-800">
+              <p className="mb-1 font-medium text-[12px] text-green-800">
                 Invite link (share manually):
               </p>
               <a
@@ -117,28 +117,28 @@ export default function TestersPage() {
         </section>
 
         {error && (
-          <p className="rounded-[8px] bg-red-50 px-3 py-2 text-[14px] tracking-[-0.42px] text-red-700">
+          <p className="rounded-[8px] bg-red-50 px-3 py-2 text-[14px] text-red-700 tracking-[-0.42px]">
             {error}
           </p>
         )}
 
         <section>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-[12px] font-semibold uppercase tracking-wider text-provost-text-tertiary">
+            <h2 className="font-semibold text-[12px] text-provost-text-tertiary uppercase tracking-wider">
               Demo family members
             </h2>
             <button
               type="button"
               onClick={handleLoad}
               disabled={listLoading}
-              className="text-[12px] font-medium text-provost-text-primary underline disabled:opacity-50"
+              className="font-medium text-[12px] text-provost-text-primary underline disabled:opacity-50"
             >
               {listLoading ? "Loading…" : "Refresh"}
             </button>
           </div>
 
           {testers.length === 0 ? (
-            <p className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+            <p className="text-[14px] text-provost-text-secondary tracking-[-0.42px]">
               No members loaded yet. Click Refresh to fetch.
             </p>
           ) : (
@@ -146,16 +146,16 @@ export default function TestersPage() {
               <table className="w-full text-[14px] tracking-[-0.42px]">
                 <thead className="bg-provost-bg-muted">
                   <tr>
-                    <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-provost-text-tertiary">
+                    <th className="px-4 py-2 text-left font-semibold text-[11px] text-provost-text-tertiary uppercase tracking-wider">
                       Name
                     </th>
-                    <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-provost-text-tertiary">
+                    <th className="px-4 py-2 text-left font-semibold text-[11px] text-provost-text-tertiary uppercase tracking-wider">
                       Email
                     </th>
-                    <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-provost-text-tertiary">
+                    <th className="px-4 py-2 text-left font-semibold text-[11px] text-provost-text-tertiary uppercase tracking-wider">
                       Role
                     </th>
-                    <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-provost-text-tertiary">
+                    <th className="px-4 py-2 text-left font-semibold text-[11px] text-provost-text-tertiary uppercase tracking-wider">
                       Status
                     </th>
                   </tr>
@@ -167,7 +167,7 @@ export default function TestersPage() {
                         {t.first_name} {t.last_name}
                       </td>
                       <td className="px-4 py-2 text-provost-text-secondary">{t.email}</td>
-                      <td className="px-4 py-2 capitalize text-provost-text-secondary">
+                      <td className="px-4 py-2 text-provost-text-secondary capitalize">
                         {t.memberRole}
                       </td>
                       <td className="px-4 py-2 text-provost-text-secondary">

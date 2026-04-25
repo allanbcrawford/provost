@@ -4,7 +4,7 @@ import { forwardRef, type HTMLAttributes } from "react";
 import { cn } from "../utils/cn";
 
 export const statusChipVariants = cva(
-  "inline-flex items-center whitespace-nowrap rounded-full px-3 h-[25px] text-[13px] font-medium tracking-[-0.26px]",
+  "inline-flex h-[25px] items-center whitespace-nowrap rounded-full px-3 font-medium text-[13px] tracking-[-0.26px]",
   {
     variants: {
       variant: {

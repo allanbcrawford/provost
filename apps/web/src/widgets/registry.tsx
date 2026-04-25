@@ -34,7 +34,7 @@ function WaterfallInlineCard(props: Record<string, unknown>) {
       <button
         type="button"
         onClick={handleOpen}
-        className="rounded-[6px] border border-provost-border-subtle bg-provost-bg-primary px-3 py-1.5 text-[12px] font-medium text-provost-text-primary hover:bg-provost-bg-hover"
+        className="rounded-[6px] border border-provost-border-subtle bg-provost-bg-primary px-3 py-1.5 font-medium text-[12px] text-provost-text-primary hover:bg-provost-bg-hover"
       >
         Open Inheritance Waterfall Simulation
       </button>
@@ -61,7 +61,7 @@ function GraphFocusInlineCard(props: Record<string, unknown>) {
       <button
         type="button"
         onClick={handleOpen}
-        className="rounded-[6px] border border-provost-border-subtle bg-provost-bg-primary px-3 py-1.5 text-[12px] font-medium text-provost-text-primary hover:bg-provost-bg-hover"
+        className="rounded-[6px] border border-provost-border-subtle bg-provost-bg-primary px-3 py-1.5 font-medium text-[12px] text-provost-text-primary hover:bg-provost-bg-hover"
       >
         Open family graph
       </button>
@@ -102,7 +102,7 @@ function LibraryResultsInlineCard(props: Record<string, unknown>) {
           >
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0 flex-1">
-                <div className="truncate text-[12.5px] font-medium text-provost-text-primary">
+                <div className="truncate font-medium text-[12.5px] text-provost-text-primary">
                   {r.title}
                 </div>
                 <div className="truncate text-[11.5px] text-provost-text-secondary">
@@ -112,7 +112,7 @@ function LibraryResultsInlineCard(props: Record<string, unknown>) {
               </div>
               <a
                 href={`/library/${r.sourceId}`}
-                className="shrink-0 text-[11.5px] font-medium text-provost-text-primary underline"
+                className="shrink-0 font-medium text-[11.5px] text-provost-text-primary underline"
               >
                 Open →
               </a>
@@ -208,14 +208,14 @@ export const WIDGET_RENDERERS: Record<string, (props: Record<string, unknown>) =
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-[12.5px] font-medium text-provost-text-primary">
+                    <div className="truncate font-medium text-[12.5px] text-provost-text-primary">
                       {obs.title}
                     </div>
-                    <div className="text-[11.5px] text-provost-text-secondary line-clamp-2">
+                    <div className="line-clamp-2 text-[11.5px] text-provost-text-secondary">
                       {obs.description}
                     </div>
                   </div>
-                  <span className="shrink-0 rounded px-1.5 py-0.5 text-[10.5px] font-medium capitalize bg-provost-bg-muted text-provost-text-secondary border border-provost-border-subtle">
+                  <span className="shrink-0 rounded border border-provost-border-subtle bg-provost-bg-muted px-1.5 py-0.5 font-medium text-[10.5px] text-provost-text-secondary capitalize">
                     {obs.status}
                   </span>
                 </div>

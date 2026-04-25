@@ -122,10 +122,10 @@ export function AgreementsSelector({
                   className="mt-1 cursor-pointer"
                 />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[14px] font-medium tracking-[-0.42px] text-provost-text-primary">
+                  <span className="block truncate font-medium text-[14px] text-provost-text-primary tracking-[-0.42px]">
                     {c.name}
                   </span>
-                  <span className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-provost-bg-muted px-2 py-0.5 text-[11px] tracking-[-0.33px] text-provost-text-secondary">
+                  <span className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-provost-bg-muted px-2 py-0.5 text-[11px] text-provost-text-secondary tracking-[-0.33px]">
                     <Icon
                       name={c.category === "will" ? "description" : "account_balance"}
                       size={12}

@@ -24,7 +24,7 @@ export function ZoomControls() {
         type="button"
         onClick={() => zoomTo(1, { duration: 200 })}
         aria-label="Reset zoom"
-        className="flex h-7 w-auto items-center justify-center rounded-lg border border-provost-border-subtle bg-white px-2 text-xs font-medium text-provost-text-secondary shadow-sm hover:bg-provost-bg-muted"
+        className="flex h-7 w-auto items-center justify-center rounded-lg border border-provost-border-subtle bg-white px-2 font-medium text-provost-text-secondary text-xs shadow-sm hover:bg-provost-bg-muted"
       >
         {zoomPercent}%
       </button>

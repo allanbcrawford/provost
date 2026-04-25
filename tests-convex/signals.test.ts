@@ -53,7 +53,7 @@ describe("signals — F-2 member scoping", () => {
     const member = asSubject(t, fam.memberClerkSubject);
     const result = await member.query(api.signals.listAll, { familyId: fam.familyId });
     expect(result.length).toBe(1);
-    expect(result[0]!.title).toBe("S1 — names member");
+    expect(result[0]?.title).toBe("S1 — names member");
   });
 
   it("member of family A cannot read signals in family B", async () => {

@@ -14,7 +14,7 @@ export function TypeFilter({
       <button
         type="button"
         onClick={() => onChange(null)}
-        className={`rounded-full border px-4 py-1.5 text-[13px] font-medium tracking-[-0.39px] transition-colors ${
+        className={`rounded-full border px-4 py-1.5 font-medium text-[13px] tracking-[-0.39px] transition-colors ${
           selected === null
             ? "border-provost-text-primary bg-provost-text-primary text-white"
             : "border-provost-border-subtle bg-white text-provost-text-secondary hover:bg-provost-bg-muted/40"
@@ -27,7 +27,7 @@ export function TypeFilter({
           key={t}
           type="button"
           onClick={() => onChange(t)}
-          className={`rounded-full border px-4 py-1.5 text-[13px] font-medium tracking-[-0.39px] transition-colors ${
+          className={`rounded-full border px-4 py-1.5 font-medium text-[13px] tracking-[-0.39px] transition-colors ${
             selected === t
               ? "border-provost-text-primary bg-provost-text-primary text-white"
               : "border-provost-border-subtle bg-white text-provost-text-secondary hover:bg-provost-bg-muted/40"

@@ -22,7 +22,7 @@ function StatusRow({
     unknown: "Unknown",
   };
   return (
-    <div className="flex items-center justify-between border-b border-neutral-100 py-3 last:border-0">
+    <div className="flex items-center justify-between border-neutral-100 border-b py-3 last:border-0">
       <div>
         <span className="font-medium text-neutral-800">{label}</span>
         {detail && <span className="ml-2 text-neutral-400 text-sm">{detail}</span>}

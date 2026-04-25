@@ -24,14 +24,14 @@ export function DocumentsList({ familyId }: DocumentsListProps) {
   }, [documents, activeTab]);
 
   if (documents === undefined) {
-    return <div className="py-8 text-sm text-provost-text-secondary">Loading…</div>;
+    return <div className="py-8 text-provost-text-secondary text-sm">Loading…</div>;
   }
 
   return (
     <div className="flex flex-col">
       <DocumentsTabs activeTab={activeTab} onTabChange={setActiveTab} />
       {filtered.length === 0 ? (
-        <div className="py-16 text-center text-sm text-provost-text-secondary">
+        <div className="py-16 text-center text-provost-text-secondary text-sm">
           No documents in this category yet.
         </div>
       ) : (

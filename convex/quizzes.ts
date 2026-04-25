@@ -3,7 +3,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 import { completeLessonAndAdvance } from "./lessonDelivery";
 import { writeAudit } from "./lib/audit";
-import { requireFamilyMember } from "./lib/authz";
+import { requireFamilyMember, requireSiteAdmin } from "./lib/authz";
 
 const DEFAULT_PASS_SCORE = 0.7;
 
@@ -33,6 +33,34 @@ export const getForLesson = query({
   },
 });
 
+// Site-admin loader for the curation editor. Returns the full quiz row
+// INCLUDING `correct_choice_index` so admins can edit the answer key.
+// Never expose this to family-facing surfaces.
+export const getForLessonAsAdmin = query({
+  args: { lessonId: v.id("lessons") },
+  handler: async (ctx, { lessonId }) => {
+    await requireSiteAdmin(ctx);
+    const lesson = await ctx.db.get(lessonId);
+    if (!lesson || lesson.deleted_at) return null;
+    const quiz = await ctx.db
+      .query("quizzes")
+      .withIndex("by_lesson", (q) => q.eq("lesson_id", lessonId))
+      .unique();
+    if (!quiz) return null;
+    return {
+      _id: quiz._id,
+      lesson_id: quiz.lesson_id,
+      pass_score: quiz.pass_score,
+      questions: quiz.questions.map((q) => ({
+        prompt: q.prompt,
+        choices: q.choices,
+        correct_choice_index: q.correct_choice_index,
+        explanation: q.explanation ?? null,
+      })),
+    };
+  },
+});
+
 // Create or replace the quiz for a lesson. Admin/advisor only.
 export const upsertForLesson = mutation({
   args: {
@@ -50,7 +78,17 @@ export const upsertForLesson = mutation({
   handler: async (ctx, args) => {
     const lesson = await ctx.db.get(args.lessonId);
     if (!lesson || lesson.deleted_at) throw new ConvexError({ code: "NOT_FOUND" });
-    const { user } = await requireFamilyMember(ctx, lesson.family_id, ["admin", "advisor"]);
+    // Allow either a family admin/advisor (curating their own lesson) or
+    // a Provost site admin (curating any tenant's lesson via the site
+    // admin editor at /library/lessons/[id]/edit).
+    let actorUserId: Id<"users">;
+    try {
+      const { user } = await requireFamilyMember(ctx, lesson.family_id, ["admin", "advisor"]);
+      actorUserId = user._id;
+    } catch (_err) {
+      const admin = await requireSiteAdmin(ctx);
+      actorUserId = admin._id;
+    }
 
     const passScore = args.passScore ?? DEFAULT_PASS_SCORE;
     const existing = await ctx.db
@@ -74,7 +112,7 @@ export const upsertForLesson = mutation({
     }
     await writeAudit(ctx, {
       familyId: lesson.family_id,
-      actorUserId: user._id,
+      actorUserId,
       actorKind: "user",
       category: "mutation",
       action: "quizzes.upsert",
@@ -106,7 +144,7 @@ export const submitAttempt = mutation({
     }
     let correct = 0;
     for (let i = 0; i < quiz.questions.length; i++) {
-      if (answers[i] === quiz.questions[i]!.correct_choice_index) correct++;
+      if (answers[i] === quiz.questions[i]?.correct_choice_index) correct++;
     }
     const score = correct / Math.max(quiz.questions.length, 1);
     const passed = score >= quiz.pass_score;

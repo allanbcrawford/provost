@@ -18,7 +18,7 @@ export const DialogOverlay = forwardRef<
     ref={ref}
     className={cn(
       "fixed inset-0 z-40 bg-black/50",
-      "data-[state=open]:animate-in data-[state=closed]:animate-out",
+      "data-[state=closed]:animate-out data-[state=open]:animate-in",
       "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
       className,
     )}
@@ -41,10 +41,10 @@ export const DialogContent = forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-0 z-50 w-full h-full overflow-y-auto rounded-none bg-white shadow-xl outline-none",
-        "md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2",
-        "md:w-[clamp(320px,90vw,580px)] md:h-auto md:max-h-[90vh] md:rounded-xl md:border md:border-provost-border-subtle",
-        "data-[state=open]:animate-in data-[state=closed]:animate-out",
+        "fixed inset-0 z-50 h-full w-full overflow-y-auto rounded-none bg-white shadow-xl outline-none",
+        "md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2",
+        "md:h-auto md:max-h-[90vh] md:w-[clamp(320px,90vw,580px)] md:rounded-xl md:border md:border-provost-border-subtle",
+        "data-[state=closed]:animate-out data-[state=open]:animate-in",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         className,
       )}
@@ -53,7 +53,7 @@ export const DialogContent = forwardRef<
       {children}
       {showClose ? (
         <DialogPrimitive.Close
-          className="absolute right-4 top-4 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full text-provost-text-primary transition-colors hover:bg-provost-bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-provost-border-default"
+          className="absolute top-4 right-4 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full text-provost-text-primary transition-colors hover:bg-provost-bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-provost-border-default"
           aria-label="Close"
         >
           <Icon name="close" size={20} />
@@ -88,7 +88,7 @@ export const DialogTitle = forwardRef<
   <DialogPrimitive.Title
     ref={ref}
     className={cn(
-      "text-lg font-semibold leading-none tracking-tight text-provost-text-primary",
+      "font-semibold text-lg text-provost-text-primary leading-none tracking-tight",
       className,
     )}
     {...props}
@@ -102,7 +102,7 @@ export const DialogDescription = forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-provost-text-secondary", className)}
+    className={cn("text-provost-text-secondary text-sm", className)}
     {...props}
   />
 ));

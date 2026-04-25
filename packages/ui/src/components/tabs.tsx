@@ -14,7 +14,7 @@ export const TabsList = forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "inline-flex items-center gap-8 border-b border-provost-border-default",
+      "inline-flex items-center gap-8 border-provost-border-default border-b",
       className,
     )}
     {...props}
@@ -29,10 +29,10 @@ export const TabsTrigger = forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      "relative inline-flex items-center justify-center whitespace-nowrap pb-4 text-[16px] font-light tracking-[-0.4px] transition-colors outline-none",
+      "relative inline-flex items-center justify-center whitespace-nowrap pb-4 font-light text-[16px] tracking-[-0.4px] outline-none transition-colors",
       "text-provost-text-tertiary hover:text-provost-text-primary",
-      "data-[state=active]:text-provost-text-primary data-[state=active]:font-medium",
-      "data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-1/2 data-[state=active]:after:-translate-x-1/2 data-[state=active]:after:h-[2px] data-[state=active]:after:w-10 data-[state=active]:after:bg-provost-text-primary",
+      "data-[state=active]:font-medium data-[state=active]:text-provost-text-primary",
+      "data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-1/2 data-[state=active]:after:h-[2px] data-[state=active]:after:w-10 data-[state=active]:after:-translate-x-1/2 data-[state=active]:after:bg-provost-text-primary",
       "disabled:pointer-events-none disabled:opacity-50",
       className,
     )}

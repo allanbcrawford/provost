@@ -14,7 +14,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <AdminHeader />
             <div className="flex flex-1 overflow-hidden">
               <AdminSidebarNav />
-              <main className="flex-1 min-w-0 overflow-y-auto bg-white">{children}</main>
+              <main className="min-w-0 flex-1 overflow-y-auto bg-white">{children}</main>
             </div>
           </div>
         </AdminShell>

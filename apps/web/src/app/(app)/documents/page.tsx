@@ -10,13 +10,13 @@ function DocumentsPage() {
   const { family } = useFamily();
 
   if (!family) {
-    return <div className="p-8 text-sm text-provost-text-secondary">Loading family…</div>;
+    return <div className="p-8 text-provost-text-secondary text-sm">Loading family…</div>;
   }
 
   return (
     <div className="p-8">
       <div className="mb-8 flex items-center justify-between">
-        <h1 className="font-dm-serif text-[42px] font-medium tracking-[-0.84px] text-provost-text-primary">
+        <h1 className="font-dm-serif font-medium text-[42px] text-provost-text-primary tracking-[-0.84px]">
           Library
         </h1>
         <Button
@@ -33,4 +33,4 @@ function DocumentsPage() {
   );
 }
 
-export default withRoleGuard(DocumentsPage, APP_ROLES.DOCUMENTS!);
+export default withRoleGuard(DocumentsPage, APP_ROLES.DOCUMENTS ?? []);

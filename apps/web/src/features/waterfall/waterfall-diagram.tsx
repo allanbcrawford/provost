@@ -1,14 +1,21 @@
 "use client";
 
-import {
-  type ChildrenPct,
-  type CustomEdits,
-  DEFAULT_CHILDREN_PCT,
-  DEFAULT_TRUST_B_FUNDING,
-  type DeathOrder,
-  type EditableNodeId,
-  type RevisionState,
-} from "./types";
+// Engine-driven waterfall diagram. Replaces the hand-coded SVG nodes with a
+// column layout that reads the compute query output:
+//   left column  = selected estate documents (sorted by priority)
+//   right column = beneficiaries with rolled-up totals
+//   edges        = engine-emitted Edge[]
+//
+// When no agreements are selected, the component falls back to the legacy
+// "Williams" hand-illustrated layout so the simulation modal still has
+// something to render in its empty state. Once the engine has at least one
+// document to evaluate, the engine output is the source of truth.
+
+import { useQuery } from "convex/react";
+import { useSelectedFamily } from "@/context/family-context";
+import { api } from "../../../../../convex/_generated/api";
+import type { Id } from "../../../../../convex/_generated/dataModel";
+import type { CustomEdits, DeathOrder, EditableNodeId, RevisionState } from "./types";
 
 type Variant = "current" | "revised";
 
@@ -21,51 +28,265 @@ type Props = {
 
 const W = 560;
 const H = 640;
-const TRUST_TOP = { x: W / 2, y: 40, w: 220, h: 34 };
-const FIRST_DEATH = { x: W / 2, y: 150, w: 170, h: 46 };
-const TRUST_A = { x: 90, y: 280, w: 160, h: 36 };
-const TRUST_B = { x: W / 2, y: 280, w: 160, h: 36 };
-const TRUST_C = { x: W - 90, y: 280, w: 160, h: 36 };
-const SECOND_DEATH = { x: W / 2, y: 410, w: 200, h: 46 };
-const CHILD_BOX = { y: 540, w: 140, h: 60 };
-const CHILD_X = [110, W / 2, W - 110];
-
 const COLORS = {
   trustBlue: { fill: "#dbe7f3", stroke: "#2c67a0", text: "#1b3d62" },
-  trustMint: { fill: "#d9ead3", stroke: "#5f8a4a", text: "#304c21" },
-  trustTeal: { fill: "#cfe4e0", stroke: "#4a8a83", text: "#23504a" },
-  event: { fill: "#f5d79e", stroke: "#c5922f", text: "#59380d" },
-  child: { fill: "#efe6d4", stroke: "#b3a37a", text: "#3a2f17" },
-  ilit: { fill: "#fbe6b8", stroke: "#c18b2c", text: "#5b3b0a" },
+  beneficiary: { fill: "#efe6d4", stroke: "#b3a37a", text: "#3a2f17" },
+  spouseSynth: { fill: "#fbe6b8", stroke: "#c18b2c", text: "#5b3b0a" },
   edge: "#7b6f52",
   edgeFaint: "#d9cdb2",
-  ilitDash: "#c18b2c",
-  portable: "#2c67a0",
-  qtip: "#b45309",
-  custom: "#6d28d9",
+  unalloc: "#b45309",
 };
 
-function getChildrenPct(customEdits: CustomEdits): ChildrenPct {
-  return customEdits.childrenPct ?? DEFAULT_CHILDREN_PCT;
+const BENEFICIARY_LABEL: Record<string, string> = {
+  linda: "Linda Williams",
+  robert: "Robert Williams",
+  david: "David Williams",
+  jennifer: "Jennifer Williams",
+  michael: "Michael Williams",
+  "ucla-law": "UCLA School of Law",
+  "sm-childrens-health": "SM Children's Health",
+  "revocable-trust": "→ Revocable Trust",
+};
+
+function formatCurrencyShort(value: number): string {
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `$${(value / 1_000).toFixed(0)}K`;
+  return `$${value.toFixed(0)}`;
 }
 
-function getTrustBFunding(revisions: RevisionState, customEdits: CustomEdits): number {
-  if (customEdits.trustBFunding !== undefined) return customEdits.trustBFunding;
-  if (revisions.portability) return 0.5;
-  return DEFAULT_TRUST_B_FUNDING;
+function deathOrderForVariant(variant: Variant, edits: CustomEdits): DeathOrder {
+  if (variant === "current") return "robert-first";
+  return edits.deathOrder ?? "robert-first";
 }
 
-function deathOrderLabels(order: DeathOrder | undefined): { first: string; second: string } {
-  switch (order) {
-    case "robert-first":
-      return { first: "Robert Passes Away", second: "Linda Passes Away" };
-    case "linda-first":
-      return { first: "Linda Passes Away", second: "Robert Passes Away" };
-    case "simultaneous":
-      return { first: "Simultaneous Death", second: "Estate passes to children" };
-    default:
-      return { first: "First Spouse Passes Away", second: "Surviving Spouse Passes Away" };
+export function WaterfallDiagram({ variant, revisions, customEdits, onEditNode }: Props) {
+  const family = useSelectedFamily();
+  const familyId = family?._id as Id<"families"> | undefined;
+  const selected = customEdits.selectedAgreements ?? [];
+  const selectedIds = selected.map((s) => s.documentId as Id<"documents">);
+
+  const isRevised = variant === "revised";
+  const deathOrder = deathOrderForVariant(variant, customEdits);
+
+  // For the "current" variant we deliberately ignore revision toggles so the
+  // user has a clean baseline to compare against.
+  const engineRevisions = isRevised
+    ? { addResiduaryToSpouse: !!revisions.addResiduaryToSpouse }
+    : {};
+
+  const result = useQuery(
+    api.waterfalls.compute,
+    familyId && selectedIds.length > 0
+      ? {
+          familyId,
+          selectedDocumentIds: selectedIds,
+          deathOrder,
+          customEdits: { ...customEdits },
+          revisions: engineRevisions,
+        }
+      : "skip",
+  );
+
+  if (selectedIds.length === 0) {
+    return (
+      <EmptyDiagram
+        message={
+          isRevised
+            ? "Pick one or more agreements above to compute the revised waterfall."
+            : "No agreements selected. Pick a trust or will to populate the current waterfall."
+        }
+      />
+    );
   }
+
+  if (!result) {
+    return <EmptyDiagram message="Computing waterfall…" />;
+  }
+
+  const docColumn = selected.map((s) => ({
+    id: s.documentId,
+    name: s.name,
+    category: s.category,
+  }));
+
+  // Beneficiary column derived from engine output. Sort by total descending
+  // so the largest recipient sits at the top — matches the "where does the
+  // money go" reading order.
+  const beneficiaryEntries = Object.entries(result.perBeneficiaryTotals).sort(
+    (a, b) => b[1] - a[1],
+  );
+
+  // Lay out columns. Reserve top slot for the "Estate" source node so flows
+  // that originate without a source document (e.g. spouse-residuary edges)
+  // have somewhere to anchor. Doc column entries are stacked beneath.
+  const sourceY = 50;
+  const docColTop = 110;
+  const docColStep = Math.min(80, (H - docColTop - 40) / Math.max(docColumn.length, 1));
+  const benColTop = 60;
+  const benColStep = Math.min(70, (H - benColTop - 40) / Math.max(beneficiaryEntries.length, 1));
+
+  const docPositions = new Map<string, { x: number; y: number }>();
+  docColumn.forEach((d, i) => {
+    docPositions.set(d.id, { x: 130, y: docColTop + i * docColStep });
+  });
+  const benPositions = new Map<string, { x: number; y: number }>();
+  beneficiaryEntries.forEach(([bId], i) => {
+    benPositions.set(bId, { x: W - 110, y: benColTop + i * benColStep });
+  });
+
+  const sourcePos = { x: 130, y: sourceY };
+
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      className="h-auto w-full"
+      preserveAspectRatio="xMidYMid meet"
+      role="img"
+      aria-label="Inheritance waterfall diagram"
+    >
+      <title>Inheritance waterfall diagram</title>
+
+      {/* Source pool (estate). */}
+      <Box
+        x={sourcePos.x}
+        y={sourcePos.y}
+        w={180}
+        h={32}
+        fill={COLORS.trustBlue.fill}
+        stroke={COLORS.trustBlue.stroke}
+        textColor={COLORS.trustBlue.text}
+        label="Estate (selected)"
+      />
+
+      {/* Document column. */}
+      {docColumn.map((d) => {
+        const pos = docPositions.get(d.id);
+        if (!pos) return null;
+        return (
+          <g key={`doc-${d.id}`}>
+            <Box
+              x={pos.x}
+              y={pos.y}
+              w={200}
+              h={36}
+              fill={COLORS.trustBlue.fill}
+              stroke={COLORS.trustBlue.stroke}
+              textColor={COLORS.trustBlue.text}
+              label={truncate(d.name, 28)}
+              sublabel={categoryLabel(d.category)}
+            />
+            {/* Edge from estate down to this doc. */}
+            <EdgeLine x1={sourcePos.x} y1={sourcePos.y + 16} x2={pos.x} y2={pos.y - 18} />
+          </g>
+        );
+      })}
+
+      {/* Beneficiary column. */}
+      {beneficiaryEntries.map(([bId, total]) => {
+        const pos = benPositions.get(bId);
+        if (!pos) return null;
+        const label = BENEFICIARY_LABEL[bId] ?? bId;
+        return (
+          <g
+            key={`ben-${bId}`}
+            style={{ cursor: isRevised && isChildKey(bId) ? "pointer" : "default" }}
+            {...(isRevised && isChildKey(bId) && onEditNode
+              ? {
+                  onClick: () => onEditNode(bId as EditableNodeId),
+                  role: "button",
+                  tabIndex: 0,
+                }
+              : {})}
+          >
+            <Box
+              x={pos.x}
+              y={pos.y}
+              w={180}
+              h={48}
+              fill={COLORS.beneficiary.fill}
+              stroke={COLORS.beneficiary.stroke}
+              textColor={COLORS.beneficiary.text}
+              label={label}
+              sublabel={formatCurrencyShort(total)}
+            />
+          </g>
+        );
+      })}
+
+      {/* Engine flows. */}
+      {result.flows.map((edge, i) => {
+        const from = edge.sourceDocumentId
+          ? docPositions.get(String(edge.sourceDocumentId))
+          : sourcePos;
+        const to = benPositions.get(edge.toBeneficiaryId);
+        if (!from || !to) return null;
+        const label = formatCurrencyShort(edge.amount);
+        return (
+          <EdgeLine
+            key={`flow-${edge.fromBeneficiaryId ?? "src"}-${edge.toBeneficiaryId}-${i}`}
+            x1={from.x + 100}
+            y1={from.y}
+            x2={to.x - 90}
+            y2={to.y}
+            label={label}
+            color={edge.sourceDocumentId == null ? COLORS.unalloc : COLORS.edge}
+            dashed={edge.sourceDocumentId == null}
+          />
+        );
+      })}
+
+      {/* Unallocated banner. */}
+      {result.unallocated > 0 && (
+        <g>
+          <rect
+            x={W / 2 - 130}
+            y={H - 36}
+            width={260}
+            height={26}
+            rx={6}
+            fill="#fff7ed"
+            stroke={COLORS.unalloc}
+            strokeWidth={1}
+          />
+          <text
+            x={W / 2}
+            y={H - 18}
+            textAnchor="middle"
+            fontSize={11}
+            fontWeight={600}
+            fill={COLORS.unalloc}
+          >
+            Unallocated: {formatCurrencyShort(result.unallocated)} (
+            {result.unallocatedAssetIds.length} asset
+            {result.unallocatedAssetIds.length === 1 ? "" : "s"})
+          </text>
+        </g>
+      )}
+    </svg>
+  );
+}
+
+function isChildKey(id: string): boolean {
+  return id === "david" || id === "jennifer" || id === "michael";
+}
+
+function truncate(s: string, n: number): string {
+  return s.length > n ? `${s.slice(0, n - 1)}…` : s;
+}
+
+function categoryLabel(c: string): string {
+  if (c === "revocable_trust") return "Revocable trust · priority 0";
+  if (c === "irrevocable_trust") return "Trust · priority 1";
+  if (c === "will") return "Will · priority 2";
+  return c;
+}
+
+function EmptyDiagram({ message }: { message: string }) {
+  return (
+    <div className="flex h-[320px] items-center justify-center rounded-md border border-provost-border-subtle border-dashed bg-provost-bg-muted/30 px-6 text-center text-[12px] text-provost-text-secondary">
+      {message}
+    </div>
+  );
 }
 
 function Box({
@@ -78,9 +299,6 @@ function Box({
   label,
   sublabel,
   textColor,
-  desaturated,
-  editable,
-  onEdit,
 }: {
   x: number;
   y: number;
@@ -91,27 +309,11 @@ function Box({
   label: string;
   sublabel?: string;
   textColor: string;
-  desaturated?: boolean;
-  editable?: boolean;
-  onEdit?: () => void;
 }) {
   const rectX = x - w / 2;
   const rectY = y - h / 2;
-  const interactive = editable && onEdit;
   return (
-    <g
-      style={{ opacity: desaturated ? 0.45 : 1, cursor: interactive ? "pointer" : "default" }}
-      {...(interactive
-        ? {
-            onClick: onEdit,
-            onKeyDown: (e: React.KeyboardEvent) => {
-              if (e.key === "Enter" || e.key === " ") onEdit();
-            },
-            role: "button",
-            tabIndex: 0,
-          }
-        : {})}
-    >
+    <g>
       <rect
         x={rectX}
         y={rectY}
@@ -134,17 +336,9 @@ function Box({
         {label}
       </text>
       {sublabel && (
-        <text x={x} y={y + 10} textAnchor="middle" fontSize={10} fontWeight={500} fill={textColor}>
+        <text x={x} y={y + 11} textAnchor="middle" fontSize={10} fill={textColor}>
           {sublabel}
         </text>
-      )}
-      {editable && (
-        <g transform={`translate(${rectX + w - 12}, ${rectY + 2})`}>
-          <circle r={6} fill={COLORS.custom} />
-          <text x={0} y={3} textAnchor="middle" fontSize={8} fill="#fff" fontWeight={700}>
-            ✎
-          </text>
-        </g>
       )}
     </g>
   );
@@ -157,8 +351,6 @@ function EdgeLine({
   y2,
   label,
   dashed = false,
-  faint = false,
-  thick = false,
   color = COLORS.edge,
 }: {
   x1: number;
@@ -167,8 +359,6 @@ function EdgeLine({
   y2: number;
   label?: string;
   dashed?: boolean;
-  faint?: boolean;
-  thick?: boolean;
   color?: string;
 }) {
   return (
@@ -178,8 +368,8 @@ function EdgeLine({
         y1={y1}
         x2={x2}
         y2={y2}
-        stroke={faint ? COLORS.edgeFaint : color}
-        strokeWidth={thick ? 2 : 1}
+        stroke={color}
+        strokeWidth={1}
         strokeDasharray={dashed ? "4,3" : undefined}
       />
       {label && (
@@ -188,444 +378,11 @@ function EdgeLine({
           y={(y1 + y2) / 2 - 3}
           textAnchor="middle"
           fontSize={10}
-          fill={faint ? "#b3a68e" : "#6b5a37"}
+          fill="#6b5a37"
         >
           {label}
         </text>
       )}
     </g>
-  );
-}
-
-export function WaterfallDiagram({ variant, revisions, customEdits, onEditNode }: Props) {
-  const isRevised = variant === "revised";
-  const labels = deathOrderLabels(isRevised ? customEdits.deathOrder : undefined);
-  const pct = getChildrenPct(customEdits);
-  const trustBFunding = getTrustBFunding(revisions, customEdits);
-
-  const showFunded = isRevised && revisions.fundRevocable;
-  const showIlit = isRevised && revisions.ilit;
-  const showBuysell = isRevised && revisions.buysell;
-  const showPortability = isRevised && revisions.portability;
-  const showQtip = isRevised && revisions.qtip;
-  const hasCustomChildren = isRevised && !!customEdits.childrenPct;
-  const hasCustomTrustB = isRevised && customEdits.trustBFunding !== undefined;
-  const hasCustomDeath = isRevised && !!customEdits.deathOrder;
-
-  const trustBEdgeLabel = showPortability
-    ? "Minimal (portability)"
-    : `$${trustBFunding.toFixed(1)}M`;
-
-  return (
-    <svg
-      viewBox={`0 0 ${W} ${H}`}
-      className="h-auto w-full"
-      preserveAspectRatio="xMidYMid meet"
-      role="img"
-      aria-label="Inheritance waterfall diagram"
-    >
-      <title>Inheritance waterfall diagram</title>
-      <Box
-        x={TRUST_TOP.x}
-        y={TRUST_TOP.y}
-        w={TRUST_TOP.w}
-        h={TRUST_TOP.h}
-        fill={COLORS.trustBlue.fill}
-        stroke={COLORS.trustBlue.stroke}
-        textColor={COLORS.trustBlue.text}
-        label="Williams Family Living Trust"
-      />
-      {showFunded && (
-        <g>
-          <rect
-            x={TRUST_TOP.x - 55}
-            y={TRUST_TOP.y + TRUST_TOP.h / 2 + 4}
-            width={110}
-            height={18}
-            rx={4}
-            fill="#e3f4df"
-            stroke="#5f8a4a"
-            strokeWidth={1}
-          />
-          <text
-            x={TRUST_TOP.x}
-            y={TRUST_TOP.y + TRUST_TOP.h / 2 + 16}
-            textAnchor="middle"
-            fontSize={10}
-            fontWeight={600}
-            fill="#304c21"
-          >
-            ✓ Fully funded
-          </text>
-        </g>
-      )}
-
-      {showIlit && (
-        <g>
-          <rect
-            x={W - 120}
-            y={18}
-            width={100}
-            height={40}
-            rx={6}
-            fill={COLORS.ilit.fill}
-            stroke={COLORS.ilit.stroke}
-            strokeWidth={1.2}
-          />
-          <text
-            x={W - 70}
-            y={35}
-            textAnchor="middle"
-            fontSize={11}
-            fontWeight={600}
-            fill={COLORS.ilit.text}
-          >
-            ILIT
-          </text>
-          <text x={W - 70} y={48} textAnchor="middle" fontSize={9} fill={COLORS.ilit.text}>
-            $15M policy
-          </text>
-          <path
-            d={`M ${W - 70} 58 C ${W - 30} 200, ${W - 30} 420, ${W - 30} ${CHILD_BOX.y}`}
-            stroke={COLORS.ilitDash}
-            strokeWidth={1.3}
-            strokeDasharray="5,4"
-            fill="none"
-          />
-          <text
-            x={W - 22}
-            y={CHILD_BOX.y - 4}
-            textAnchor="end"
-            fontSize={9}
-            fill={COLORS.ilit.text}
-          >
-            outside estate
-          </text>
-        </g>
-      )}
-
-      <EdgeLine
-        x1={TRUST_TOP.x}
-        y1={TRUST_TOP.y + TRUST_TOP.h / 2 + (showFunded ? 22 : 0)}
-        x2={FIRST_DEATH.x}
-        y2={FIRST_DEATH.y - FIRST_DEATH.h / 2}
-        label="Upon first death"
-      />
-
-      <Box
-        x={FIRST_DEATH.x}
-        y={FIRST_DEATH.y}
-        w={FIRST_DEATH.w}
-        h={FIRST_DEATH.h}
-        fill={COLORS.event.fill}
-        stroke={COLORS.event.stroke}
-        textColor={COLORS.event.text}
-        label={labels.first.split(" ")[0] ?? labels.first}
-        sublabel={labels.first.split(" ").slice(1).join(" ") || " "}
-        editable={isRevised}
-        onEdit={() => onEditNode?.("firstDeath")}
-      />
-      {hasCustomDeath && (
-        <text
-          x={FIRST_DEATH.x}
-          y={FIRST_DEATH.y + FIRST_DEATH.h / 2 + 14}
-          textAnchor="middle"
-          fontSize={9}
-          fontWeight={600}
-          fill={COLORS.custom}
-        >
-          CUSTOM
-        </text>
-      )}
-
-      <EdgeLine
-        x1={FIRST_DEATH.x - 30}
-        y1={FIRST_DEATH.y + FIRST_DEATH.h / 2}
-        x2={TRUST_A.x}
-        y2={TRUST_A.y - TRUST_A.h / 2}
-        label="Spouse's half"
-      />
-      <EdgeLine
-        x1={FIRST_DEATH.x}
-        y1={FIRST_DEATH.y + FIRST_DEATH.h / 2}
-        x2={TRUST_B.x}
-        y2={TRUST_B.y - TRUST_B.h / 2}
-        label={isRevised ? trustBEdgeLabel : "Up to exemption"}
-        faint={showPortability}
-      />
-      <EdgeLine
-        x1={FIRST_DEATH.x + 30}
-        y1={FIRST_DEATH.y + FIRST_DEATH.h / 2}
-        x2={TRUST_C.x}
-        y2={TRUST_C.y - TRUST_C.h / 2}
-        label="Excess (if any)"
-      />
-
-      {showBuysell && (
-        <g>
-          <rect
-            x={TRUST_B.x - 65}
-            y={TRUST_B.y - TRUST_B.h / 2 - 44}
-            width={130}
-            height={22}
-            rx={4}
-            fill="#ede4ff"
-            stroke={COLORS.custom}
-            strokeWidth={1}
-            strokeDasharray="3,2"
-          />
-          <text
-            x={TRUST_B.x}
-            y={TRUST_B.y - TRUST_B.h / 2 - 30}
-            textAnchor="middle"
-            fontSize={10}
-            fontWeight={600}
-            fill={COLORS.custom}
-          >
-            +$12M buy-sell cash
-          </text>
-          <line
-            x1={TRUST_B.x}
-            y1={TRUST_B.y - TRUST_B.h / 2 - 22}
-            x2={TRUST_B.x}
-            y2={TRUST_B.y - TRUST_B.h / 2}
-            stroke={COLORS.custom}
-            strokeDasharray="3,2"
-            strokeWidth={1}
-          />
-        </g>
-      )}
-
-      <Box
-        x={TRUST_A.x}
-        y={TRUST_A.y}
-        w={TRUST_A.w}
-        h={TRUST_A.h}
-        fill={COLORS.trustBlue.fill}
-        stroke={COLORS.trustBlue.stroke}
-        textColor={COLORS.trustBlue.text}
-        label="Survivor's Trust (A)"
-      />
-      <Box
-        x={TRUST_B.x}
-        y={TRUST_B.y}
-        w={TRUST_B.w}
-        h={TRUST_B.h}
-        fill={COLORS.trustMint.fill}
-        stroke={COLORS.trustMint.stroke}
-        textColor={COLORS.trustMint.text}
-        label="Family Trust (B)"
-        desaturated={showPortability}
-        editable={isRevised}
-        onEdit={() => onEditNode?.("trustB")}
-      />
-      <Box
-        x={TRUST_C.x}
-        y={TRUST_C.y}
-        w={TRUST_C.w}
-        h={TRUST_C.h}
-        fill={COLORS.trustTeal.fill}
-        stroke={COLORS.trustTeal.stroke}
-        textColor={COLORS.trustTeal.text}
-        label="Marital Trust (C)"
-      />
-
-      {showPortability && (
-        <g>
-          <rect
-            x={TRUST_B.x - 40}
-            y={TRUST_B.y + TRUST_B.h / 2 + 4}
-            width={80}
-            height={16}
-            rx={8}
-            fill="#dbe7f3"
-            stroke={COLORS.portable}
-          />
-          <text
-            x={TRUST_B.x}
-            y={TRUST_B.y + TRUST_B.h / 2 + 15}
-            textAnchor="middle"
-            fontSize={9}
-            fontWeight={600}
-            fill={COLORS.portable}
-          >
-            portable · minimal
-          </text>
-        </g>
-      )}
-      {hasCustomTrustB && !showPortability && (
-        <text
-          x={TRUST_B.x}
-          y={TRUST_B.y + TRUST_B.h / 2 + 14}
-          textAnchor="middle"
-          fontSize={10}
-          fontWeight={600}
-          fill={COLORS.custom}
-        >
-          custom ${trustBFunding.toFixed(1)}M
-        </text>
-      )}
-
-      {showQtip && (
-        <g>
-          <rect
-            x={TRUST_C.x - 36}
-            y={TRUST_C.y + TRUST_C.h / 2 + 4}
-            width={72}
-            height={16}
-            rx={8}
-            fill="#fffbeb"
-            stroke={COLORS.qtip}
-          />
-          <text
-            x={TRUST_C.x}
-            y={TRUST_C.y + TRUST_C.h / 2 + 15}
-            textAnchor="middle"
-            fontSize={9}
-            fontWeight={600}
-            fill={COLORS.qtip}
-          >
-            QTIP · locked
-          </text>
-        </g>
-      )}
-
-      <EdgeLine
-        x1={TRUST_A.x}
-        y1={TRUST_A.y + TRUST_A.h / 2 + 24}
-        x2={SECOND_DEATH.x - 20}
-        y2={SECOND_DEATH.y - SECOND_DEATH.h / 2}
-        label="Trust A"
-      />
-      <EdgeLine
-        x1={TRUST_B.x}
-        y1={TRUST_B.y + TRUST_B.h / 2 + 24}
-        x2={SECOND_DEATH.x}
-        y2={SECOND_DEATH.y - SECOND_DEATH.h / 2}
-        label="Trust B"
-        faint={showPortability}
-        dashed={showPortability}
-      />
-      <EdgeLine
-        x1={TRUST_C.x}
-        y1={TRUST_C.y + TRUST_C.h / 2 + 24}
-        x2={SECOND_DEATH.x + 20}
-        y2={SECOND_DEATH.y - SECOND_DEATH.h / 2}
-        label="Trust C"
-      />
-
-      <Box
-        x={SECOND_DEATH.x}
-        y={SECOND_DEATH.y}
-        w={SECOND_DEATH.w}
-        h={SECOND_DEATH.h}
-        fill={COLORS.event.fill}
-        stroke={COLORS.event.stroke}
-        textColor={COLORS.event.text}
-        label={labels.second.split(" ").slice(0, 2).join(" ")}
-        sublabel={labels.second.split(" ").slice(2).join(" ") || " "}
-      />
-
-      {(["david", "jennifer", "michael"] as const).map((key, i) => {
-        const val = pct[key];
-        const cx = CHILD_X[i] ?? 0;
-        return (
-          <EdgeLine
-            key={`edge-${key}`}
-            x1={SECOND_DEATH.x + (i === 0 ? -25 : i === 2 ? 25 : 0)}
-            y1={SECOND_DEATH.y + SECOND_DEATH.h / 2}
-            x2={cx}
-            y2={CHILD_BOX.y - CHILD_BOX.h / 2}
-            label={`${val}%`}
-            thick={showQtip}
-            color={showQtip ? "#5a7a4d" : COLORS.edge}
-          />
-        );
-      })}
-
-      {(["david", "jennifer", "michael"] as const).map((key, i) => {
-        const val = pct[key];
-        const cx = CHILD_X[i] ?? 0;
-        const name =
-          key === "david"
-            ? "David Williams"
-            : key === "jennifer"
-              ? "Jennifer Williams"
-              : "Michael Williams";
-        const role = key === "jennifer" ? "Daughter" : "Son";
-        const rectX = cx - CHILD_BOX.w / 2;
-        const rectY = CHILD_BOX.y - CHILD_BOX.h / 2;
-        return (
-          <g
-            key={`child-${key}`}
-            style={{ cursor: isRevised ? "pointer" : "default" }}
-            {...(isRevised && onEditNode
-              ? {
-                  onClick: () => onEditNode(key),
-                  onKeyDown: (e: React.KeyboardEvent) => {
-                    if (e.key === "Enter" || e.key === " ") onEditNode(key);
-                  },
-                  role: "button",
-                  tabIndex: 0,
-                }
-              : {})}
-          >
-            <rect
-              x={rectX}
-              y={rectY}
-              width={CHILD_BOX.w}
-              height={CHILD_BOX.h}
-              rx={6}
-              fill={COLORS.child.fill}
-              stroke={COLORS.child.stroke}
-              strokeWidth={1.2}
-            />
-            <text
-              x={cx}
-              y={rectY + 18}
-              textAnchor="middle"
-              fontSize={11}
-              fontWeight={600}
-              fill={COLORS.child.text}
-            >
-              {name}
-            </text>
-            <text
-              x={cx}
-              y={rectY + 34}
-              textAnchor="middle"
-              fontSize={13}
-              fontWeight={700}
-              fill={COLORS.child.text}
-            >
-              {val}%
-            </text>
-            <text x={cx} y={rectY + 50} textAnchor="middle" fontSize={10} fill="#6a5a37">
-              {role}
-            </text>
-            {isRevised && (
-              <g transform={`translate(${rectX + CHILD_BOX.w - 12}, ${rectY + 2})`}>
-                <circle r={6} fill={COLORS.custom} />
-                <text x={0} y={3} textAnchor="middle" fontSize={8} fill="#fff" fontWeight={700}>
-                  ✎
-                </text>
-              </g>
-            )}
-            {hasCustomChildren && (
-              <text
-                x={cx}
-                y={rectY + CHILD_BOX.h + 12}
-                textAnchor="middle"
-                fontSize={9}
-                fontWeight={600}
-                fill={COLORS.custom}
-              >
-                CUSTOM
-              </text>
-            )}
-          </g>
-        );
-      })}
-    </svg>
   );
 }

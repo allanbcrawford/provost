@@ -35,6 +35,12 @@ const ROWS: Row[] = [
     description: "Locks terminal beneficiaries of Trust C",
     tag: "Trust C locked",
   },
+  {
+    key: "addResiduaryToSpouse",
+    title: "Residuary clause to surviving spouse",
+    description: "Add residuary clause directing unallocated assets to surviving spouse.",
+    tag: "Catch-all",
+  },
 ];
 
 type Props = {

@@ -36,7 +36,7 @@ export function LayerToggle<K extends string = string>({
             aria-checked={active}
             onClick={() => toggle(layer.key)}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+              "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-medium text-xs transition-colors",
               active
                 ? "border-provost-border-default bg-provost-bg-inverse text-provost-text-inverse"
                 : "border-provost-border-subtle bg-white text-provost-text-secondary hover:bg-provost-bg-muted",

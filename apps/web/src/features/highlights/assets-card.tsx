@@ -18,18 +18,18 @@ function formatCurrency(value: number) {
 export function AssetsCard() {
   return (
     <HighlightsCard href="/assets?section=totalAssets" className="bg-provost-card-navy p-[18px]">
-      <div className="flex flex-col h-full">
-        <div className="flex items-center gap-2 mb-4">
+      <div className="flex h-full flex-col">
+        <div className="mb-4 flex items-center gap-2">
           <HighlightsIcon className="text-provost-card-navy-light" />
-          <span className="text-provost-card-navy-light text-[16px] font-semibold">Assets</span>
+          <span className="font-semibold text-[16px] text-provost-card-navy-light">Assets</span>
         </div>
 
-        <p className="text-provost-card-navy-light text-[23px] leading-[1.3] tracking-[-0.69px] font-serif flex-1">
+        <p className="flex-1 font-serif text-[23px] text-provost-card-navy-light leading-[1.3] tracking-[-0.69px]">
           Total assets increased {MONTHLY_CHANGE.toFixed(1)}% over the last month and are up{" "}
           {YTD_CHANGE.toFixed(1)}% year-to-date.
         </p>
 
-        <p className="text-provost-card-navy-light text-[50px] font-bold mt-4 text-right">
+        <p className="mt-4 text-right font-bold text-[50px] text-provost-card-navy-light">
           {formatCurrency(PLACEHOLDER_TOTAL)}
         </p>
       </div>

@@ -17,7 +17,7 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 
 export function ChatRail() {
-  const { isOpen, isFullScreen, openThreadId, setOpenThreadId } = useChatPanel();
+  const { isOpen, isFullScreen, openThreadId, setOpenThreadId, pageContext } = useChatPanel();
   const family = useSelectedFamily();
   const familyId = family?._id as Id<"families"> | undefined;
 
@@ -36,7 +36,7 @@ export function ChatRail() {
     if (threads === undefined) return;
     if (threads.length > 0) {
       const sorted = [...threads].sort((a, b) => b._creationTime - a._creationTime);
-      setOpenThreadId(sorted[0]!._id);
+      setOpenThreadId(sorted[0]?._id);
       return;
     }
     createThread({ familyId, title: "Provost" })
@@ -50,22 +50,19 @@ export function ChatRail() {
 
   return (
     <aside
-      className={`
-        shrink-0 border-l border-provost-border-subtle bg-white
-        flex h-full overflow-hidden
-        transition-[width] duration-200 ease-in-out
-        ${railVisible ? "w-[clamp(300px,25vw,400px)]" : "w-0 border-l-0"}
+      className={`flex h-full shrink-0 overflow-hidden border-provost-border-subtle border-l bg-white transition-[width] duration-200 ease-in-out ${railVisible ? "w-[clamp(300px,25vw,400px)]" : "w-0 border-l-0"}
       `}
     >
       <div
-        className={`
-          flex flex-col h-full w-full overflow-hidden
-          transition-opacity duration-150
-          ${railVisible ? "delay-150 opacity-100" : "opacity-0 delay-0 pointer-events-none"}
+        className={`flex h-full w-full flex-col overflow-hidden transition-opacity duration-150 ${railVisible ? "opacity-100 delay-150" : "pointer-events-none opacity-0 delay-0"}
         `}
       >
         {railVisible && openThreadId ? (
-          <RailBody threadId={openThreadId as Id<"threads">} />
+          <RailBody
+            threadId={openThreadId as Id<"threads">}
+            selection={pageContext.selection}
+            visibleState={pageContext.visibleState}
+          />
         ) : (
           <div className="p-4 text-[13px] text-provost-text-secondary">Loading…</div>
         )}
@@ -74,7 +71,15 @@ export function ChatRail() {
   );
 }
 
-function RailBody({ threadId }: { threadId: Id<"threads"> }) {
+function RailBody({
+  threadId,
+  selection,
+  visibleState,
+}: {
+  threadId: Id<"threads">;
+  selection: { kind: string; id: string } | null;
+  visibleState: Record<string, unknown> | undefined;
+}) {
   const threadDoc = useThread(threadId);
   const {
     send,
@@ -102,7 +107,7 @@ function RailBody({ threadId }: { threadId: Id<"threads"> }) {
       events={events}
       isStreaming={isStreaming}
       onSend={(text, fileIds) => {
-        void send(text, { fileIds });
+        void send(text, { fileIds, selection, visibleState });
       }}
       onApprove={(toolCallId) => {
         void approveToolCall(toolCallId);

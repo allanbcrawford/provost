@@ -1,4 +1,10 @@
-export type RevisionKey = "fundRevocable" | "ilit" | "buysell" | "portability" | "qtip";
+export type RevisionKey =
+  | "fundRevocable"
+  | "ilit"
+  | "buysell"
+  | "portability"
+  | "qtip"
+  | "addResiduaryToSpouse";
 
 export type RevisionState = Record<RevisionKey, boolean>;
 
@@ -34,6 +40,7 @@ export const DEFAULT_REVISIONS: RevisionState = {
   buysell: false,
   portability: false,
   qtip: false,
+  addResiduaryToSpouse: false,
 };
 
 export const DEFAULT_CHILDREN_PCT: ChildrenPct = { david: 40, jennifer: 40, michael: 20 };

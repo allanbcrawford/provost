@@ -233,7 +233,7 @@ function FamilyPageContent() {
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
       <div className="flex-shrink-0 px-8 pt-8 pb-0">
-        <h1 className="mb-8 font-dm-serif text-[44px] leading-[1.05] tracking-[-0.02em] text-provost-text-primary">
+        <h1 className="mb-8 font-dm-serif text-[44px] text-provost-text-primary leading-[1.05] tracking-[-0.02em]">
           People
         </h1>
 

@@ -163,7 +163,7 @@ export const getOrProvisionFromClerk = mutation({
         .query("users")
         .withIndex("by_email", (q) => q.eq("email", email))
         .unique();
-      if (pending && pending.clerk_user_id.startsWith("pending-invite-")) {
+      if (pending?.clerk_user_id.startsWith("pending-invite-")) {
         await ctx.db.patch(pending._id, {
           clerk_user_id: identity.subject,
           first_name:

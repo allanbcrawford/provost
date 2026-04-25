@@ -31,6 +31,7 @@ import type * as agent_tools_attachFileInternal from "../agent/tools/attachFileI
 import type * as agent_tools_createTask from "../agent/tools/createTask.js";
 import type * as agent_tools_draftRevision from "../agent/tools/draftRevision.js";
 import type * as agent_tools_explainDocument from "../agent/tools/explainDocument.js";
+import type * as agent_tools_extractWaterfallState from "../agent/tools/extractWaterfallState.js";
 import type * as agent_tools_form from "../agent/tools/form.js";
 import type * as agent_tools_formResume from "../agent/tools/formResume.js";
 import type * as agent_tools_formSubmit from "../agent/tools/formSubmit.js";
@@ -67,6 +68,7 @@ import type * as lib_authz from "../lib/authz.js";
 import type * as lib_log from "../lib/log.js";
 import type * as lib_rateLimit from "../lib/rateLimit.js";
 import type * as lib_signalRules from "../lib/signalRules.js";
+import type * as lib_waterfallState from "../lib/waterfallState.js";
 import type * as library from "../library.js";
 import type * as messages from "../messages.js";
 import type * as observations from "../observations.js";
@@ -90,6 +92,9 @@ import type * as tasks from "../tasks.js";
 import type * as threads from "../threads.js";
 import type * as tracks from "../tracks.js";
 import type * as users from "../users.js";
+import type * as waterfallBackfill from "../waterfallBackfill.js";
+import type * as waterfallEngine from "../waterfallEngine.js";
+import type * as waterfalls from "../waterfalls.js";
 
 import type {
   ApiFromModules,
@@ -121,6 +126,7 @@ declare const fullApi: ApiFromModules<{
   "agent/tools/createTask": typeof agent_tools_createTask;
   "agent/tools/draftRevision": typeof agent_tools_draftRevision;
   "agent/tools/explainDocument": typeof agent_tools_explainDocument;
+  "agent/tools/extractWaterfallState": typeof agent_tools_extractWaterfallState;
   "agent/tools/form": typeof agent_tools_form;
   "agent/tools/formResume": typeof agent_tools_formResume;
   "agent/tools/formSubmit": typeof agent_tools_formSubmit;
@@ -157,6 +163,7 @@ declare const fullApi: ApiFromModules<{
   "lib/log": typeof lib_log;
   "lib/rateLimit": typeof lib_rateLimit;
   "lib/signalRules": typeof lib_signalRules;
+  "lib/waterfallState": typeof lib_waterfallState;
   library: typeof library;
   messages: typeof messages;
   observations: typeof observations;
@@ -180,6 +187,9 @@ declare const fullApi: ApiFromModules<{
   threads: typeof threads;
   tracks: typeof tracks;
   users: typeof users;
+  waterfallBackfill: typeof waterfallBackfill;
+  waterfallEngine: typeof waterfallEngine;
+  waterfalls: typeof waterfalls;
 }>;
 
 /**

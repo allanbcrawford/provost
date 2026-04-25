@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AiDisclaimer } from "@/components/ai-disclaimer";
+import { usePageContext } from "@/hooks/use-page-context";
 import { AgreementsSelector } from "./agreements-selector";
 import { DeltaSummary } from "./delta-summary";
 import { NodeEditorDrawer } from "./node-editor-drawer";
@@ -13,7 +14,6 @@ import {
   type EditableNodeId,
   type RevisionKey,
   type RevisionState,
-  type SelectedAgreement,
 } from "./types";
 import { UnallocatedSummary } from "./unallocated-summary";
 import { WaterfallDiagram } from "./waterfall-diagram";
@@ -48,6 +48,23 @@ export function WaterfallModal({ open, onClose, initialRevisions, initialCustomE
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, editing, onClose]);
+
+  // Surface the open waterfall scenario to the chat agent. The hook is
+  // safe to call before the early-return below — when `open` is false we
+  // disable it so we don't pin a stale selection after the modal closes.
+  const visibleState = useMemo(
+    () => ({
+      revisions,
+      customEdits,
+      selectedAgreements: customEdits.selectedAgreements ?? [],
+    }),
+    [revisions, customEdits],
+  );
+  usePageContext({
+    selection: { kind: "waterfall", id: "current" },
+    visibleState,
+    enabled: open,
+  });
 
   if (!open) return null;
 
@@ -122,7 +139,11 @@ export function WaterfallModal({ open, onClose, initialRevisions, initialCustomE
                   setCustomEdits((prev) => ({ ...prev, selectedAgreements: next }))
                 }
               />
-              <UnallocatedSummary selectedAgreements={customEdits.selectedAgreements ?? []} />
+              <UnallocatedSummary
+                selectedAgreements={customEdits.selectedAgreements ?? []}
+                customEdits={customEdits}
+                revisions={revisions}
+              />
             </section>
 
             <section className="mb-5">

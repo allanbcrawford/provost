@@ -16,7 +16,7 @@ export const EntityRow = forwardRef<HTMLDivElement, EntityRowProps>(
       <div
         ref={ref}
         className={cn(
-          "flex items-center gap-4 py-5 border-b border-provost-border-default",
+          "flex items-center gap-4 border-provost-border-default border-b py-5",
           className,
         )}
         {...props}
@@ -27,21 +27,21 @@ export const EntityRow = forwardRef<HTMLDivElement, EntityRowProps>(
           </div>
         ) : null}
 
-        <div className="flex-1 min-w-0 overflow-hidden">
+        <div className="min-w-0 flex-1 overflow-hidden">
           <div className="flex items-center gap-2">
-            <h3 className="text-[18px] font-semibold tracking-[-0.36px] text-provost-text-primary truncate">
+            <h3 className="truncate font-semibold text-[18px] text-provost-text-primary tracking-[-0.36px]">
               {title}
             </h3>
           </div>
           {subtitle ? (
-            <div className="mt-[14px] flex items-center gap-1 text-[14px] font-medium tracking-[-0.42px] text-provost-text-secondary overflow-hidden whitespace-nowrap">
+            <div className="mt-[14px] flex items-center gap-1 overflow-hidden whitespace-nowrap font-medium text-[14px] text-provost-text-secondary tracking-[-0.42px]">
               {subtitle}
             </div>
           ) : null}
         </div>
 
-        {meta ? <div className="shrink-0 ml-4">{meta}</div> : null}
-        {action ? <div className="shrink-0 ml-4">{action}</div> : null}
+        {meta ? <div className="ml-4 shrink-0">{meta}</div> : null}
+        {action ? <div className="ml-4 shrink-0">{action}</div> : null}
       </div>
     );
   },

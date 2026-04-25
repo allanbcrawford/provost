@@ -17,7 +17,7 @@ export function withRoleGuard<P extends object>(
     }, [role, router]);
 
     if (role === null) {
-      return <div className="p-8 text-sm text-provost-text-secondary">Loading…</div>;
+      return <div className="p-8 text-provost-text-secondary text-sm">Loading…</div>;
     }
     if (!allowedRoles.includes(role)) return null;
     return <Component {...props} />;

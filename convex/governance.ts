@@ -111,8 +111,8 @@ export const pendingApprovals = query({
       ...a,
       requester: requesterMap.get(a.requested_by)
         ? {
-            name: `${requesterMap.get(a.requested_by)!.first_name} ${requesterMap.get(a.requested_by)!.last_name}`,
-            email: requesterMap.get(a.requested_by)!.email,
+            name: `${requesterMap.get(a.requested_by)?.first_name} ${requesterMap.get(a.requested_by)?.last_name}`,
+            email: requesterMap.get(a.requested_by)?.email,
           }
         : null,
     }));

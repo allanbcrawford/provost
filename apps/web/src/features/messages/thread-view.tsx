@@ -28,11 +28,11 @@ export function ThreadView({
   }, [thread, markRead, threadId]);
 
   if (thread === undefined) {
-    return <p className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">Loading…</p>;
+    return <p className="text-[14px] text-provost-text-secondary tracking-[-0.42px]">Loading…</p>;
   }
   if (thread === null) {
     return (
-      <p className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+      <p className="text-[14px] text-provost-text-secondary tracking-[-0.42px]">
         Conversation not found.
       </p>
     );
@@ -52,7 +52,7 @@ export function ThreadView({
   return (
     <div className="flex h-full flex-col gap-4">
       <div className="rounded-[14px] border border-provost-border-subtle bg-white p-5">
-        <h3 className="text-[18px] font-bold leading-[1.26] tracking-[-0.72px] text-provost-text-primary">
+        <h3 className="font-bold text-[18px] text-provost-text-primary leading-[1.26] tracking-[-0.72px]">
           {thread.subject || "(no subject)"}
         </h3>
       </div>
@@ -65,7 +65,7 @@ export function ThreadView({
               className={`max-w-[80%] rounded-[14px] px-4 py-3 ${
                 mine
                   ? "ml-auto bg-provost-text-primary text-white"
-                  : "bg-white border border-provost-border-subtle text-provost-text-primary"
+                  : "border border-provost-border-subtle bg-white text-provost-text-primary"
               }`}
             >
               <div
@@ -88,13 +88,13 @@ export function ThreadView({
           onChange={(e) => setBody(e.target.value)}
           placeholder="Reply…"
           rows={3}
-          className="w-full resize-none border-0 bg-transparent text-[14px] leading-[1.4] tracking-[-0.42px] text-provost-text-primary outline-none placeholder:text-provost-text-secondary"
+          className="w-full resize-none border-0 bg-transparent text-[14px] text-provost-text-primary leading-[1.4] tracking-[-0.42px] outline-none placeholder:text-provost-text-secondary"
         />
         <div className="mt-2 flex justify-end">
           <Button
             onClick={handleSend}
             disabled={sending || body.trim().length === 0}
-            className="h-[35px] rounded-full px-5 text-[13px] font-medium"
+            className="h-[35px] rounded-full px-5 font-medium text-[13px]"
           >
             {sending ? "Sending…" : "Send"}
           </Button>

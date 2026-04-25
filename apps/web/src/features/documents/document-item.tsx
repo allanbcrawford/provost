@@ -39,11 +39,11 @@ export function DocumentItem({ document }: DocumentItemProps) {
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 pr-12">
-            <div className="max-w-[400px] truncate text-[20px] font-bold tracking-[-0.8px]">
+            <div className="max-w-[400px] truncate font-bold text-[20px] tracking-[-0.8px]">
               {document.name}
             </div>
             {document.summary && (
-              <p className="mt-1 line-clamp-1 max-w-[500px] text-[15px] font-normal tracking-[-0.4px] text-provost-text-secondary">
+              <p className="mt-1 line-clamp-1 max-w-[500px] font-normal text-[15px] text-provost-text-secondary tracking-[-0.4px]">
                 {document.summary}
               </p>
             )}
@@ -73,7 +73,7 @@ export function DocumentItem({ document }: DocumentItemProps) {
 
           {document.observation_is_observed && (
             <span
-              className={`ml-2 inline-flex items-center rounded-full px-3 py-1 text-[14px] font-medium ${
+              className={`ml-2 inline-flex items-center rounded-full px-3 py-1 font-medium text-[14px] ${
                 isDanger
                   ? "bg-provost-observation-danger text-white"
                   : "bg-provost-observation-info-bg text-provost-accent-blue"

@@ -66,9 +66,10 @@ export const create = mutation({
     value: v.number(),
     currency: v.optional(v.string()),
     asOfDate: v.string(),
+    liquidity: v.optional(v.union(v.literal("liquid"), v.literal("illiquid"))),
   },
   handler: async (ctx, args) => {
-    const { user } = await requireFamilyMember(ctx, args.familyId, ["admin", "advisor"]);
+    const { user } = await requireFamilyMember(ctx, args.familyId, ["admin", "advisor", "trustee"]);
     const assetId: Id<"assets"> = await ctx.db.insert("assets", {
       family_id: args.familyId,
       name: args.name,
@@ -76,6 +77,7 @@ export const create = mutation({
       value: args.value,
       currency: args.currency ?? "USD",
       as_of_date: args.asOfDate,
+      ...(args.liquidity ? { liquidity: args.liquidity } : {}),
     });
     await grantParty(ctx, {
       familyId: args.familyId,

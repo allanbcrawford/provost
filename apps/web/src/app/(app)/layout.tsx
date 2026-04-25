@@ -23,7 +23,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
                     <Header />
                     <div className="flex flex-1 overflow-hidden">
                       <SidebarNav />
-                      <main className="flex-1 min-w-0 overflow-y-auto bg-white">{children}</main>
+                      <main className="min-w-0 flex-1 overflow-y-auto bg-white">{children}</main>
                       <ChatRail />
                     </div>
                   </div>

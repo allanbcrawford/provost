@@ -97,6 +97,47 @@ export const get = query({
   },
 });
 
+// List people you can invite to an event from this family: every active
+// family_users row's user, plus every per-family professional. Professionals
+// are returned as a separate bucket because they are not yet `users` rows;
+// the form treats them as informational (only `users` ids are submitted to
+// `events.create`). Returned shape is intentionally tiny — the picker only
+// needs id, display name, and role context.
+export const listEventableContacts = query({
+  args: { familyId: v.id("families") },
+  handler: async (ctx, { familyId }) => {
+    await requireFamilyMember(ctx, familyId);
+    const memberships = await ctx.db
+      .query("family_users")
+      .withIndex("by_family", (q) => q.eq("family_id", familyId))
+      .collect();
+    const userDocs = await Promise.all(memberships.map((m) => ctx.db.get(m.user_id)));
+    const users = memberships
+      .map((m, i) => {
+        const u = userDocs[i] as Doc<"users"> | null;
+        if (!u || u.deleted_at) return null;
+        const name =
+          [u.first_name, u.last_name].filter(Boolean).join(" ").trim() || u.email || "Unknown";
+        return { user_id: u._id, name, email: u.email, family_role: m.role };
+      })
+      .filter((r): r is NonNullable<typeof r> => r !== null);
+
+    const professionals = (
+      await ctx.db
+        .query("professionals")
+        .withIndex("by_family", (q) => q.eq("family_id", familyId))
+        .collect()
+    ).map((p) => ({
+      professional_id: p._id,
+      name: p.name,
+      profession: p.profession,
+      email: p.email,
+    }));
+
+    return { users, professionals };
+  },
+});
+
 export const create = mutation({
   args: {
     familyId: v.id("families"),

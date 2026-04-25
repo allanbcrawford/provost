@@ -12,7 +12,7 @@ export function LessonsList({
 }) {
   if (lessons.length === 0) {
     return (
-      <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+      <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] text-provost-text-secondary tracking-[-0.42px]">
         {emptyMessage}
       </div>
     );

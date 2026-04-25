@@ -33,20 +33,20 @@ export function YearReviewCard() {
         </div>
       ))}
 
-      <div className="relative z-10 p-[18px] h-full flex flex-col">
+      <div className="relative z-10 flex h-full flex-col p-[18px]">
         <div className="flex items-center gap-2">
           <HighlightsIcon className="text-white" />
-          <span className="text-white text-[16px] font-semibold">2025 in Review</span>
+          <span className="font-semibold text-[16px] text-white">2025 in Review</span>
         </div>
       </div>
 
-      <div className="absolute bottom-[18px] left-[18px] flex gap-2 z-10">
+      <div className="absolute bottom-[18px] left-[18px] z-10 flex gap-2">
         {SLIDESHOW_IMAGES.map((_, index) => (
           <button
             type="button"
             key={index}
             onClick={() => setCurrentImageIndex(index)}
-            className={`w-2 h-2 rounded-full transition-colors ${
+            className={`h-2 w-2 rounded-full transition-colors ${
               index === currentImageIndex ? "bg-white" : "bg-white/50"
             }`}
             aria-label={`Go to slide ${index + 1}`}

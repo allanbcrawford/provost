@@ -23,8 +23,8 @@ describe("party grants on resource creation", () => {
         .collect(),
     );
     expect(parties.length).toBe(1);
-    expect(parties[0]!.user_id).toBe(fam.adminUserId);
-    expect(parties[0]!.role).toBe("owner");
+    expect(parties[0]?.user_id).toBe(fam.adminUserId);
+    expect(parties[0]?.role).toBe("owner");
   });
 
   it("documents.create requires admin role; member is rejected", async () => {

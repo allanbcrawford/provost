@@ -128,7 +128,7 @@ export const FormDescription = forwardRef<
       ref={ref}
       data-slot="form-description"
       id={formDescriptionId}
-      className={cn("text-sm text-provost-text-secondary", className)}
+      className={cn("text-provost-text-secondary text-sm", className)}
       {...props}
     />
   );
@@ -145,7 +145,7 @@ export const FormMessage = forwardRef<HTMLParagraphElement, HTMLAttributes<HTMLP
         ref={ref}
         data-slot="form-message"
         id={formMessageId}
-        className={cn("text-sm text-red-600", className)}
+        className={cn("text-red-600 text-sm", className)}
         {...props}
       >
         {body}

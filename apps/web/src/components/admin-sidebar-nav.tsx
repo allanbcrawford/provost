@@ -28,7 +28,7 @@ export function AdminSidebarNav() {
 
   const content = (
     <nav className="flex h-full flex-col overflow-y-auto pt-6">
-      <div className="px-5 pb-4 text-[11px] font-semibold uppercase tracking-[0.12em] text-provost-text-tertiary">
+      <div className="px-5 pb-4 font-semibold text-[11px] text-provost-text-tertiary uppercase tracking-[0.12em]">
         Site admin
       </div>
       {ADMIN_NAV_ITEMS.map((item) => {
@@ -72,7 +72,7 @@ export function AdminSidebarNav() {
           />
         )}
         <aside
-          className={`fixed left-0 top-0 z-50 h-full w-[254px] transform bg-white shadow-lg transition-transform duration-200 ease-in-out ${
+          className={`fixed top-0 left-0 z-50 h-full w-[254px] transform bg-white shadow-lg transition-transform duration-200 ease-in-out ${
             isOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -84,7 +84,7 @@ export function AdminSidebarNav() {
 
   return (
     <aside
-      className={`h-full shrink-0 overflow-hidden border-r border-provost-border-subtle bg-white transition-all duration-200 ease-in-out ${
+      className={`h-full shrink-0 overflow-hidden border-provost-border-subtle border-r bg-white transition-all duration-200 ease-in-out ${
         isOpen ? "w-[260px]" : "w-0"
       }`}
     >

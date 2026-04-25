@@ -31,13 +31,19 @@ function formatRange(starts: number, ends: number): string {
   return `${dateLabel} ${sTime} → ${e.toLocaleDateString()} ${eTime}`;
 }
 
-export function EventsList({ events }: { events: Row[] | null }) {
+export function EventsList({
+  events,
+  onSelect,
+}: {
+  events: Row[] | null;
+  onSelect?: (id: Id<"events">) => void;
+}) {
   if (events === null) {
-    return <p className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">Loading…</p>;
+    return <p className="text-[14px] text-provost-text-secondary tracking-[-0.42px]">Loading…</p>;
   }
   if (events.length === 0) {
     return (
-      <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+      <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] text-provost-text-secondary tracking-[-0.42px]">
         No events scheduled.
       </div>
     );
@@ -47,7 +53,26 @@ export function EventsList({ events }: { events: Row[] | null }) {
       {events.map((e, i) => (
         <Fragment key={e._id}>
           {i > 0 && <li aria-hidden className="h-px bg-provost-border-subtle" />}
-          <li className="flex items-start gap-5 px-5 py-4">
+          <li
+            className={`flex items-start gap-5 px-5 py-4 ${
+              onSelect
+                ? "cursor-pointer focus-within:bg-provost-bg-secondary hover:bg-provost-bg-secondary"
+                : ""
+            }`}
+            onClick={onSelect ? () => onSelect(e._id) : undefined}
+            onKeyDown={
+              onSelect
+                ? (ev) => {
+                    if (ev.key === "Enter" || ev.key === " ") {
+                      ev.preventDefault();
+                      onSelect(e._id);
+                    }
+                  }
+                : undefined
+            }
+            role={onSelect ? "button" : undefined}
+            tabIndex={onSelect ? 0 : undefined}
+          >
             <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-provost-bg-muted text-provost-text-secondary">
               <Icon
                 name={e.location_type === "video" ? "videocam" : "calendar_today"}
@@ -56,16 +81,16 @@ export function EventsList({ events }: { events: Row[] | null }) {
               />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[16px] font-medium tracking-[-0.48px] text-provost-text-primary">
+              <div className="font-medium text-[16px] text-provost-text-primary tracking-[-0.48px]">
                 {e.title}
               </div>
-              <div className="mt-0.5 text-[12px] tracking-[-0.36px] text-provost-text-secondary">
+              <div className="mt-0.5 text-[12px] text-provost-text-secondary tracking-[-0.36px]">
                 {formatRange(e.starts_at, e.ends_at)} · {e.attendeeCount} attendee
                 {e.attendeeCount === 1 ? "" : "s"}
                 {e.location_detail ? ` · ${e.location_detail}` : ""}
               </div>
               {e.description && (
-                <div className="mt-2 line-clamp-2 text-[13px] tracking-[-0.39px] text-provost-text-secondary">
+                <div className="mt-2 line-clamp-2 text-[13px] text-provost-text-secondary tracking-[-0.39px]">
                   {e.description}
                 </div>
               )}

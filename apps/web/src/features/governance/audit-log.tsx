@@ -164,9 +164,9 @@ export function AuditLog({ familyId }: { familyId: Id<"families"> }) {
       </div>
 
       {isLoading ? (
-        <div className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">Loading…</div>
+        <div className="text-[14px] text-provost-text-secondary tracking-[-0.42px]">Loading…</div>
       ) : results.length === 0 ? (
-        <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+        <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] text-provost-text-secondary tracking-[-0.42px]">
           No audit events match the current filters.
         </div>
       ) : (
@@ -261,7 +261,7 @@ export function AuditLog({ familyId }: { familyId: Id<"families"> }) {
             type="button"
             disabled={!canLoadMore}
             onClick={() => loadMore(PAGE_SIZE)}
-            className="rounded-md border border-neutral-200 bg-white px-4 py-2 text-sm text-provost-text-secondary hover:border-neutral-300 disabled:opacity-50"
+            className="rounded-md border border-neutral-200 bg-white px-4 py-2 text-provost-text-secondary text-sm hover:border-neutral-300 disabled:opacity-50"
           >
             {isLoadingMore ? "Loading…" : "Load more"}
           </button>

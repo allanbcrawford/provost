@@ -94,6 +94,11 @@ export const coreTables = {
     // effective date, used to sort versions in the UI dropdown.
     parent_document_id: v.optional(v.id("documents")),
     version_date: v.optional(v.number()),
+    // Document-typed structured state. For will/trust types this holds a
+    // WaterfallState (see convex/lib/waterfallState.ts) used by the
+    // inheritance engine. Stored as v.any() because the shape varies per
+    // document type and is validated at write time via zod.
+    state: v.optional(v.any()),
     deleted_at: v.optional(v.number()),
   })
     .index("by_family", ["family_id"])

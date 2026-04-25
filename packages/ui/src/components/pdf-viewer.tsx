@@ -57,8 +57,8 @@ export function PDFViewer({
         file={fileUrl}
         options={withCredentials ? credentialsOptions : defaultOptions}
         onLoadSuccess={onLoadSuccess}
-        loading={<div className="p-4 text-sm text-neutral-500">Loading PDF…</div>}
-        error={<div className="p-4 text-sm text-red-500">Failed to load PDF</div>}
+        loading={<div className="p-4 text-neutral-500 text-sm">Loading PDF…</div>}
+        error={<div className="p-4 text-red-500 text-sm">Failed to load PDF</div>}
       >
         {numPages ? <Page pageNumber={page} width={width} /> : null}
       </Document>
@@ -93,8 +93,8 @@ export function PDFThumbnails({
         file={fileUrl}
         options={withCredentials ? credentialsOptions : defaultOptions}
         onLoadSuccess={onLoadSuccess}
-        loading={<div className="text-xs text-neutral-500">Loading…</div>}
-        error={<div className="text-xs text-red-500">Failed</div>}
+        loading={<div className="text-neutral-500 text-xs">Loading…</div>}
+        error={<div className="text-red-500 text-xs">Failed</div>}
       >
         {numPages
           ? Array.from({ length: numPages }, (_, i) => {

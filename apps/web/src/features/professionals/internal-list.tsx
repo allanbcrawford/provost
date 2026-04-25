@@ -23,11 +23,11 @@ export function InternalList() {
     | undefined;
 
   if (rows === undefined) {
-    return <p className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">Loading…</p>;
+    return <p className="text-[14px] text-provost-text-secondary tracking-[-0.42px]">Loading…</p>;
   }
   if (rows.length === 0) {
     return (
-      <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+      <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] text-provost-text-secondary tracking-[-0.42px]">
         No internal team members yet. Tag a family member with an employment role to surface them
         here.
       </div>
@@ -43,16 +43,16 @@ export function InternalList() {
               <Icon name="badge" size={20} weight={300} />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="truncate text-[16px] font-medium tracking-[-0.48px] text-provost-text-primary">
+              <div className="truncate font-medium text-[16px] text-provost-text-primary tracking-[-0.48px]">
                 {p.name}
               </div>
-              <div className="mt-0.5 text-[12px] tracking-[-0.36px] text-provost-text-secondary">
+              <div className="mt-0.5 text-[12px] text-provost-text-secondary tracking-[-0.36px]">
                 {p.employment_role ?? "—"} · {p.family_role}
               </div>
             </div>
             <a
               href={`mailto:${p.email}`}
-              className="text-[13px] tracking-[-0.39px] text-provost-text-secondary hover:text-provost-text-primary"
+              className="text-[13px] text-provost-text-secondary tracking-[-0.39px] hover:text-provost-text-primary"
             >
               {p.email}
             </a>

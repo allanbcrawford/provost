@@ -35,11 +35,11 @@ const PHASE_LABEL: Record<string, string> = {
 
 export function ProgramsTree({ tree }: { tree: ProgramNode[] | null }) {
   if (tree === null) {
-    return <p className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">Loading…</p>;
+    return <p className="text-[14px] text-provost-text-secondary tracking-[-0.42px]">Loading…</p>;
   }
   if (tree.length === 0) {
     return (
-      <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+      <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] text-provost-text-secondary tracking-[-0.42px]">
         No programs yet. Run the learning migration to scaffold the curriculum.
       </div>
     );
@@ -70,10 +70,10 @@ function ProgramRow({ program }: { program: ProgramNode }) {
           className="text-provost-text-secondary"
         />
         <div className="flex-1">
-          <h3 className="text-[18px] font-bold leading-[1.26] tracking-[-0.72px] text-provost-text-primary">
+          <h3 className="font-bold text-[18px] text-provost-text-primary leading-[1.26] tracking-[-0.72px]">
             {program.title}
           </h3>
-          <p className="mt-1 text-[12px] tracking-[-0.36px] text-provost-text-secondary">
+          <p className="mt-1 text-[12px] text-provost-text-secondary tracking-[-0.36px]">
             {PHASE_LABEL[program.stewardship_phase] ?? program.stewardship_phase} ·{" "}
             {program.tracks.length} track{program.tracks.length === 1 ? "" : "s"} · {totalLessons}{" "}
             lesson{totalLessons === 1 ? "" : "s"}
@@ -81,16 +81,16 @@ function ProgramRow({ program }: { program: ProgramNode }) {
         </div>
       </button>
       {open && (
-        <div className="border-t border-provost-border-subtle bg-provost-bg-muted/20 px-5 py-4">
+        <div className="border-provost-border-subtle border-t bg-provost-bg-muted/20 px-5 py-4">
           {program.tracks.length === 0 ? (
-            <p className="text-[13px] tracking-[-0.39px] text-provost-text-secondary">
+            <p className="text-[13px] text-provost-text-secondary tracking-[-0.39px]">
               No tracks in this program yet.
             </p>
           ) : (
             <ul className="flex flex-col gap-3">
               {program.tracks.map((t) => (
                 <li key={t._id}>
-                  <h4 className="text-[14px] font-medium tracking-[-0.42px] text-provost-text-primary">
+                  <h4 className="font-medium text-[14px] text-provost-text-primary tracking-[-0.42px]">
                     {t.title}
                   </h4>
                   <ul className="mt-1 flex flex-col gap-1 pl-3">
@@ -98,7 +98,7 @@ function ProgramRow({ program }: { program: ProgramNode }) {
                       <li key={l._id}>
                         <Link
                           href={`/lessons/${l._id}`}
-                          className="text-[13px] tracking-[-0.39px] text-provost-text-secondary hover:text-provost-text-primary"
+                          className="text-[13px] text-provost-text-secondary tracking-[-0.39px] hover:text-provost-text-primary"
                         >
                           {l.title}
                         </Link>

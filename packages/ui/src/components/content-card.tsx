@@ -27,7 +27,7 @@ export function ThumbnailImage({
       data-unoptimized={unoptimized ? "true" : undefined}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={alt} className="absolute inset-0 w-full h-full object-cover" />
+      <img src={src} alt={alt} className="absolute inset-0 h-full w-full object-cover" />
     </div>
   );
 }
@@ -78,12 +78,12 @@ export function ContentCard({
           />
         ))}
 
-      <div className="flex-1 min-w-0">
-        <h3 className="text-[22px] font-bold tracking-[-0.88px] truncate leading-[1.26]">
+      <div className="min-w-0 flex-1">
+        <h3 className="truncate font-bold text-[22px] leading-[1.26] tracking-[-0.88px]">
           {title}
         </h3>
         {description && (
-          <p className="mt-2 text-[16px] font-light text-provost-text-secondary truncate leading-[1.26] tracking-[-0.48px]">
+          <p className="mt-2 truncate font-light text-[16px] text-provost-text-secondary leading-[1.26] tracking-[-0.48px]">
             {description}
           </p>
         )}
@@ -95,7 +95,7 @@ export function ContentCard({
         {extra}
       </div>
 
-      {actions && <div className="flex items-center gap-3 shrink-0">{actions}</div>}
+      {actions && <div className="flex shrink-0 items-center gap-3">{actions}</div>}
     </div>
   );
 }
@@ -151,7 +151,7 @@ export function Badge({ children, variant = "new", className }: BadgeProps) {
   return (
     <span
       className={cn(
-        "text-[14px] px-4 py-1 rounded-full font-medium",
+        "rounded-full px-4 py-1 font-medium text-[14px]",
         badgeStyles[variant],
         className,
       )}

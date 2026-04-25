@@ -57,7 +57,7 @@ export function MembersList({ members }: Props) {
 
   return (
     <div>
-      <p className="mb-8 text-[15px] font-light text-provost-text-secondary">
+      <p className="mb-8 font-light text-[15px] text-provost-text-secondary">
         {members.length} family member{members.length === 1 ? "" : "s"}
       </p>
       <ul className="divide-y divide-provost-border-subtle">
@@ -66,15 +66,15 @@ export function MembersList({ members }: Props) {
           const bday = formatBirthday(m.date_of_birth);
           return (
             <li key={m._id} className="flex items-center gap-5 py-6">
-              <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-provost-bg-secondary text-[13px] font-medium tracking-wide text-provost-text-secondary">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-provost-bg-secondary font-medium text-[13px] text-provost-text-secondary tracking-wide">
                 {initials(m)}
               </div>
 
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[20px] leading-tight tracking-[-0.4px] text-provost-text-primary">
+                <p className="truncate text-[20px] text-provost-text-primary leading-tight tracking-[-0.4px]">
                   {formatFullName(m)}
                 </p>
-                <p className="mt-1.5 flex flex-wrap items-center gap-x-2.5 text-[14px] font-light text-provost-text-secondary">
+                <p className="mt-1.5 flex flex-wrap items-center gap-x-2.5 font-light text-[14px] text-provost-text-secondary">
                   {age !== null && <span>{age}</span>}
                   {bday && (
                     <>
@@ -91,19 +91,19 @@ export function MembersList({ members }: Props) {
               </div>
 
               <div className="hidden w-[200px] shrink-0 md:block">
-                <p className="text-[14px] font-medium text-provost-status-pending">
+                <p className="font-medium text-[14px] text-provost-status-pending">
                   Inactive recently
                 </p>
-                <p className="mt-1 text-[13px] font-light text-provost-text-secondary">
+                <p className="mt-1 font-light text-[13px] text-provost-text-secondary">
                   Never · visits this week
                 </p>
               </div>
 
               <div className="hidden w-[200px] shrink-0 md:block">
-                <p className="text-[16px] tracking-[-0.2px] text-provost-text-primary">
+                <p className="text-[16px] text-provost-text-primary tracking-[-0.2px]">
                   {stewardshipLabel(m.generation, age)}
                 </p>
-                <p className="mt-1 text-[13px] font-light text-provost-text-secondary">
+                <p className="mt-1 font-light text-[13px] text-provost-text-secondary">
                   No lessons assigned
                 </p>
               </div>

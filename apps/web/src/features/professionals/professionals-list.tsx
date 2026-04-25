@@ -16,13 +16,13 @@ export function ProfessionalsList() {
 
   if (professionals === undefined) {
     return (
-      <div className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">Loading…</div>
+      <div className="text-[14px] text-provost-text-secondary tracking-[-0.42px]">Loading…</div>
     );
   }
 
   if (professionals.length === 0) {
     return (
-      <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+      <div className="rounded-[14px] border border-provost-border-subtle border-dashed bg-white p-8 text-center text-[14px] text-provost-text-secondary tracking-[-0.42px]">
         No professionals yet.
       </div>
     );
@@ -38,13 +38,13 @@ export function ProfessionalsList() {
               <Icon name="person" size={28} weight={300} />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="truncate text-[22px] font-bold leading-[1.26] tracking-[-0.88px] text-provost-text-primary">
+              <h3 className="truncate font-bold text-[22px] text-provost-text-primary leading-[1.26] tracking-[-0.88px]">
                 {p.name}
               </h3>
-              <p className="mt-1 text-[16px] font-light leading-[1.26] tracking-[-0.48px] text-provost-text-secondary">
+              <p className="mt-1 font-light text-[16px] text-provost-text-secondary leading-[1.26] tracking-[-0.48px]">
                 {p.profession}
               </p>
-              <div className="mt-2 flex items-center gap-2 text-[14px] tracking-[-0.42px] text-provost-neutral-600">
+              <div className="mt-2 flex items-center gap-2 text-[14px] text-provost-neutral-600 tracking-[-0.42px]">
                 <span className="font-light">{p.firm}</span>
                 <span
                   aria-hidden
@@ -57,7 +57,7 @@ export function ProfessionalsList() {
               asChild
               size="sm"
               variant="outline"
-              className="h-[35px] shrink-0 rounded-full px-5 text-[13px] font-medium"
+              className="h-[35px] shrink-0 rounded-full px-5 font-medium text-[13px]"
             >
               <a href={`mailto:${p.email}`}>Contact</a>
             </Button>

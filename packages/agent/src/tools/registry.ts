@@ -12,7 +12,7 @@ export type ToolSurface =
   | "governance"
   | "any";
 
-export type ToolDefinition<TArgs = unknown, TResult = unknown> = {
+export type ToolDefinition<TArgs = unknown, _TResult = unknown> = {
   name: string;
   description: string;
   argsSchema: z.ZodType<TArgs>;

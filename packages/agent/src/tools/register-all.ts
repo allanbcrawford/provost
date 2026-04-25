@@ -4,6 +4,7 @@ import {
   CreateTaskArgsSchema,
   DraftRevisionArgsSchema,
   ExplainDocumentArgsSchema,
+  ExtractWaterfallStateArgsSchema,
   FormArgsSchema,
   GenerateSignalsArgsSchema,
   InviteMemberArgsSchema,
@@ -178,6 +179,16 @@ export function registerAllTools(): void {
     approvalRequired: false,
     surfaces: ["any"],
     handlerRef: "agent/tools/searchKnowledge:handle",
+  });
+
+  registerTool({
+    name: "extract_waterfall_state",
+    description:
+      "Propose a structured WaterfallState patch (priority class, branches per death order, distributions) for an estate-planning document. Approval-gated; the proposed patch is reviewed by a human before it's written to documents.state. Currently a stub — the handler returns a pending result until the extractor is implemented.",
+    argsSchema: ExtractWaterfallStateArgsSchema,
+    approvalRequired: true,
+    surfaces: ["documents", "family", "any"],
+    handlerRef: "agent/tools/extractWaterfallState:handle",
   });
 
   registerTool({

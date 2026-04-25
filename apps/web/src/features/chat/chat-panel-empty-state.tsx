@@ -48,11 +48,11 @@ export function ChatPanelEmptyState({
           />
         </div>
 
-        <h2 className="mb-2 font-dm-serif text-[32px] tracking-[-0.32px] text-provost-text-primary">
+        <h2 className="mb-2 font-dm-serif text-[32px] text-provost-text-primary tracking-[-0.32px]">
           Hi, {name}
         </h2>
 
-        <p className="text-[16px] font-light leading-relaxed text-provost-text-primary">
+        <p className="font-light text-[16px] text-provost-text-primary leading-relaxed">
           {welcomeText}
         </p>
       </div>
@@ -67,7 +67,7 @@ export function ChatPanelEmptyState({
                 onClick={() => onSelectSuggestion(suggestion.prompt)}
               >
                 <Icon name="asterisk" size={24} weight={200} />
-                <span className="flex-1 text-[14px] font-medium leading-[1.41] tracking-[-0.42px] text-provost-text-primary">
+                <span className="flex-1 font-medium text-[14px] text-provost-text-primary leading-[1.41] tracking-[-0.42px]">
                   {suggestion.label || suggestion.prompt}
                 </span>
                 <Icon name="arrow_forward_ios" size={12} weight={500} />

@@ -7,6 +7,7 @@ import { useParams } from "next/navigation";
 import { LessonArticle } from "@/features/lessons/lesson-article";
 import { LessonSlideshow } from "@/features/lessons/lesson-slideshow";
 import { withRoleGuard } from "@/HOCs/with-role-guard";
+import { usePageContext } from "@/hooks/use-page-context";
 import { APP_ROLES } from "@/lib/roles";
 import { api } from "../../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../../convex/_generated/dataModel";
@@ -21,6 +22,18 @@ function LessonDetailPage() {
   // recommendations. We pick which renderer to mount based on context.format.
   const context = useQuery(api.lessons.getWithContext, lessonId ? { lessonId } : "skip");
   const legacy = useQuery(api.lessons.get, lessonId ? { lessonId } : "skip");
+
+  // Register the lesson the user is reading with the chat agent.
+  usePageContext({
+    selection: lessonId ? { kind: "lesson", id: lessonId } : null,
+    visibleState: context
+      ? {
+          lessonTitle: context.lesson.title,
+          format: context.lesson.format,
+        }
+      : undefined,
+    enabled: Boolean(lessonId) && context !== null,
+  });
 
   if (context === undefined) {
     return (

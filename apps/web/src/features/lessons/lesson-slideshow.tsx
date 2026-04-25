@@ -95,7 +95,7 @@ export function LessonSlideshow({ lesson }: { lesson: LessonDetail }) {
 
   if (totalSlides === 0) {
     return (
-      <div className="rounded-[14px] border border-provost-border-subtle bg-white p-8 text-center text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+      <div className="rounded-[14px] border border-provost-border-subtle bg-white p-8 text-center text-[14px] text-provost-text-secondary tracking-[-0.42px]">
         This lesson has no slides yet.
       </div>
     );
@@ -105,25 +105,25 @@ export function LessonSlideshow({ lesson }: { lesson: LessonDetail }) {
     return (
       <div className="mx-auto flex max-w-3xl flex-col items-start gap-6 rounded-[14px] border border-provost-border-subtle bg-white p-10">
         <div className="space-y-3">
-          <p className="font-semibold text-[10.5px] uppercase tracking-wider text-provost-text-tertiary">
+          <p className="font-semibold text-[10.5px] text-provost-text-tertiary uppercase tracking-wider">
             {lesson.category}
           </p>
-          <h2 className="font-dm-serif text-[42px] font-medium leading-[1.05] tracking-[-0.84px] text-provost-text-primary">
+          <h2 className="font-dm-serif font-medium text-[42px] text-provost-text-primary leading-[1.05] tracking-[-0.84px]">
             {lesson.title}
           </h2>
         </div>
         {content.introText ? (
-          <p className="whitespace-pre-line text-[16px] leading-relaxed text-provost-text-primary">
+          <p className="whitespace-pre-line text-[16px] text-provost-text-primary leading-relaxed">
             {content.introText}
           </p>
         ) : (
-          <p className="text-[16px] leading-relaxed text-provost-text-primary">
+          <p className="text-[16px] text-provost-text-primary leading-relaxed">
             {lesson.description}
           </p>
         )}
         <Button
           onClick={handleStart}
-          className="h-[40px] rounded-full px-5 text-[15px] font-medium"
+          className="h-[40px] rounded-full px-5 font-medium text-[15px]"
         >
           <Icon name="play_arrow" size={18} weight={500} />
           Start lesson
@@ -141,7 +141,7 @@ export function LessonSlideshow({ lesson }: { lesson: LessonDetail }) {
       <div className="rounded-[14px] border border-provost-border-subtle bg-white p-10">
         {slide?.title && (
           <h2
-            className="mb-5 font-dm-serif text-[32px] font-medium leading-[1.1] tracking-[-0.64px]"
+            className="mb-5 font-dm-serif font-medium text-[32px] leading-[1.1] tracking-[-0.64px]"
             style={{ color: primaryColor }}
           >
             {slide.title}
@@ -149,7 +149,7 @@ export function LessonSlideshow({ lesson }: { lesson: LessonDetail }) {
         )}
         {slide?.text && (
           <div
-            className="text-[16px] leading-relaxed text-provost-text-primary"
+            className="text-[16px] text-provost-text-primary leading-relaxed"
             // biome-ignore lint/security/noDangerouslySetInnerHtml: trusted seeded content
             dangerouslySetInnerHTML={{ __html: formatSlideText(slide.text) }}
           />
@@ -162,12 +162,12 @@ export function LessonSlideshow({ lesson }: { lesson: LessonDetail }) {
           style={{ backgroundColor: highlightColor }}
         >
           <div
-            className="absolute left-0 top-0 h-full rounded-full transition-all duration-300"
+            className="absolute top-0 left-0 h-full rounded-full transition-all duration-300"
             style={{ width: `${progress}%`, backgroundColor: primaryColor }}
           />
         </div>
         <div className="flex items-center justify-between">
-          <p className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">
+          <p className="text-[14px] text-provost-text-secondary tracking-[-0.42px]">
             Slide {slideIndex + 1}{" "}
             <span className="text-provost-text-tertiary">of {totalSlides}</span>
           </p>
@@ -176,7 +176,7 @@ export function LessonSlideshow({ lesson }: { lesson: LessonDetail }) {
               variant="outline"
               disabled={isFirst}
               onClick={() => goTo(slideIndex - 1)}
-              className="h-[35px] rounded-full px-5 text-[15px] font-medium"
+              className="h-[35px] rounded-full px-5 font-medium text-[15px]"
             >
               Back
             </Button>
@@ -184,14 +184,14 @@ export function LessonSlideshow({ lesson }: { lesson: LessonDetail }) {
               <Button
                 onClick={handleComplete}
                 disabled={isCompleted}
-                className="h-[35px] rounded-full px-5 text-[15px] font-medium"
+                className="h-[35px] rounded-full px-5 font-medium text-[15px]"
               >
                 {isCompleted ? "Completed" : "Complete"}
               </Button>
             ) : (
               <Button
                 onClick={() => goTo(slideIndex + 1)}
-                className="h-[35px] rounded-full px-5 text-[15px] font-medium"
+                className="h-[35px] rounded-full px-5 font-medium text-[15px]"
               >
                 Next
               </Button>
@@ -199,7 +199,7 @@ export function LessonSlideshow({ lesson }: { lesson: LessonDetail }) {
           </div>
         </div>
         {isCompleted && (
-          <p className="text-[12px] font-medium text-emerald-700">You completed this lesson.</p>
+          <p className="font-medium text-[12px] text-emerald-700">You completed this lesson.</p>
         )}
       </div>
     </div>

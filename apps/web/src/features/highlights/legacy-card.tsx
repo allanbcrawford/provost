@@ -10,11 +10,11 @@ export function LegacyCard() {
     <HighlightsCard href="/legacy" className="bg-provost-card-blue-light p-[18px]">
       <div className="flex h-full flex-col justify-between">
         <div className="flex flex-col">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="mb-2 flex items-center gap-2">
             <HighlightsIcon className="text-provost-card-blue-dark" />
-            <span className="text-provost-card-blue-dark text-[16px] font-semibold">Legacy</span>
+            <span className="font-semibold text-[16px] text-provost-card-blue-dark">Legacy</span>
           </div>
-          <p className="text-provost-card-blue-dark text-[23px] leading-[1.3] tracking-[-0.69px] font-serif pr-4">
+          <p className="pr-4 font-serif text-[23px] text-provost-card-blue-dark leading-[1.3] tracking-[-0.69px]">
             Jump back in to help us better understand your personal values and goals.
           </p>
         </div>

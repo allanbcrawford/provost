@@ -17,7 +17,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 import { advanceLearner } from "./lessonDelivery";
 import { writeAudit } from "./lib/audit";
-import { requireFamilyMember, requireUserRecord } from "./lib/authz";
+import { requireFamilyMember, requireSiteAdmin, requireUserRecord } from "./lib/authz";
 
 export const list = query({
   args: { familyId: v.id("families") },
@@ -434,14 +434,22 @@ export const updateArticle = mutation({
   handler: async (ctx, { lessonId, articleMarkdown }) => {
     const lesson = await ctx.db.get(lessonId);
     if (!lesson || lesson.deleted_at) throw new ConvexError({ code: "NOT_FOUND" });
-    const { user } = await requireFamilyMember(ctx, lesson.family_id, ["admin", "advisor"]);
+    // Family admin/advisor OR Provost site admin (cross-tenant curation).
+    let actorUserId: Id<"users">;
+    try {
+      const { user } = await requireFamilyMember(ctx, lesson.family_id, ["admin", "advisor"]);
+      actorUserId = user._id;
+    } catch (_err) {
+      const admin = await requireSiteAdmin(ctx);
+      actorUserId = admin._id;
+    }
     await ctx.db.patch(lessonId, {
       article_markdown: articleMarkdown,
       format: "article",
     });
     await writeAudit(ctx, {
       familyId: lesson.family_id,
-      actorUserId: user._id,
+      actorUserId,
       actorKind: "user",
       category: "mutation",
       action: "lessons.update_article",
@@ -450,6 +458,78 @@ export const updateArticle = mutation({
       metadata: { length: articleMarkdown.length },
     });
     return null;
+  },
+});
+
+// Site-admin-only: update lesson metadata (title, description, format) for
+// the in-browser curation editor. Bypasses family-membership checks because
+// site admins curate content across families. Audit is written under the
+// lesson's owning family so the trail stays scoped to the affected tenant.
+export const updateMetadata = mutation({
+  args: {
+    lessonId: v.id("lessons"),
+    title: v.string(),
+    description: v.string(),
+    format: v.union(v.literal("article"), v.literal("slides")),
+  },
+  handler: async (ctx, { lessonId, title, description, format }) => {
+    const lesson = await ctx.db.get(lessonId);
+    if (!lesson || lesson.deleted_at) throw new ConvexError({ code: "NOT_FOUND" });
+    const admin = await requireSiteAdmin(ctx);
+    const trimmedTitle = title.trim();
+    if (trimmedTitle.length === 0) {
+      throw new ConvexError({ code: "INVALID_TITLE" });
+    }
+    await ctx.db.patch(lessonId, {
+      title: trimmedTitle,
+      description: description.trim().length > 0 ? description.trim() : undefined,
+      format,
+    });
+    await writeAudit(ctx, {
+      familyId: lesson.family_id,
+      actorUserId: admin._id,
+      actorKind: "user",
+      category: "mutation",
+      action: "lessons.update_metadata",
+      resourceType: "lessons",
+      resourceId: lessonId,
+      metadata: { titleLength: trimmedTitle.length, format },
+    });
+    return null;
+  },
+});
+
+// Site-admin loader for the curation editor. Returns the full lesson row
+// plus track + program context. Bypasses family-membership gating so the
+// internal Provost team can curate any tenant's content.
+export const getForAdminEdit = query({
+  args: { lessonId: v.id("lessons") },
+  handler: async (ctx, { lessonId }) => {
+    await requireSiteAdmin(ctx);
+    const lesson = await ctx.db.get(lessonId);
+    if (!lesson || lesson.deleted_at) throw new ConvexError({ code: "NOT_FOUND" });
+    const track = lesson.track_id ? await ctx.db.get(lesson.track_id) : null;
+    const program = track?.program_id ? await ctx.db.get(track.program_id) : null;
+    return {
+      lesson: {
+        _id: lesson._id,
+        family_id: lesson.family_id,
+        title: lesson.title,
+        description: lesson.description ?? "",
+        category: lesson.category,
+        format: (lesson.format ?? "slides") as "article" | "slides",
+        article_markdown: lesson.article_markdown ?? null,
+      },
+      track: track && !track.deleted_at ? { _id: track._id, title: track.title } : null,
+      program:
+        program && !program.deleted_at
+          ? {
+              _id: program._id,
+              title: program.title,
+              stewardship_phase: program.stewardship_phase,
+            }
+          : null,
+    };
   },
 });
 

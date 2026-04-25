@@ -26,20 +26,20 @@ function ArrowRightIcon({ className }: { className?: string }) {
 
 export function UrgentCard() {
   return (
-    <HighlightsCard className="bg-provost-card-purple-light border border-provost-card-purple p-[18px]">
+    <HighlightsCard className="border border-provost-card-purple bg-provost-card-purple-light p-[18px]">
       <div className="flex h-full items-center gap-4">
-        <div className="flex flex-col flex-1">
-          <div className="flex items-center gap-2 mb-2">
+        <div className="flex flex-1 flex-col">
+          <div className="mb-2 flex items-center gap-2">
             <HighlightsIcon className="text-provost-card-purple" />
-            <span className="text-provost-card-purple text-[16px] font-semibold">Urgent</span>
+            <span className="font-semibold text-[16px] text-provost-card-purple">Urgent</span>
           </div>
-          <p className="text-provost-card-purple text-[20px] leading-[1.3] tracking-[-0.6px] font-serif">
+          <p className="font-serif text-[20px] text-provost-card-purple leading-[1.3] tracking-[-0.6px]">
             There is an upcoming quarterly family meeting that still requires an RSVP from you.
           </p>
         </div>
 
-        <Link href="/events" className="hover:bg-secondary bg-card p-1 rounded-lg">
-          <div className="flex items-center gap-2 px-5 py-2.5 border border-provost-card-purple rounded-lg text-provost-card-purple text-[20px] font-serif font-bold tracking-[-0.2px] transition-colors shrink-0">
+        <Link href="/events" className="rounded-lg bg-card p-1 hover:bg-secondary">
+          <div className="flex shrink-0 items-center gap-2 rounded-lg border border-provost-card-purple px-5 py-2.5 font-bold font-serif text-[20px] text-provost-card-purple tracking-[-0.2px] transition-colors">
             View Event
             <ArrowRightIcon />
           </div>

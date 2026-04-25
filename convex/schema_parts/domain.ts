@@ -134,6 +134,9 @@ export const domainTables = {
     value: v.number(),
     currency: v.string(),
     as_of_date: v.string(),
+    // Optional liquidity classification, surfaced in the manual add-asset
+    // form. Kept optional so existing rows + seedDemoAssets remain valid.
+    liquidity: v.optional(v.union(v.literal("liquid"), v.literal("illiquid"))),
   }).index("by_family", ["family_id"]),
 
   library_sources: defineTable({

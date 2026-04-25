@@ -5,21 +5,21 @@ import { type ComponentPropsWithoutRef, forwardRef } from "react";
 import { cn } from "../utils/cn";
 
 export const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[8px] text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-provost-border-default focus-visible:ring-offset-2",
+  "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-[8px] font-medium text-sm outline-none transition-all focus-visible:ring-2 focus-visible:ring-provost-border-default focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         primary: "bg-provost-bg-inverse text-provost-text-inverse hover:opacity-90",
         secondary:
-          "bg-white border border-provost-border-default text-provost-text-primary hover:bg-provost-bg-secondary",
+          "border border-provost-border-default bg-white text-provost-text-primary hover:bg-provost-bg-secondary",
         ghost: "text-provost-text-primary hover:bg-provost-bg-secondary",
         danger: "bg-red-600 text-white hover:bg-red-700",
         outline:
           "border border-provost-border-default bg-transparent hover:bg-provost-bg-secondary",
         link: "text-provost-text-primary underline-offset-4 hover:underline",
-        pill: "rounded-full border border-provost-border-default bg-white text-provost-text-primary hover:bg-provost-bg-secondary transition-colors text-[15px] font-medium tracking-[-0.6px]",
+        pill: "rounded-full border border-provost-border-default bg-white font-medium text-[15px] text-provost-text-primary tracking-[-0.6px] transition-colors hover:bg-provost-bg-secondary",
         "pill-ghost":
-          "rounded-full bg-transparent text-provost-text-primary hover:bg-provost-bg-secondary transition-colors",
+          "rounded-full bg-transparent text-provost-text-primary transition-colors hover:bg-provost-bg-secondary",
       },
       size: {
         sm: "h-8 px-3 text-xs",

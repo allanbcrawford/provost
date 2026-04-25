@@ -29,7 +29,7 @@ describe("library globals fence — site-admin only", () => {
     const admin = asSubject(t, fam.adminClerkSubject);
     const result = await admin.query(api.library.listSources, { familyId: fam.familyId });
     expect(result.length).toBe(1);
-    expect(result[0]!.title).toBe("Family-scoped source");
+    expect(result[0]?.title).toBe("Family-scoped source");
   });
 
   it("library.getSource refuses to return a global to a family user", async () => {

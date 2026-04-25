@@ -29,8 +29,8 @@ function initials(first: string, last: string) {
 function Field({ label, value }: { label: string; value?: string }) {
   if (!value) return null;
   return (
-    <div className="flex flex-col gap-1 border-b border-provost-border-subtle py-3 last:border-b-0">
-      <span className="text-[12px] font-medium uppercase tracking-wide text-provost-text-secondary">
+    <div className="flex flex-col gap-1 border-provost-border-subtle border-b py-3 last:border-b-0">
+      <span className="font-medium text-[12px] text-provost-text-secondary uppercase tracking-wide">
         {label}
       </span>
       <span className="text-[15px] text-provost-text-primary">{value}</span>
@@ -62,13 +62,13 @@ export function ProfileModal({ open, onOpenChange, user }: ProfileModalProps) {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={user.avatarUrl} alt={fullName} className="h-full w-full object-cover" />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-[22px] font-medium text-provost-neutral-700">
+                <div className="flex h-full w-full items-center justify-center font-medium text-[22px] text-provost-neutral-700">
                   {initials(user.firstName, user.lastName)}
                 </div>
               )}
             </div>
-            <div className="flex-1 min-w-0">
-              <h2 className="text-[22px] font-semibold tracking-[-0.44px] text-provost-text-primary truncate">
+            <div className="min-w-0 flex-1">
+              <h2 className="truncate font-semibold text-[22px] text-provost-text-primary tracking-[-0.44px]">
                 {fullName}
               </h2>
               <div className="mt-2 flex items-center gap-2">

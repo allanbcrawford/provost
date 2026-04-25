@@ -8,7 +8,7 @@ import { requireFamilyMember, requireUserRecord } from "./lib/authz";
 // Verify the caller is in the thread's participant set. Admin bypass does
 // NOT apply (per ACL policy: message resource type has BYPASS_BY_TYPE = false).
 async function assertThreadParticipant(
-  ctx: QueryCtx | MutationCtx,
+  _ctx: QueryCtx | MutationCtx,
   thread: Doc<"message_threads">,
   userId: Id<"users">,
 ): Promise<void> {
@@ -280,6 +280,70 @@ export const listDrafts = query({
       body: d.body,
       updated_at: d.updated_at,
     }));
+  },
+});
+
+// Returns the set of users in the caller's family that are valid DM
+// recipients. We split family_users into "members" (role = admin/member) and
+// "professionals" (role = advisor/trustee) so the recipient picker can render
+// role badges. The caller is excluded.
+//
+// Professionals in v1 are family-scoped via the family_users.role union; the
+// `professionals` table is a separate directory of external contacts and does
+// NOT have user rows, so it is intentionally not included here (sendMessage
+// requires Id<"users"> recipients with a family_users membership).
+export const listMessageableContacts = query({
+  args: { familyId: v.id("families") },
+  handler: async (ctx, { familyId }) => {
+    const { user } = await requireFamilyMember(ctx, familyId);
+    const memberships = await ctx.db
+      .query("family_users")
+      .withIndex("by_family", (q) => q.eq("family_id", familyId))
+      .collect();
+
+    const users: Array<{
+      _id: Id<"users">;
+      name: string;
+      email: string;
+      role: "admin" | "member" | "advisor" | "trustee";
+      employment_role: string | null;
+    }> = [];
+    const professionals: Array<{
+      _id: Id<"users">;
+      name: string;
+      email: string;
+      role: "advisor" | "trustee";
+      employment_role: string | null;
+    }> = [];
+
+    for (const m of memberships) {
+      if (m.user_id === user._id) continue;
+      const u = await ctx.db.get(m.user_id);
+      if (!u || u.deleted_at) continue;
+      const name = [u.first_name, u.last_name].filter(Boolean).join(" ").trim() || u.email;
+      const employment_role = m.employment_role ?? null;
+      if (m.role === "admin" || m.role === "member") {
+        users.push({
+          _id: u._id,
+          name,
+          email: u.email,
+          role: m.role,
+          employment_role,
+        });
+      } else {
+        professionals.push({
+          _id: u._id,
+          name,
+          email: u.email,
+          role: m.role,
+          employment_role,
+        });
+      }
+    }
+
+    users.sort((a, b) => a.name.localeCompare(b.name));
+    professionals.sort((a, b) => a.name.localeCompare(b.name));
+    return { users, professionals };
   },
 });
 
