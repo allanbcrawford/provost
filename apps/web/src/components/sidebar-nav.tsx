@@ -1,12 +1,13 @@
 "use client";
 
 import { Icon } from "@provost/ui";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation, usePreloadedQuery, useQuery } from "convex/react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useAuthedFamily } from "@/context/family-context";
+import { usePreloadedThreads } from "@/context/preloaded-data-context";
 import { useSidebar } from "@/context/sidebar-context";
 import { useChatPanel } from "@/features/chat/chat-panel-context";
 import { useUserRole } from "@/hooks/use-user-role";
@@ -138,16 +139,45 @@ export function SidebarNav() {
 // a thread opens it in the right-side chat rail. The trailing + creates a new
 // thread and opens it in the rail. Threads get titled lazily on first send
 // (see chat-rail.tsx / app/(app)/chat/page.tsx).
+type ThreadRow = { _id: Id<"threads">; title: string | null; _creationTime: number };
+
 function ThreadsSection() {
-  const [expanded, setExpanded] = useState(false);
   const family = useAuthedFamily();
   const familyId = family?._id as Id<"families"> | undefined;
+  const preloaded = usePreloadedThreads();
+  if (!familyId && !preloaded) return null;
+  if (preloaded) return <PreloadedThreadsSection preloaded={preloaded} familyId={familyId} />;
+  return <LiveThreadsSection familyId={familyId} />;
+}
+
+function PreloadedThreadsSection({
+  preloaded,
+  familyId,
+}: {
+  preloaded: NonNullable<ReturnType<typeof usePreloadedThreads>>;
+  familyId: Id<"families"> | undefined;
+}) {
+  const threads = usePreloadedQuery(preloaded) as ThreadRow[];
+  return <ThreadsSectionInner threads={threads} familyId={familyId} />;
+}
+
+function LiveThreadsSection({ familyId }: { familyId: Id<"families"> | undefined }) {
+  const threads = useQuery(api.threads.list, familyId ? { familyId } : "skip") as
+    | ThreadRow[]
+    | undefined;
+  return <ThreadsSectionInner threads={threads} familyId={familyId} />;
+}
+
+function ThreadsSectionInner({
+  threads,
+  familyId,
+}: {
+  threads: ThreadRow[] | undefined;
+  familyId: Id<"families"> | undefined;
+}) {
+  const [expanded, setExpanded] = useState(false);
   const { isMobile, close } = useSidebar();
   const { openThreadId, setOpenThreadId, setIsOpen: setChatPanelOpen } = useChatPanel();
-
-  const threads = useQuery(api.threads.list, familyId ? { familyId } : "skip") as
-    | Array<{ _id: Id<"threads">; title: string | null; _creationTime: number }>
-    | undefined;
   const createThread = useMutation(api.threads.create);
 
   if (!familyId) return null;

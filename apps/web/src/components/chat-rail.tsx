@@ -5,9 +5,10 @@
 // mode lives at /chat — when that route is active, this rail is hidden by the
 // chat-panel-context.
 
-import { useMutation, useQuery } from "convex/react";
+import { useMutation, usePreloadedQuery, useQuery } from "convex/react";
 import { useEffect } from "react";
 import { useAuthedFamily } from "@/context/family-context";
+import { usePreloadedThreads } from "@/context/preloaded-data-context";
 import { threadFromSchema } from "@/entities/threads/thread";
 import { ChatPanel } from "@/features/chat/chat-panel";
 import { useChatPanel } from "@/features/chat/chat-panel-context";
@@ -16,14 +17,46 @@ import { useThread } from "@/hooks/use-thread";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 
+type ThreadRow = { _id: Id<"threads">; title: string | null; _creationTime: number };
+
 export function ChatRail() {
-  const { isOpen, isFullScreen, openThreadId, setOpenThreadId, pageContext } = useChatPanel();
+  const preloaded = usePreloadedThreads();
   const family = useAuthedFamily();
   const familyId = family?._id as Id<"families"> | undefined;
 
+  // Two paths into ChatRailInner: SSR-preloaded threads (refresh case — data
+  // already in the HTML) vs live useQuery (first sign-in / post-bootstrap).
+  // We can't conditionally call usePreloadedQuery, so split into siblings.
+  if (preloaded) return <PreloadedChatRail preloaded={preloaded} familyId={familyId} />;
+  return <LiveChatRail familyId={familyId} />;
+}
+
+function PreloadedChatRail({
+  preloaded,
+  familyId,
+}: {
+  preloaded: NonNullable<ReturnType<typeof usePreloadedThreads>>;
+  familyId: Id<"families"> | undefined;
+}) {
+  const threads = usePreloadedQuery(preloaded) as ThreadRow[];
+  return <ChatRailInner threads={threads} familyId={familyId} />;
+}
+
+function LiveChatRail({ familyId }: { familyId: Id<"families"> | undefined }) {
   const threads = useQuery(api.threads.list, familyId ? { familyId } : "skip") as
-    | Array<{ _id: Id<"threads">; title: string | null; _creationTime: number }>
+    | ThreadRow[]
     | undefined;
+  return <ChatRailInner threads={threads} familyId={familyId} />;
+}
+
+function ChatRailInner({
+  threads,
+  familyId,
+}: {
+  threads: ThreadRow[] | undefined;
+  familyId: Id<"families"> | undefined;
+}) {
+  const { isOpen, isFullScreen, openThreadId, setOpenThreadId, pageContext } = useChatPanel();
   const createThread = useMutation(api.threads.create);
   const renameThread = useMutation(api.threads.rename);
 
