@@ -285,6 +285,228 @@ export const listFamiliesForSiteAdmin = query({
   },
 });
 
+// Demo helper (internal): removes a user's membership in a named family.
+// Idempotent — bails if no membership exists.
+export const removeUserFromFamilyByEmail = internalMutation({
+  args: {
+    email: v.string(),
+    familyName: v.string(),
+  },
+  handler: async (ctx, { email, familyName }) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+    if (!user) {
+      throw new ConvexError({ code: "USER_NOT_FOUND", email });
+    }
+    const family = await ctx.db
+      .query("families")
+      .filter((q) => q.eq(q.field("name"), familyName))
+      .first();
+    if (!family) {
+      throw new ConvexError({ code: "FAMILY_NOT_FOUND", familyName });
+    }
+    const membership = await ctx.db
+      .query("family_users")
+      .withIndex("by_family_and_user", (q) => q.eq("family_id", family._id).eq("user_id", user._id))
+      .unique();
+    if (!membership) {
+      return { action: "noop" as const };
+    }
+    await ctx.db.delete(membership._id);
+    return { action: "deleted" as const, membershipId: membership._id };
+  },
+});
+
+// Demo helper (internal): rewrite the email on a seeded user so it matches
+// the email the tester will sign up with in Clerk.
+//
+//   npx convex run users:setSeededMemberEmail \
+//     '{"firstName":"Linda","lastName":"Williams","email":"linda.williams@provostdemo.com"}'
+export const setSeededMemberEmail = internalMutation({
+  args: {
+    firstName: v.string(),
+    lastName: v.string(),
+    email: v.string(),
+  },
+  handler: async (ctx, { firstName, lastName, email }) => {
+    const candidates = await ctx.db
+      .query("users")
+      .filter((q) =>
+        q.and(q.eq(q.field("first_name"), firstName), q.eq(q.field("last_name"), lastName)),
+      )
+      .collect();
+    const seeded = candidates.find((u) => u.clerk_user_id.startsWith("seed-"));
+    if (!seeded) {
+      throw new ConvexError({ code: "SEEDED_MEMBER_NOT_FOUND", firstName, lastName });
+    }
+    await ctx.db.patch(seeded._id, { email });
+    return { userId: seeded._id, email };
+  },
+});
+
+// Demo helper (internal): adds an existing Clerk-authed user (looked up by
+// email) to a family with the given role. Idempotent — bails if the user
+// already has a membership in that family.
+//
+//   npx convex run users:addUserToFamilyByEmail \
+//     '{"email":"someone@example.com","familyName":"Williams Family (demo)","role":"admin"}'
+export const addUserToFamilyByEmail = internalMutation({
+  args: {
+    email: v.string(),
+    familyName: v.string(),
+    role: v.union(
+      v.literal("admin"),
+      v.literal("member"),
+      v.literal("advisor"),
+      v.literal("trustee"),
+    ),
+  },
+  handler: async (ctx, { email, familyName, role }) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+    if (!user) {
+      throw new ConvexError({
+        code: "USER_NOT_FOUND",
+        email,
+        hint: "Sign in once with this email so a users row is provisioned.",
+      });
+    }
+    const family = await ctx.db
+      .query("families")
+      .filter((q) => q.eq(q.field("name"), familyName))
+      .first();
+    if (!family) {
+      throw new ConvexError({ code: "FAMILY_NOT_FOUND", familyName });
+    }
+    const existing = await ctx.db
+      .query("family_users")
+      .withIndex("by_family_and_user", (q) => q.eq("family_id", family._id).eq("user_id", user._id))
+      .unique();
+    if (existing) {
+      if (existing.role !== role) {
+        await ctx.db.patch(existing._id, { role });
+        return { membershipId: existing._id, action: "role_updated" as const };
+      }
+      return { membershipId: existing._id, action: "noop" as const };
+    }
+    const membershipId = await ctx.db.insert("family_users", {
+      family_id: family._id,
+      user_id: user._id,
+      role,
+    });
+    return { membershipId, action: "inserted" as const };
+  },
+});
+
+// Demo helper (internal, no Clerk session required): link an existing Clerk
+// account — identified by email — to a seeded family member, WITHOUT
+// upgrading to admin. Use this to populate a non-admin tester for member-side
+// browser audits.
+//
+//   npx convex run users:linkSeededMemberByEmail \
+//     '{"email":"linda.williams@provostdemo.com","firstName":"Linda","lastName":"Williams"}'
+//
+// Prereq: the Clerk user must already exist in `users` (i.e. they've signed in
+// at least once so `getOrProvisionFromClerk` minted a row). The function looks
+// up that row by email, finds the seeded family member by first+last name,
+// transplants the Clerk ownership onto the seeded row, deletes the duplicate,
+// and ensures family_users.role is "member".
+export const linkSeededMemberByEmail = internalMutation({
+  args: {
+    email: v.string(),
+    firstName: v.string(),
+    lastName: v.string(),
+  },
+  handler: async (ctx, { email, firstName, lastName }) => {
+    // Find the Clerk-bound user by email. There may be multiple rows with this
+    // email (a seeded stub + a freshly Clerk-provisioned row that shares the
+    // email after a previous setSeededMemberEmail run); we want the
+    // non-seed row specifically.
+    const emailMatches = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .collect();
+    const clerkUser = emailMatches.find((u) => !u.clerk_user_id.startsWith("seed-"));
+    if (!clerkUser) {
+      throw new ConvexError({
+        code: "CLERK_USER_NOT_FOUND",
+        email,
+        hint: "Sign in once with this email so getOrProvisionFromClerk creates the row, then re-run.",
+      });
+    }
+
+    // Find the seeded family member by name.
+    const candidates = await ctx.db
+      .query("users")
+      .filter((q) =>
+        q.and(q.eq(q.field("first_name"), firstName), q.eq(q.field("last_name"), lastName)),
+      )
+      .collect();
+    const seeded = candidates.find((u) => u.clerk_user_id.startsWith("seed-"));
+    if (!seeded) {
+      throw new ConvexError({
+        code: "SEEDED_MEMBER_NOT_FOUND",
+        firstName,
+        lastName,
+      });
+    }
+    if (seeded._id === clerkUser._id) {
+      // Defensive — shouldn't happen because we filtered to seed- rows.
+      throw new ConvexError({ code: "ALREADY_LINKED" });
+    }
+
+    // Move any family_users rows from the Clerk-auto-provisioned user to the
+    // seeded one, then delete the duplicate.
+    const strayMemberships = await ctx.db
+      .query("family_users")
+      .withIndex("by_user", (q) => q.eq("user_id", clerkUser._id))
+      .collect();
+    for (const m of strayMemberships) {
+      await ctx.db.delete(m._id);
+    }
+    const clerkSubject = clerkUser.clerk_user_id;
+    await ctx.db.delete(clerkUser._id);
+
+    // Transplant Clerk ownership onto the seeded row. Keep role as "member".
+    await ctx.db.patch(seeded._id, {
+      clerk_user_id: clerkSubject,
+      email,
+      role: "member",
+      onboarding_status: "claimed",
+    });
+
+    // Ensure they have a family_users row as a regular member.
+    const membership = await ctx.db
+      .query("family_users")
+      .withIndex("by_user", (q) => q.eq("user_id", seeded._id))
+      .first();
+    if (membership && membership.role === "admin") {
+      await ctx.db.patch(membership._id, { role: "member" });
+    }
+
+    await writeAudit(ctx, {
+      familyId: membership?.family_id,
+      actorUserId: seeded._id,
+      actorKind: "system",
+      category: "auth",
+      action: "seed_member_linked_as_member",
+      resourceType: "user",
+      resourceId: String(seeded._id),
+      metadata: { firstName, lastName, email, clerkSubject },
+    });
+
+    return {
+      userId: seeded._id,
+      familyId: membership?.family_id ?? null,
+      role: "member",
+    };
+  },
+});
+
 // Demo helper: link the current signed-in Clerk identity to a seeded family member.
 // Finds the seeded user by first+last name (clerk_user_id starts with "seed-"),
 // swaps ownership to the current Clerk subject, deletes the auto-provisioned duplicate,

@@ -75,6 +75,10 @@ async function generateSuggestions(
 // Public action: returns prompts for (route, selection). Reads cache via the
 // internal query; if cache is cold or stale, generates fresh prompts and
 // writes them. Idempotent within the TTL window.
+//
+// Fail-soft: if OpenAI is rate-limited or otherwise erroring, we return an
+// empty list (so the chip row stays hidden) rather than throwing. This is a
+// non-critical UX feature — never let it break the chat input.
 export const ensure = action({
   args: {
     familyId: v.id("families"),
@@ -92,11 +96,21 @@ export const ensure = action({
       return cached.prompts;
     }
 
-    const prompts = await generateSuggestions(ctx, {
-      familyId: args.familyId,
-      route: args.route,
-      selection,
-    });
+    let prompts: string[] = [];
+    try {
+      prompts = await generateSuggestions(ctx, {
+        familyId: args.familyId,
+        route: args.route,
+        selection,
+      });
+    } catch (err) {
+      console.warn(
+        "[promptSuggestions.ensure] generation failed, returning empty list:",
+        err instanceof Error ? err.message : err,
+      );
+      return [];
+    }
+
     await ctx.runMutation(internal.promptSuggestionsRead.upsert, {
       familyId: args.familyId,
       cacheKey,

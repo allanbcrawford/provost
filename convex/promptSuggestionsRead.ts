@@ -4,15 +4,27 @@
 
 import { v } from "convex/values";
 import { internalMutation, query } from "./_generated/server";
-import { requireFamilyMember } from "./lib/authz";
+import { maybeUserRecord } from "./lib/authz";
 
 // Public-facing query. Returns the cached entry (or null). The action layer
 // is what actually generates prompts; the UI reads via this query and may
 // trigger the action separately.
+//
+// Returns null when the caller is signed-out or unprovisioned — chat input
+// stays mounted briefly during sign-out, and we don't want a runtime error
+// to flash up. Cached suggestions aren't sensitive (they're page-context
+// boilerplate, not family data), so a soft auth gate is appropriate.
 export const read = query({
   args: { familyId: v.id("families"), cacheKey: v.string() },
   handler: async (ctx, { familyId, cacheKey }) => {
-    await requireFamilyMember(ctx, familyId);
+    const user = await maybeUserRecord(ctx);
+    if (!user) return null;
+    // Still verify family membership for the cache lookup, but soft-fail.
+    const membership = await ctx.db
+      .query("family_users")
+      .withIndex("by_family_and_user", (q) => q.eq("family_id", familyId).eq("user_id", user._id))
+      .unique();
+    if (!membership) return null;
     const row = await ctx.db
       .query("prompt_suggestions_cache")
       .withIndex("by_family_and_key", (q) => q.eq("family_id", familyId).eq("cache_key", cacheKey))

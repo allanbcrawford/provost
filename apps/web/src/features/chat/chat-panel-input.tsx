@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { Icon } from "@provost/ui";
 import { useAction, useMutation, useQuery } from "convex/react";
 import {
@@ -57,20 +58,23 @@ export function ChatPanelInput({
   // Page-contextual prompt suggestions. We read from the cache reactively and
   // fire the action to populate it on first mount per (family, route). The
   // chips show only when the textarea is empty AND we're in floating mode
-  // (contextRoute provided).
+  // (contextRoute provided). Gated on isSignedIn so sign-out doesn't fire a
+  // query while Clerk identity is already cleared but the chat-rail hasn't
+  // unmounted yet.
+  const { isSignedIn } = useAuth();
   const family = useSelectedFamily();
   const familyId = family?._id as Id<"families"> | undefined;
   const cacheKey = contextRoute ? `${contextRoute}::` : null;
   const cached = useQuery(
     api.promptSuggestionsRead.read,
-    familyId && cacheKey ? { familyId, cacheKey } : "skip",
+    isSignedIn && familyId && cacheKey ? { familyId, cacheKey } : "skip",
   );
   const ensureSuggestions = useAction(api.agent.promptSuggestions.ensure);
   useEffect(() => {
-    if (!familyId || !contextRoute) return;
+    if (!isSignedIn || !familyId || !contextRoute) return;
     if (cached !== null) return; // already loaded (or still loading)
     void ensureSuggestions({ familyId, route: contextRoute }).catch(() => {});
-  }, [familyId, contextRoute, cached, ensureSuggestions]);
+  }, [isSignedIn, familyId, contextRoute, cached, ensureSuggestions]);
   const suggestions = cached?.prompts ?? null;
 
   useEffect(() => {

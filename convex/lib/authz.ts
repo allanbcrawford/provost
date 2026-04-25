@@ -20,6 +20,18 @@ export async function requireUserRecord(ctx: QueryCtx | MutationCtx) {
   return user;
 }
 
+// Soft variant — returns null if the user is signed out or has no provisioned
+// row yet. Use this in queries that fire on first render after sign-in,
+// before getOrProvisionFromClerk has had a chance to mint the user row.
+export async function maybeUserRecord(ctx: QueryCtx | MutationCtx) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) return null;
+  return await ctx.db
+    .query("users")
+    .withIndex("by_clerk_id", (q) => q.eq("clerk_user_id", identity.subject))
+    .unique();
+}
+
 export async function requireFamilyMember(
   ctx: QueryCtx | MutationCtx,
   familyId: Id<"families">,
