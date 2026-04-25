@@ -372,6 +372,23 @@ export const getWithContext = query({
       .withIndex("by_lesson", (q) => q.eq("lesson_id", lessonId))
       .unique();
 
+    // Pull a couple of related lessons for the "You might also enjoy" rail —
+    // siblings in the same track, then fall back to other lessons in the
+    // same program, ordered by sort_order.
+    const recommendations: Array<{ _id: typeof lesson._id; title: string }> = [];
+    if (lesson.track_id) {
+      const trackSiblings = await ctx.db
+        .query("lessons")
+        .withIndex("by_track", (q) => q.eq("track_id", lesson.track_id))
+        .collect();
+      for (const l of trackSiblings) {
+        if (l._id === lesson._id) continue;
+        if (l.deleted_at) continue;
+        recommendations.push({ _id: l._id, title: l.title });
+        if (recommendations.length >= 3) break;
+      }
+    }
+
     return {
       lesson: {
         _id: lesson._id,
@@ -379,6 +396,8 @@ export const getWithContext = query({
         description: lesson.description ?? "",
         category: lesson.category,
         content: lesson.content,
+        format: (lesson.format ?? "slides") as "article" | "slides",
+        article_markdown: lesson.article_markdown ?? null,
       },
       track: track && !track.deleted_at ? { _id: track._id, title: track.title } : null,
       program:
@@ -399,7 +418,62 @@ export const getWithContext = query({
         : null,
       bookmarked: bookmark !== null,
       hasQuiz: quiz !== null,
+      recommendations,
     };
+  },
+});
+
+// Admin/advisor-only: replace a lesson's article markdown. Sets format
+// to "article" so the reader switches modes. Use this from the curation
+// flow once the article migration runs (`learningBackfill:migrateArticles`).
+export const updateArticle = mutation({
+  args: {
+    lessonId: v.id("lessons"),
+    articleMarkdown: v.string(),
+  },
+  handler: async (ctx, { lessonId, articleMarkdown }) => {
+    const lesson = await ctx.db.get(lessonId);
+    if (!lesson || lesson.deleted_at) throw new ConvexError({ code: "NOT_FOUND" });
+    const { user } = await requireFamilyMember(ctx, lesson.family_id, ["admin", "advisor"]);
+    await ctx.db.patch(lessonId, {
+      article_markdown: articleMarkdown,
+      format: "article",
+    });
+    await writeAudit(ctx, {
+      familyId: lesson.family_id,
+      actorUserId: user._id,
+      actorKind: "user",
+      category: "mutation",
+      action: "lessons.update_article",
+      resourceType: "lessons",
+      resourceId: lessonId,
+      metadata: { length: articleMarkdown.length },
+    });
+    return null;
+  },
+});
+
+// Lightweight feedback capture (thumbs / comments). Family-scoped. Multiple
+// rows per (user, lesson) are fine — feedback is append-only history.
+export const submitFeedback = mutation({
+  args: {
+    lessonId: v.id("lessons"),
+    kind: v.union(v.literal("thumbs_up"), v.literal("thumbs_down"), v.literal("comment")),
+    body: v.optional(v.string()),
+  },
+  handler: async (ctx, { lessonId, kind, body }) => {
+    const lesson = await ctx.db.get(lessonId);
+    if (!lesson || lesson.deleted_at) throw new ConvexError({ code: "NOT_FOUND" });
+    const { user } = await requireFamilyMember(ctx, lesson.family_id);
+    await ctx.db.insert("lesson_feedback", {
+      user_id: user._id,
+      lesson_id: lessonId,
+      family_id: lesson.family_id,
+      kind,
+      body: body && body.trim().length > 0 ? body.trim() : undefined,
+      created_at: Date.now(),
+    });
+    return null;
   },
 });
 

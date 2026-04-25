@@ -365,3 +365,85 @@ export const inspect = internalMutation({
     return out;
   },
 });
+
+// One-shot migration that converts every slides-format lesson into a
+// Markdown article. Lossy by design — interactive prompts and follow-up
+// question suggestions inside slides are dropped; only slide titles and
+// body text survive. Idempotent: skips lessons that already have a
+// non-empty article_markdown.
+//
+//   npx convex run learningBackfill:migrateArticles
+//
+// After this runs, the reader switches to the Markdown article view; the
+// legacy slideshow renderer remains available as a fallback for lessons
+// that didn't migrate.
+export const migrateArticles = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const lessons = await ctx.db.query("lessons").collect();
+    let converted = 0;
+    let skipped = 0;
+    for (const l of lessons) {
+      if (l.deleted_at) continue;
+      if (l.article_markdown && l.article_markdown.trim().length > 0) {
+        skipped++;
+        continue;
+      }
+      const md = slidesToMarkdown(l.title, l.description, l.content);
+      await ctx.db.patch(l._id, {
+        article_markdown: md,
+        format: "article",
+      });
+      converted++;
+    }
+    return { converted, skipped, total: lessons.length };
+  },
+});
+
+// Render a slides-shaped lesson body to Markdown. Walks the same shape the
+// legacy LessonSlideshow component reads. Drops interactive content (quiz
+// prompts, multi-select questions, follow_up_questions) — those don't have a
+// clean article equivalent and the new reader has its own quiz launcher.
+function slidesToMarkdown(
+  title: string,
+  description: string | undefined,
+  content: unknown,
+): string {
+  const sections: string[] = [];
+  const intro =
+    typeof (content as { introText?: unknown })?.introText === "string"
+      ? (content as { introText: string }).introText.trim()
+      : (description?.trim() ?? "");
+  sections.push(`# ${title}`);
+  if (intro.length > 0) {
+    sections.push(intro);
+  }
+
+  const slides = (content as { slides?: Array<unknown> })?.slides;
+  if (Array.isArray(slides)) {
+    for (const raw of slides) {
+      if (!raw || typeof raw !== "object") continue;
+      const slide = raw as { title?: unknown; text?: unknown; type?: unknown };
+      // Skip slides that aren't text-shaped (e.g. interactive question types).
+      if (slide.type && slide.type !== "text") continue;
+      const slideTitle = typeof slide.title === "string" ? slide.title.trim() : "";
+      const slideText = typeof slide.text === "string" ? slide.text.trim() : "";
+      if (!slideTitle && !slideText) continue;
+      if (slideTitle) sections.push(`## ${slideTitle}`);
+      if (slideText) sections.push(slideText);
+    }
+  }
+
+  // Many seed lessons are fully interactive (the "Finding a College" type)
+  // and have no text slides. Surface a placeholder so the reader doesn't
+  // render an empty article — admins can replace via lessons.updateArticle.
+  if (sections.length <= 2) {
+    sections.push(
+      "> _This lesson is interactive in its original form. A Markdown version" +
+        " has not been authored yet — an advisor can edit this lesson via the" +
+        " curation flow to add the article body._",
+    );
+  }
+
+  return sections.join("\n\n");
+}

@@ -12,7 +12,14 @@ export const domainTables = {
     title: v.string(),
     description: v.optional(v.string()),
     category: v.string(),
+    // Legacy slideshow blob. New lessons should set article_markdown instead;
+    // the reader switches on `format`.
     content: v.any(),
+    // P0b reader-rewrite (#23). When format is "article", article_markdown
+    // is the canonical body and content is ignored. "slides" is the legacy
+    // path. Lessons missing format are treated as slides.
+    format: v.optional(v.union(v.literal("article"), v.literal("slides"))),
+    article_markdown: v.optional(v.string()),
     embedding: v.optional(v.array(v.float64())),
     deleted_at: v.optional(v.number()),
   })
