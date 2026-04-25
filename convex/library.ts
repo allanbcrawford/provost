@@ -62,6 +62,12 @@ function matchesQuery(source: Doc<"library_sources">, query: string): boolean {
   return false;
 }
 
+// Family-facing library list. Returns ONLY family-scoped sources for the
+// caller's family. Global library_sources (family_id = null) are
+// site-admin-only authoring scaffolding for lesson generation — family users
+// must NEVER see them. The `by_family` index lookup with an exact eq() on
+// familyId structurally excludes null-family rows; do not change to an
+// `.or(null)` without revisiting that policy.
 export const listSources = query({
   args: {
     familyId: v.id("families"),
@@ -89,19 +95,20 @@ export const listSources = query({
   },
 });
 
-// Family-scoped sources require family membership; global sources (no family_id)
-// are readable by any authed user — they are shared knowledge content. Site-admin
-// curation views below operate on global sources.
+// Family-facing single-source read. Family-scoped rows require family
+// membership; global rows (family_id = null) are site-admin-only — see
+// `getSourceAsAdmin` below for that surface. We refuse to return globals
+// here even to authed users.
 export const getSource = query({
   args: { sourceId: v.id("library_sources") },
   handler: async (ctx, { sourceId }) => {
     const source = await ctx.db.get(sourceId);
     if (!source) return null;
-    if (source.family_id) {
-      await requireFamilyMember(ctx, source.family_id);
-    } else {
-      await requireUserRecord(ctx);
+    if (!source.family_id) {
+      // Global source — only the site-admin curation surface can read this.
+      return null;
     }
+    await requireFamilyMember(ctx, source.family_id);
     return {
       _id: source._id,
       title: source.title,

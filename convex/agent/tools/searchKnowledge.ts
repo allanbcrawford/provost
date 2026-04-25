@@ -49,11 +49,13 @@ export const handle = internalAction({
         limit,
         filter: (q) => q.eq("family_id", familyId),
       }),
-      // library_sources.family_id is optional (global content); we skip the
-      // filter and rely on hydration to drop any cross-family rows.
+      // library_sources.family_id is optional, but we want family-scoped
+      // results only — globals are site-admin authoring content and must
+      // not surface to family-scoped agent searches.
       ctx.vectorSearch("library_sources", "by_embedding", {
         vector: embedding,
         limit,
+        filter: (q) => q.eq("family_id", familyId),
       }),
     ]);
 

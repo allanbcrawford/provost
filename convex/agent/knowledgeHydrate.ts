@@ -49,8 +49,11 @@ export const getLibrarySource = internalQuery({
   handler: async (ctx, { sourceId, familyId }) => {
     const s = await ctx.db.get(sourceId);
     if (!s) return null;
-    // Drop cross-family rows. Global-library rows (family_id undefined) pass through.
-    if (s.family_id && familyId && s.family_id !== familyId) return null;
+    // Globals (family_id undefined) are site-admin-only authoring scaffolding
+    // and must not surface to family-scoped agent searches. Drop them
+    // unconditionally here. Drop cross-family rows too.
+    if (!s.family_id) return null;
+    if (familyId && s.family_id !== familyId) return null;
     const snippet = (s.content ?? "").slice(0, 300);
     return { _id: s._id, title: s.title, snippet };
   },
