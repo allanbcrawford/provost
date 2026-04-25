@@ -3,7 +3,7 @@
 import { Icon } from "@provost/ui";
 import { useQuery } from "convex/react";
 import { Fragment } from "react";
-import { useSelectedFamily } from "@/context/family-context";
+import { useAuthedFamily } from "@/context/family-context";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 
@@ -16,7 +16,7 @@ type Row = {
 };
 
 export function InternalList() {
-  const family = useSelectedFamily();
+  const family = useAuthedFamily();
   const familyId = family?._id as Id<"families"> | undefined;
   const rows = useQuery(api.professionals.listInternal, familyId ? { familyId } : "skip") as
     | Row[]

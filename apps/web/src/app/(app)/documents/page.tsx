@@ -1,13 +1,13 @@
 "use client";
 
 import { Button } from "@provost/ui";
-import { useFamily } from "@/context/family-context";
+import { useAuthedFamily } from "@/context/family-context";
 import { DocumentsList } from "@/features/documents";
 import { withRoleGuard } from "@/HOCs/with-role-guard";
 import { APP_ROLES } from "@/lib/roles";
 
 function DocumentsPage() {
-  const { family } = useFamily();
+  const family = useAuthedFamily();
 
   if (!family) {
     return <div className="p-8 text-provost-text-secondary text-sm">Loading family…</div>;

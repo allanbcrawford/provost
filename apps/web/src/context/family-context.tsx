@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@clerk/nextjs";
+import { useConvexAuth } from "convex/react";
 import { createContext, type ReactNode, useContext, useMemo, useState } from "react";
 import type { Id } from "../../../../convex/_generated/dataModel";
 
@@ -26,16 +26,26 @@ export function FamilyProvider({
 }
 
 export function useSelectedFamily(): Family {
-  // Suppress the family during a *confirmed* signed-out state. During SSR
-  // and Clerk's hydration window isSignedIn is undefined; we keep the
-  // family available so server-seeded data (apps/web/src/app/(app)/layout.tsx)
-  // and the cookie hint can render content on first paint. Only flip to
-  // null once Clerk has actively reported signed-out — that's the window
-  // where family-scoped Convex queries would otherwise fire with stale
-  // identity and throw via requireFamilyMember.
-  const { isSignedIn } = useAuth();
+  // Returns the family for rendering shell chrome (header label, sidebar,
+  // SSR-seeded content). NOT safe for gating Convex queries — the family
+  // can be present while Convex auth is still attaching (initial hydration)
+  // or already cleared (sign-out). For query args use useFamilyQueryArgs.
+  return useContext(FamilyContext)?.family ?? null;
+}
+
+// Returns the family only when Convex has validated the auth token.
+// Use this for every useQuery callsite gated on family — when auth isn't
+// ready (initial hydration, sign-in flight, or after sign-out) it returns
+// null so the existing `family ? {familyId} : "skip"` pattern correctly
+// skips. Without this gate, queries fire unauthenticated during the
+// window where Clerk has attached identity but Convex hasn't validated
+// the token yet (or after sign-out before Convex re-evaluates), and
+// requireFamilyMember throws ConvexError({code:"UNAUTHENTICATED"}) —
+// which bubbles past every "skip"-pattern callsite to global-error.tsx.
+export function useAuthedFamily(): Family {
+  const { isAuthenticated } = useConvexAuth();
   const family = useContext(FamilyContext)?.family ?? null;
-  return isSignedIn === false ? null : family;
+  return isAuthenticated ? family : null;
 }
 
 export function useFamilyContext(): FamilyContextValue {

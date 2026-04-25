@@ -2,7 +2,7 @@
 
 import { useQuery } from "convex/react";
 import { useState } from "react";
-import { useSelectedFamily } from "@/context/family-context";
+import { useAuthedFamily } from "@/context/family-context";
 import { type SavedSimulation, SimulationsList } from "@/features/simulations/simulations-list";
 import type { CustomEdits, RevisionState } from "@/features/waterfall/types";
 import { WaterfallModal } from "@/features/waterfall/waterfall-modal";
@@ -17,7 +17,7 @@ type WaterfallSavedState = {
 };
 
 function SimulationsPage() {
-  const family = useSelectedFamily();
+  const family = useAuthedFamily();
   const saved = useQuery(
     api.simulations.listSaved,
     family ? { familyId: family._id as Id<"families"> } : "skip",

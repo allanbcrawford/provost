@@ -7,7 +7,7 @@
 
 import { useMutation, useQuery } from "convex/react";
 import { useEffect } from "react";
-import { useSelectedFamily } from "@/context/family-context";
+import { useAuthedFamily } from "@/context/family-context";
 import { threadFromSchema } from "@/entities/threads/thread";
 import { ChatPanel } from "@/features/chat/chat-panel";
 import { useChatPanel } from "@/features/chat/chat-panel-context";
@@ -19,7 +19,7 @@ import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
 
 function ChatPage() {
-  const family = useSelectedFamily();
+  const family = useAuthedFamily();
   const familyId = family?._id as Id<"families"> | undefined;
   const { openThreadId, setOpenThreadId, pageContext } = useChatPanel();
 

@@ -11,7 +11,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useSelectedFamily } from "@/context/family-context";
+import { useAuthedFamily } from "@/context/family-context";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 
@@ -62,7 +62,7 @@ export function ChatPanelInput({
   // query while Clerk identity is already cleared but the chat-rail hasn't
   // unmounted yet.
   const { isSignedIn } = useAuth();
-  const family = useSelectedFamily();
+  const family = useAuthedFamily();
   const familyId = family?._id as Id<"families"> | undefined;
   const cacheKey = contextRoute ? `${contextRoute}::` : null;
   const cached = useQuery(

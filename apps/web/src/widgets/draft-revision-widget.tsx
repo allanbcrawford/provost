@@ -5,7 +5,7 @@ import { useMutation } from "convex/react";
 import Link from "next/link";
 import { useState } from "react";
 import { AiDisclaimer } from "@/components/ai-disclaimer";
-import { useSelectedFamily } from "@/context/family-context";
+import { useAuthedFamily } from "@/context/family-context";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 
@@ -38,7 +38,7 @@ export function DraftRevisionWidget({
   targetProfessionalHint,
   citations,
 }: DraftRevisionWidgetProps) {
-  const family = useSelectedFamily();
+  const family = useAuthedFamily();
   const createTask = useMutation(api.tasks.create);
   const [sending, setSending] = useState(false);
   const [sentTaskId, setSentTaskId] = useState<Id<"tasks"> | null>(null);

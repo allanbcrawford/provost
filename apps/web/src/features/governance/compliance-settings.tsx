@@ -16,7 +16,7 @@ import { useMutation, useQuery } from "convex/react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useSelectedFamily } from "@/context/family-context";
+import { useAuthedFamily } from "@/context/family-context";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 
@@ -52,7 +52,7 @@ function toFormValues(prefs: Record<string, unknown> | undefined): FormValues {
 }
 
 export function ComplianceSettings({ familyId: familyIdProp }: { familyId?: Id<"families"> }) {
-  const contextFamily = useSelectedFamily();
+  const contextFamily = useAuthedFamily();
   const familyId = familyIdProp ?? contextFamily?._id ?? null;
   const preferences = useQuery(api.compliance.getPreferences, familyId ? { familyId } : "skip");
   const setPreference = useMutation(api.compliance.setPreference);

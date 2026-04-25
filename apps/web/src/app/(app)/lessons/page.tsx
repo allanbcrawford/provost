@@ -3,7 +3,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@provost/ui";
 import { useQuery } from "convex/react";
 import { useMemo } from "react";
-import { useSelectedFamily } from "@/context/family-context";
+import { useAuthedFamily } from "@/context/family-context";
 import { BookmarksGrid } from "@/features/lessons/bookmarks-grid";
 import type { LessonListItem } from "@/features/lessons/lesson-item";
 import { LessonsList } from "@/features/lessons/lessons-list";
@@ -19,7 +19,7 @@ import type { Id } from "../../../../../../convex/_generated/dataModel";
 type TabKey = "my" | "bookmarks" | "programs" | "progress";
 
 function LessonsPage() {
-  const family = useSelectedFamily();
+  const family = useAuthedFamily();
   // Programs and Progress tabs are scoped to roles that maintain or supervise
   // the curriculum — admins, advisors, trustees. Plain members see only the
   // first two tabs.

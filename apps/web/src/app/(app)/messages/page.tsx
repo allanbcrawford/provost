@@ -4,7 +4,7 @@ import { Button, Tabs, TabsContent, TabsList, TabsTrigger } from "@provost/ui";
 import { useQuery } from "convex/react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useSelectedFamily } from "@/context/family-context";
+import { useAuthedFamily } from "@/context/family-context";
 import { ComposeModal } from "@/features/messages/compose-modal";
 import { InboxList } from "@/features/messages/inbox-list";
 import { ThreadView } from "@/features/messages/thread-view";
@@ -14,7 +14,7 @@ import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
 
 function MessagesPage() {
-  const family = useSelectedFamily();
+  const family = useAuthedFamily();
   const me = useQuery(api.users.meQuery, {});
   const familyId = family?._id as Id<"families"> | undefined;
   const searchParams = useSearchParams();

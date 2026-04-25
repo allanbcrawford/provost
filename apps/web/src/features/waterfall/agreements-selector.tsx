@@ -12,7 +12,7 @@
 import { Icon } from "@provost/ui";
 import { useQuery } from "convex/react";
 import { useMemo } from "react";
-import { useSelectedFamily } from "@/context/family-context";
+import { useAuthedFamily } from "@/context/family-context";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 import { AGREEMENT_PRIORITY, type AgreementCategory, type SelectedAgreement } from "./types";
@@ -45,7 +45,7 @@ export function AgreementsSelector({
   selected: SelectedAgreement[];
   onChange: (next: SelectedAgreement[]) => void;
 }) {
-  const family = useSelectedFamily();
+  const family = useAuthedFamily();
   const familyId = family?._id as Id<"families"> | undefined;
   const docs = useQuery(api.documents.list, familyId ? { familyId } : "skip") as
     | Array<{ _id: Id<"documents">; name: string; category: string; type: string }>

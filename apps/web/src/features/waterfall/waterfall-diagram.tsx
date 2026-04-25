@@ -12,7 +12,7 @@
 // document to evaluate, the engine output is the source of truth.
 
 import { useQuery } from "convex/react";
-import { useSelectedFamily } from "@/context/family-context";
+import { useAuthedFamily } from "@/context/family-context";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 import type { CustomEdits, DeathOrder, EditableNodeId, RevisionState } from "./types";
@@ -60,7 +60,7 @@ function deathOrderForVariant(variant: Variant, edits: CustomEdits): DeathOrder 
 }
 
 export function WaterfallDiagram({ variant, revisions, customEdits, onEditNode }: Props) {
-  const family = useSelectedFamily();
+  const family = useAuthedFamily();
   const familyId = family?._id as Id<"families"> | undefined;
   const selected = customEdits.selectedAgreements ?? [];
   const selectedIds = selected.map((s) => s.documentId as Id<"documents">);

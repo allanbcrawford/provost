@@ -3,7 +3,7 @@
 import { Button, Tabs, TabsContent, TabsList, TabsTrigger } from "@provost/ui";
 import { useQuery } from "convex/react";
 import { useState } from "react";
-import { useSelectedFamily } from "@/context/family-context";
+import { useAuthedFamily } from "@/context/family-context";
 import { EventDetail } from "@/features/events/event-detail";
 import { EventFormModal } from "@/features/events/event-form-modal";
 import { EventsCalendar } from "@/features/events/events-calendar";
@@ -14,7 +14,7 @@ import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
 
 function EventsPage() {
-  const family = useSelectedFamily();
+  const family = useAuthedFamily();
   const familyId = family?._id as Id<"families"> | undefined;
   const myRole = family?.myRole;
   const events = useQuery(api.events.list, familyId ? { familyId } : "skip");

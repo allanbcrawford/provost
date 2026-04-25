@@ -5,7 +5,7 @@
 // real distribution math instead of the previous 90% placeholder.
 
 import { useQuery } from "convex/react";
-import { useSelectedFamily } from "@/context/family-context";
+import { useAuthedFamily } from "@/context/family-context";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 import type { CustomEdits, RevisionState, SelectedAgreement } from "./types";
@@ -31,7 +31,7 @@ export function UnallocatedSummary({
   customEdits?: CustomEdits;
   revisions?: RevisionState;
 }) {
-  const family = useSelectedFamily();
+  const family = useAuthedFamily();
   const familyId = family?._id as Id<"families"> | undefined;
   const summary = useQuery(api.assets.summary, familyId ? { familyId } : "skip") as
     | { total: number; currency: string; count: number; byType: { type: string; value: number }[] }

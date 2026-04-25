@@ -1,11 +1,11 @@
 "use client";
 
 import { useQuery } from "convex/react";
-import { useSelectedFamily } from "@/context/family-context";
+import { useAuthedFamily } from "@/context/family-context";
 import { api } from "../../../../convex/_generated/api";
 
 export function AiDisclaimer({ kind = "default" }: { kind?: "default" | "legal" | "financial" }) {
-  const family = useSelectedFamily();
+  const family = useAuthedFamily();
   const preferences = useQuery(
     api.compliance.getDisclaimerPreferences,
     family ? { familyId: family._id } : "skip",

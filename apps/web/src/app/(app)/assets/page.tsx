@@ -2,7 +2,7 @@
 
 import { useQuery } from "convex/react";
 import { useState } from "react";
-import { useSelectedFamily } from "@/context/family-context";
+import { useAuthedFamily } from "@/context/family-context";
 import { AssetsList } from "@/features/assets/assets-list";
 import { AssetsSummary } from "@/features/assets/assets-summary";
 import { TypeFilter } from "@/features/assets/type-filter";
@@ -12,7 +12,7 @@ import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
 
 function AssetsPage() {
-  const family = useSelectedFamily();
+  const family = useAuthedFamily();
   const [type, setType] = useState<string | null>(null);
 
   const familyId = family?._id as Id<"families"> | undefined;

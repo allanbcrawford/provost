@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from "convex/react";
 import { Fragment, useEffect, useMemo } from "react";
-import { useSelectedFamily } from "@/context/family-context";
+import { useAuthedFamily } from "@/context/family-context";
 import { api } from "../../../../../convex/_generated/api";
 import type { Doc, Id } from "../../../../../convex/_generated/dataModel";
 
@@ -24,7 +24,7 @@ const SEVERITY_CHIP: Record<Signal["severity"], string> = {
 };
 
 export function SignalsInbox() {
-  const family = useSelectedFamily();
+  const family = useAuthedFamily();
   const familyId = family?._id as Id<"families"> | undefined;
 
   const signals = useQuery(api.signals.listOpen, familyId ? { familyId } : "skip") as

@@ -4,7 +4,7 @@ import { Icon, type LayerOption, LayerToggle, Tabs, TabsList, TabsTrigger } from
 import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
 import { useQuery } from "convex/react";
 import { useCallback, useMemo, useState } from "react";
-import { useSelectedFamily } from "@/context/family-context";
+import { useAuthedFamily } from "@/context/family-context";
 import { useWidgetSlot } from "@/context/widget-portal-context";
 import { MembersList } from "@/features/family/members-list";
 import { adaptGraphPayload } from "@/features/graph/adapt-convex";
@@ -45,7 +45,7 @@ type WaterfallWidgetProps = {
 };
 
 function FamilyGraphScene() {
-  const family = useSelectedFamily();
+  const family = useAuthedFamily();
   const graphData = useQuery(
     api.family.getGraph,
     family ? { familyId: family._id as Id<"families"> } : "skip",
@@ -220,7 +220,7 @@ function FamilyGraphScene() {
 }
 
 function FamilyPageContent() {
-  const family = useSelectedFamily();
+  const family = useAuthedFamily();
   const [activeTab, setActiveTab] = useState<FamilyTab>("our-family");
   const [view, setView] = useState<FamilyView>("list");
 

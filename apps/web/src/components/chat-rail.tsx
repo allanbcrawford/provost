@@ -7,7 +7,7 @@
 
 import { useMutation, useQuery } from "convex/react";
 import { useEffect } from "react";
-import { useSelectedFamily } from "@/context/family-context";
+import { useAuthedFamily } from "@/context/family-context";
 import { threadFromSchema } from "@/entities/threads/thread";
 import { ChatPanel } from "@/features/chat/chat-panel";
 import { useChatPanel } from "@/features/chat/chat-panel-context";
@@ -18,7 +18,7 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 
 export function ChatRail() {
   const { isOpen, isFullScreen, openThreadId, setOpenThreadId, pageContext } = useChatPanel();
-  const family = useSelectedFamily();
+  const family = useAuthedFamily();
   const familyId = family?._id as Id<"families"> | undefined;
 
   const threads = useQuery(api.threads.list, familyId ? { familyId } : "skip") as

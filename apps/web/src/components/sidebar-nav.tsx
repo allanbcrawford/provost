@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { useSelectedFamily } from "@/context/family-context";
+import { useAuthedFamily } from "@/context/family-context";
 import { useSidebar } from "@/context/sidebar-context";
 import { useChatPanel } from "@/features/chat/chat-panel-context";
 import { useUserRole } from "@/hooks/use-user-role";
@@ -140,7 +140,7 @@ export function SidebarNav() {
 // (see chat-rail.tsx / app/(app)/chat/page.tsx).
 function ThreadsSection() {
   const [expanded, setExpanded] = useState(false);
-  const family = useSelectedFamily();
+  const family = useAuthedFamily();
   const familyId = family?._id as Id<"families"> | undefined;
   const { isMobile, close } = useSidebar();
   const { openThreadId, setOpenThreadId, setIsOpen: setChatPanelOpen } = useChatPanel();
