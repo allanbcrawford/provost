@@ -15,11 +15,18 @@ const FamilyContext = createContext<FamilyContextValue | null>(null);
 export function FamilyProvider({
   children,
   initialFamily = null,
+  initialFamilyId,
 }: {
   children: ReactNode;
   initialFamily?: Family;
+  initialFamilyId?: string;
 }) {
-  const [family, setFamily] = useState<Family>(initialFamily);
+  const seed: Family =
+    initialFamily ??
+    (initialFamilyId
+      ? ({ _id: initialFamilyId as Id<"families">, name: "", myRole: "" } as Family)
+      : null);
+  const [family, setFamily] = useState<Family>(seed);
   const value = useMemo<FamilyContextValue>(() => ({ family, setFamily }), [family]);
   return <FamilyContext.Provider value={value}>{children}</FamilyContext.Provider>;
 }

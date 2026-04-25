@@ -1,4 +1,5 @@
 import { RedirectToSignIn, Show } from "@clerk/nextjs";
+import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 import { ChatRail } from "@/components/chat-rail";
 import { FamilyBootstrap } from "@/components/family-bootstrap";
@@ -9,12 +10,14 @@ import { FamilyProvider } from "@/context/family-context";
 import { SidebarProvider } from "@/context/sidebar-context";
 import { WidgetPortalProvider } from "@/context/widget-portal-context";
 import { ChatPanelProvider } from "@/features/chat/chat-panel-context";
+import { FAMILY_COOKIE_NAME } from "@/lib/family-cookie";
 
-export default function AppLayout({ children }: { children: ReactNode }) {
+export default async function AppLayout({ children }: { children: ReactNode }) {
+  const initialFamilyId = (await cookies()).get(FAMILY_COOKIE_NAME)?.value;
   return (
     <Show when="signed-in" fallback={<RedirectToSignIn />}>
-      <FamilyProvider>
-        <FamilyBootstrap>
+      <FamilyProvider initialFamilyId={initialFamilyId}>
+        <FamilyBootstrap initialFamilyId={initialFamilyId}>
           <WidgetPortalProvider>
             <ChatPanelProvider>
               <SidebarProvider>

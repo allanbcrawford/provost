@@ -5,9 +5,16 @@ import { useMutation, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useFamilyContext } from "@/context/family-context";
+import { writeFamilyCookie } from "@/lib/family-cookie";
 import { api } from "../../../../convex/_generated/api";
 
-export function FamilyBootstrap({ children }: { children: React.ReactNode }) {
+export function FamilyBootstrap({
+  children,
+  initialFamilyId,
+}: {
+  children: React.ReactNode;
+  initialFamilyId?: string;
+}) {
   const { isSignedIn, userId } = useAuth();
   const router = useRouter();
   const provision = useMutation(api.users.getOrProvisionFromClerk);
@@ -27,9 +34,15 @@ export function FamilyBootstrap({ children }: { children: React.ReactNode }) {
   }, [isSignedIn, userId, provision]);
 
   useEffect(() => {
-    if (families && families.length > 0 && !family) {
-      const saved = typeof window !== "undefined" ? localStorage.getItem("selectedFamilyId") : null;
-      const chosen = saved ? families.find((f: { _id: string }) => f._id === saved) : undefined;
+    if (!families || families.length === 0) return;
+    // Stub seeded from cookie has empty name — replace with the real record,
+    // or fall back to families[0] if the cookie id is stale.
+    const isStub = !!family && family.name === "";
+    if (!family || isStub) {
+      const savedId =
+        family?._id ??
+        (typeof window !== "undefined" ? localStorage.getItem("selectedFamilyId") : null);
+      const chosen = savedId ? families.find((f: { _id: string }) => f._id === savedId) : undefined;
       setFamily((chosen ?? families[0]) as never);
     }
   }, [families, family, setFamily]);
@@ -37,6 +50,7 @@ export function FamilyBootstrap({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (family?._id && typeof window !== "undefined") {
       localStorage.setItem("selectedFamilyId", family._id);
+      writeFamilyCookie(family._id);
     }
   }, [family]);
 
@@ -47,7 +61,7 @@ export function FamilyBootstrap({ children }: { children: React.ReactNode }) {
     }
   }, [isSignedIn, families, isSiteAdmin, router]);
 
-  if (isSignedIn && families === undefined) {
+  if (isSignedIn && families === undefined && !initialFamilyId) {
     return <div className="p-8 text-provost-text-secondary text-sm">Loading your families…</div>;
   }
   if (isSignedIn && families && families.length === 0) {
