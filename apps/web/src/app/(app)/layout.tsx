@@ -16,7 +16,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const initialFamilyId = (await cookies()).get(FAMILY_COOKIE_NAME)?.value;
   return (
     <Show when="signed-in" fallback={<RedirectToSignIn />}>
-      <FamilyProvider initialFamilyId={initialFamilyId}>
+      <FamilyProvider>
         <FamilyBootstrap initialFamilyId={initialFamilyId}>
           <WidgetPortalProvider>
             <ChatPanelProvider>
