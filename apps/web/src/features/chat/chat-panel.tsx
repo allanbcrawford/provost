@@ -3,6 +3,7 @@
 import { useUser } from "@clerk/nextjs";
 import type { RunEvent } from "@provost/schemas/runs";
 import { ChatScroll } from "@provost/ui";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { ThreadState } from "@/entities/threads/thread";
 import { getTurnsFromThread } from "@/entities/turn/helpers/get-turns-from-thread";
@@ -71,6 +72,7 @@ export function ChatPanel({
   onDismissRateLimit,
 }: ChatPanelProps) {
   const { user } = useUser();
+  const pathname = usePathname();
   const turns = getTurnsFromThread(thread, events);
   const hasTurns = turns.length > 0;
 
@@ -91,6 +93,7 @@ export function ChatPanel({
             placeholder={
               placeholder ?? (isStreaming ? "Waiting for response..." : "Chat with Provost...")
             }
+            contextRoute={pathname ?? undefined}
           />
         </div>
       }

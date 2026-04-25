@@ -128,12 +128,23 @@ export const SummarizeLessonArgsSchema = z.object({
 });
 export type SummarizeLessonArgs = z.infer<typeof SummarizeLessonArgsSchema>;
 
+/**
+ * @deprecated Use `RecommendLessonArgsSchema`. Lesson delivery is rule-based
+ * post-P0b — the LLM should not assign with due dates. Kept for the legacy
+ * `assign_lesson` tool during the migration window.
+ */
 export const AssignLessonArgsSchema = z.object({
   lessonId: z.string(),
   memberIds: z.array(z.string()),
   dueDate: z.number().optional(),
 });
 export type AssignLessonArgs = z.infer<typeof AssignLessonArgsSchema>;
+
+export const RecommendLessonArgsSchema = z.object({
+  lessonId: z.string(),
+  reason: z.string().optional(),
+});
+export type RecommendLessonArgs = z.infer<typeof RecommendLessonArgsSchema>;
 
 export const SearchKnowledgeArgsSchema = z.object({
   query: z.string().min(1),

@@ -13,7 +13,9 @@ export const APP_ROLES: Record<string, Role[]> = {
   HOME: ALL_ROLES,
   MESSAGES: ALL_ROLES,
   EVENTS: ALL_ROLES,
-  ASSETS: ALL_ROLES,
+  // Assets are admin/advisor/trustee only — same gate as Signals/Simulations.
+  // PRD: "Permission-gated (family admin + advisor only)."
+  ASSETS: [ROLES.ADMIN, ROLES.ADVISOR, ROLES.TRUSTEE],
   SIGNALS: [ROLES.ADMIN, ROLES.ADVISOR, ROLES.TRUSTEE],
   SIMULATIONS: [ROLES.ADMIN, ROLES.ADVISOR, ROLES.TRUSTEE],
   DOCUMENTS: ALL_ROLES,

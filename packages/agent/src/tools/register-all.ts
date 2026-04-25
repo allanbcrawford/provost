@@ -9,6 +9,7 @@ import {
   InviteMemberArgsSchema,
   ListObservationsArgsSchema,
   NavigateArgsSchema,
+  RecommendLessonArgsSchema,
   RememberArgsSchema,
   RenderFamilyGraphArgsSchema,
   RenderWaterfallSimulationArgsSchema,
@@ -117,9 +118,23 @@ export function registerAllTools(): void {
   });
 
   registerTool({
+    name: "recommend_lesson",
+    description:
+      "Surface a lesson the user might find valuable, with a short reason. Does not change delivery — Provost manages active lessons via a rule-based 2-at-a-time system. Use this instead of assign_lesson when nudging the user toward content.",
+    argsSchema: RecommendLessonArgsSchema,
+    approvalRequired: false,
+    surfaces: ["lessons", "any"],
+    handlerRef: "agent/tools/recommendLesson:handle",
+  });
+
+  // Deprecated. Lesson delivery is rule-based; the LLM should not assign with
+  // due dates. Kept registered for the migration window so any in-flight tool
+  // calls still resolve, but the description steers the model to
+  // `recommend_lesson`.
+  registerTool({
     name: "assign_lesson",
     description:
-      "Assign a lesson to one or more family members with an optional due date. Sends a notification and requires approval.",
+      "DEPRECATED — use `recommend_lesson` instead. Assignment with due dates is no longer the delivery model.",
     argsSchema: AssignLessonArgsSchema,
     approvalRequired: true,
     surfaces: ["lessons", "any"],

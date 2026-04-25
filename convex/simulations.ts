@@ -1,16 +1,18 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { filterByAccess, grantParty, requireResourceWrite } from "./lib/acl";
 import { writeAudit } from "./lib/audit";
 import { requireFamilyMember } from "./lib/authz";
 
 export const listSaved = query({
   args: { familyId: v.id("families") },
   handler: async (ctx, { familyId }) => {
-    await requireFamilyMember(ctx, familyId);
-    return await ctx.db
+    const { membership } = await requireFamilyMember(ctx, familyId);
+    const rows = await ctx.db
       .query("waterfalls")
       .withIndex("by_family", (q) => q.eq("family_id", familyId))
       .collect();
+    return await filterByAccess(ctx, "waterfall", rows, membership);
   },
 });
 
@@ -19,6 +21,14 @@ export const save = mutation({
   handler: async (ctx, { familyId, name, state }) => {
     const { user } = await requireFamilyMember(ctx, familyId);
     const simulationId = await ctx.db.insert("waterfalls", { family_id: familyId, name, state });
+    await grantParty(ctx, {
+      familyId,
+      resourceType: "waterfall",
+      resourceId: simulationId,
+      userId: user._id,
+      role: "owner",
+      grantedBy: user._id,
+    });
     await writeAudit(ctx, {
       familyId,
       actorUserId: user._id,
@@ -38,7 +48,7 @@ export const remove = mutation({
   handler: async (ctx, { simulationId }) => {
     const row = await ctx.db.get(simulationId);
     if (!row) return;
-    const { user } = await requireFamilyMember(ctx, row.family_id, ["admin"]);
+    const { user } = await requireResourceWrite(ctx, "waterfall", row, simulationId);
     await ctx.db.delete(simulationId);
     await writeAudit(ctx, {
       familyId: row.family_id,

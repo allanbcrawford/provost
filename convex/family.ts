@@ -1,6 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { mutation, type QueryCtx, query } from "./_generated/server";
+import { filterByAccess, requireResourceAccess } from "./lib/acl";
 import { writeAudit } from "./lib/audit";
 import { requireFamilyMember } from "./lib/authz";
 import { checkAndIncrement } from "./lib/rateLimit";
@@ -17,17 +18,21 @@ async function loadFamilyMembers(ctx: QueryCtx, familyId: Id<"families">) {
 export const getGraph = query({
   args: { familyId: v.id("families") },
   handler: async (ctx, { familyId }) => {
-    await requireFamilyMember(ctx, familyId);
+    const { membership } = await requireFamilyMember(ctx, familyId);
     const [users, documents, professionals] = await Promise.all([
       loadFamilyMembers(ctx, familyId),
       ctx.db
         .query("documents")
         .withIndex("by_family", (q) => q.eq("family_id", familyId))
         .collect(),
-      ctx.db.query("professionals").collect(),
+      ctx.db
+        .query("professionals")
+        .withIndex("by_family", (q) => q.eq("family_id", familyId))
+        .collect(),
     ]);
     const liveDocs = documents.filter((d) => !d.deleted_at);
-    return { members: users, documents: liveDocs, professionals };
+    const scopedDocs = await filterByAccess(ctx, "document", liveDocs, membership);
+    return { members: users, documents: scopedDocs, professionals };
   },
 });
 
@@ -47,9 +52,9 @@ export const getMember = query({
 export const getDocument = query({
   args: { familyId: v.id("families"), documentId: v.id("documents") },
   handler: async (ctx, { familyId, documentId }) => {
-    await requireFamilyMember(ctx, familyId);
     const doc = await ctx.db.get(documentId);
     if (!doc || doc.family_id !== familyId) throw new ConvexError({ code: "NOT_FOUND" });
+    await requireResourceAccess(ctx, "document", doc, documentId);
     return doc;
   },
 });

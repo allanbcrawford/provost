@@ -41,6 +41,11 @@ export async function requireFamilyMember(
   return { user, membership };
 }
 
+// Site-admin is an internal-only flag for seeding, curation, and migrations.
+// Provost has NO user-facing "Provost Admin" role in production — families are
+// the top-level tenant boundary and there is no super-user across families.
+// `is_site_admin` should only be set on internal Provost team accounts via
+// `npx convex run users:promoteSiteAdmin`. Do not expose this in product UI.
 export async function requireSiteAdmin(ctx: QueryCtx | MutationCtx) {
   const user = await requireUserRecord(ctx);
   if (user.is_site_admin !== true) {

@@ -44,15 +44,21 @@ type LoadedDocument = {
 
 export const handle = internalAction({
   args: { args: v.any(), toolCallId: v.string(), runId: v.id("thread_runs") },
-  handler: async (ctx, { args }): Promise<Record<string, unknown>> => {
+  handler: async (ctx, { args, runId }): Promise<Record<string, unknown>> => {
     const documentId = args?.documentId as Id<"documents"> | undefined;
     const pageArg = typeof args?.page === "number" ? (args.page as number) : undefined;
     if (!documentId) {
       return { success: false, error: "documentId required", widget: null };
     }
 
+    const { run } = await ctx.runQuery(internal.agent.runInternal.loadRunContext, { runId });
+    const familyId = run.family_id;
+    const userId = run.user_id;
+
     const loaded = (await ctx.runQuery(internal.documents.loadDocumentWithPages, {
       documentId,
+      familyId,
+      userId,
     })) as LoadedDocument | null;
     if (!loaded) {
       return { success: false, error: "document not found", widget: null };

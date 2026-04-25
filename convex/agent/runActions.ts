@@ -144,6 +144,11 @@ async function dispatchTool(
         internal.agent.tools.summarizeLesson.handle,
         { args: toolArgs, toolCallId: toolCallId ?? "", runId },
       );
+    case "recommend_lesson":
+      return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
+        internal.agent.tools.recommendLesson.handle,
+        { args: toolArgs, toolCallId: toolCallId ?? "", runId },
+      );
     case "assign_lesson":
       return (ctx as { runAction: (ref: unknown, args: unknown) => Promise<unknown> }).runAction(
         internal.agent.tools.assignLesson.handle,

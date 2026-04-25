@@ -30,7 +30,16 @@ export type LessonDetail = {
   category: string;
   content: unknown;
   assignment: {
-    status: "assigned" | "in_progress" | "completed" | "overdue";
+    // Legacy values + new P0b values during migration window.
+    status:
+      | "assigned"
+      | "in_progress"
+      | "completed"
+      | "overdue"
+      | "locked"
+      | "active"
+      | "complete"
+      | "advanced";
     slide_index: number;
   } | null;
 };

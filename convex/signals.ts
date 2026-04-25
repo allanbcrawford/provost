@@ -1,6 +1,12 @@
 import { v } from "convex/values";
 import type { Doc } from "./_generated/dataModel";
 import { internalQuery, mutation, query } from "./_generated/server";
+import {
+  assertResourceAccessForUser,
+  filterByAccess,
+  grantParty,
+  requireResourceAccess,
+} from "./lib/acl";
 import { writeAudit } from "./lib/audit";
 import { requireFamilyMember } from "./lib/authz";
 import { computeSignals } from "./lib/signalRules";
@@ -8,42 +14,59 @@ import { computeSignals } from "./lib/signalRules";
 export const listOpen = query({
   args: { familyId: v.id("families") },
   handler: async (ctx, { familyId }) => {
-    await requireFamilyMember(ctx, familyId);
+    const { membership } = await requireFamilyMember(ctx, familyId);
     const rows = await ctx.db
       .query("signals")
       .withIndex("by_family", (q) => q.eq("family_id", familyId))
       .collect();
-    return rows.filter((s) => s.status === "open" || s.status === "drafting");
+    const open = rows.filter((s) => s.status === "open" || s.status === "drafting");
+    return await filterByAccess(ctx, "signal", open, membership);
   },
 });
 
 export const listAll = query({
   args: { familyId: v.id("families") },
   handler: async (ctx, { familyId }) => {
-    await requireFamilyMember(ctx, familyId);
-    return await ctx.db
+    const { membership } = await requireFamilyMember(ctx, familyId);
+    const rows = await ctx.db
       .query("signals")
       .withIndex("by_family", (q) => q.eq("family_id", familyId))
       .collect();
+    return await filterByAccess(ctx, "signal", rows, membership);
   },
 });
 
 export const listObservations = query({
   args: { familyId: v.id("families") },
   handler: async (ctx, { familyId }) => {
-    await requireFamilyMember(ctx, familyId);
+    const { membership } = await requireFamilyMember(ctx, familyId);
     const rows = await ctx.db
       .query("observations")
       .withIndex("by_family", (q) => q.eq("family_id", familyId))
       .collect();
-    return rows.filter((o) => !o.deleted_at);
+    const active = rows.filter((o) => !o.deleted_at);
+    return await filterByAccess(ctx, "observation", active, membership);
   },
 });
 
 export const getSignal = internalQuery({
-  args: { signalId: v.id("signals") },
-  handler: async (ctx, { signalId }) => {
-    return await ctx.db.get(signalId);
+  args: {
+    signalId: v.id("signals"),
+    familyId: v.id("families"),
+    userId: v.optional(v.id("users")),
+  },
+  handler: async (ctx, { signalId, familyId, userId }) => {
+    const signal = await ctx.db.get(signalId);
+    if (!signal) return null;
+    if (signal.family_id !== familyId) return null;
+    if (userId) {
+      try {
+        await assertResourceAccessForUser(ctx, "signal", signal, signalId, userId);
+      } catch {
+        return null;
+      }
+    }
+    return signal;
   },
 });
 
@@ -61,7 +84,7 @@ export const updateStatus = mutation({
   handler: async (ctx, { signalId, status }) => {
     const signal = await ctx.db.get(signalId);
     if (!signal) return null;
-    const { user } = await requireFamilyMember(ctx, signal.family_id);
+    const { user } = await requireResourceAccess(ctx, "signal", signal, signalId);
     await ctx.db.patch(signalId, { status });
     await writeAudit(ctx, {
       familyId: signal.family_id,
@@ -96,7 +119,10 @@ export const generateFromRules = mutation({
         .withIndex("by_family", (q) => q.eq("family_id", familyId))
         .collect()
         .then((rows) => rows.filter((d) => !d.deleted_at)),
-      ctx.db.query("professionals").collect(),
+      ctx.db
+        .query("professionals")
+        .withIndex("by_family", (q) => q.eq("family_id", familyId))
+        .collect(),
       ctx.db
         .query("signals")
         .withIndex("by_family", (q) => q.eq("family_id", familyId))
@@ -130,7 +156,7 @@ export const generateFromRules = mutation({
         });
         updated++;
       } else {
-        await ctx.db.insert("signals", {
+        const newSignalId = await ctx.db.insert("signals", {
           family_id: familyId,
           severity: rs.severity,
           category: rs.category,
@@ -144,6 +170,24 @@ export const generateFromRules = mutation({
           source: "rule",
           rule_key: rs.rule_key,
         });
+        await grantParty(ctx, {
+          familyId,
+          resourceType: "signal",
+          resourceId: newSignalId,
+          userId: user._id,
+          role: "owner",
+          grantedBy: user._id,
+        });
+        for (const memberId of rs.member_ids) {
+          await grantParty(ctx, {
+            familyId,
+            resourceType: "signal",
+            resourceId: newSignalId,
+            userId: memberId,
+            role: "party",
+            grantedBy: user._id,
+          });
+        }
         inserted++;
       }
     }

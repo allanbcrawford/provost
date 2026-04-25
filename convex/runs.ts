@@ -24,7 +24,10 @@ export const getEvents = query({
   handler: async (ctx, { threadRunId }) => {
     const run = await ctx.db.get(threadRunId);
     if (!run) return [];
-    await requireFamilyMember(ctx, run.family_id);
+    const thread = await ctx.db.get(run.thread_id);
+    if (!thread) return [];
+    const { user } = await requireFamilyMember(ctx, run.family_id);
+    await assertThreadAccess(ctx, thread, user._id);
     const rows = await ctx.db
       .query("run_events")
       .withIndex("by_thread_run_and_sequence", (q) => q.eq("thread_run_id", threadRunId))

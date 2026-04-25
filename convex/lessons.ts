@@ -1,7 +1,21 @@
+// Lesson APIs span two eras during P0b's migration window:
+//
+//   • New (recommended): `myActiveLessons`, `getWithContext`, `recordSlideIndex`
+//     — speak the Programs → Tracks → Lessons hierarchy with locked/active/
+//     complete/advanced status. Quiz pass advances delivery.
+//   • Legacy: `list`, `get`, `listMyAssignments`, `assign`, `start`, `complete`,
+//     `setSlideIndex` — kept for the existing UI to keep working until the
+//     frontend is rewritten. New writes via these legacy paths still work but
+//     do not participate in the 2-active rule.
+//
+// Per-record ACL is intentionally NOT wired here. Lesson visibility is
+// governed by `lesson_users` rows (assignment-style scoping), which already
+// give us per-user filtering. Family membership is the outer gate.
 import { ConvexError, v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 
 import { mutation, query } from "./_generated/server";
+import { advanceLearner } from "./lessonDelivery";
 import { writeAudit } from "./lib/audit";
 import { requireFamilyMember, requireUserRecord } from "./lib/authz";
 
@@ -257,5 +271,272 @@ export const setSlideIndex = mutation({
       metadata: { slideIndex },
     });
     return assignmentId;
+  },
+});
+
+// =============================================================================
+// New (P0b) — Programs/Tracks-aware APIs.
+// =============================================================================
+
+type LessonContextRow = {
+  lesson: Doc<"lessons">;
+  track: Doc<"tracks"> | null;
+  program: Doc<"programs"> | null;
+  status: string | null;
+  slide_index: number;
+};
+
+// "My active lessons" — what the user should see on the Education home tab.
+// Returns up to 2 active lessons, ordered by track sort_order then lesson
+// sort_order. Eagerly calls advanceLearner so a freshly onboarded user sees
+// their starter lessons without an explicit step.
+//
+// Note: this is a query, so it cannot mutate. Initial activation happens via
+// `ensureInitialActive` mutation called from the Education page on first load
+// or onboarding completion. This query reads whatever delivery state exists.
+export const myActiveLessons = query({
+  args: { familyId: v.id("families") },
+  handler: async (ctx, { familyId }) => {
+    const { user } = await requireFamilyMember(ctx, familyId);
+    const rows = await ctx.db
+      .query("lesson_users")
+      .withIndex("by_user", (q) => q.eq("user_id", user._id))
+      .collect();
+    const active = rows.filter(
+      (r) => r.status === "active" || r.status === "in_progress" || r.status === "assigned",
+    );
+
+    const out: LessonContextRow[] = [];
+    for (const r of active) {
+      const lesson = await ctx.db.get(r.lesson_id);
+      if (!lesson || lesson.deleted_at) continue;
+      if (lesson.family_id !== familyId) continue;
+      const track = lesson.track_id ? await ctx.db.get(lesson.track_id) : null;
+      const program = track?.program_id ? await ctx.db.get(track.program_id) : null;
+      out.push({
+        lesson,
+        track: track && !track.deleted_at ? track : null,
+        program: program && !program.deleted_at ? program : null,
+        status: r.status,
+        slide_index: r.slide_index,
+      });
+    }
+    out.sort((a, b) => {
+      const ta = a.track?.sort_order ?? Number.MAX_SAFE_INTEGER;
+      const tb = b.track?.sort_order ?? Number.MAX_SAFE_INTEGER;
+      if (ta !== tb) return ta - tb;
+      return (a.lesson.sort_order ?? 0) - (b.lesson.sort_order ?? 0);
+    });
+    return out.map((row) => ({
+      _id: row.lesson._id,
+      title: row.lesson.title,
+      description: row.lesson.description ?? "",
+      category: row.lesson.category,
+      track: row.track ? { _id: row.track._id, title: row.track.title } : null,
+      program: row.program
+        ? {
+            _id: row.program._id,
+            title: row.program.title,
+            stewardship_phase: row.program.stewardship_phase,
+          }
+        : null,
+      status: row.status,
+      slide_index: row.slide_index,
+    }));
+  },
+});
+
+// Lesson detail with track + program context for the reader page.
+export const getWithContext = query({
+  args: { lessonId: v.id("lessons") },
+  handler: async (ctx, { lessonId }) => {
+    const lesson = await ctx.db.get(lessonId);
+    if (!lesson || lesson.deleted_at) throw new ConvexError({ code: "NOT_FOUND" });
+    const { user } = await requireFamilyMember(ctx, lesson.family_id);
+
+    const track = lesson.track_id ? await ctx.db.get(lesson.track_id) : null;
+    const program = track?.program_id ? await ctx.db.get(track.program_id) : null;
+
+    const assignment = await ctx.db
+      .query("lesson_users")
+      .withIndex("by_user_and_lesson", (q) => q.eq("user_id", user._id).eq("lesson_id", lessonId))
+      .unique();
+
+    const bookmark = await ctx.db
+      .query("lesson_bookmarks")
+      .withIndex("by_user_and_lesson", (q) => q.eq("user_id", user._id).eq("lesson_id", lessonId))
+      .unique();
+
+    const quiz = await ctx.db
+      .query("quizzes")
+      .withIndex("by_lesson", (q) => q.eq("lesson_id", lessonId))
+      .unique();
+
+    return {
+      lesson: {
+        _id: lesson._id,
+        title: lesson.title,
+        description: lesson.description ?? "",
+        category: lesson.category,
+        content: lesson.content,
+      },
+      track: track && !track.deleted_at ? { _id: track._id, title: track.title } : null,
+      program:
+        program && !program.deleted_at
+          ? {
+              _id: program._id,
+              title: program.title,
+              stewardship_phase: program.stewardship_phase,
+            }
+          : null,
+      assignment: assignment
+        ? {
+            _id: assignment._id,
+            status: assignment.status,
+            slide_index: assignment.slide_index,
+            quiz_passed_at: assignment.quiz_passed_at ?? null,
+          }
+        : null,
+      bookmarked: bookmark !== null,
+      hasQuiz: quiz !== null,
+    };
+  },
+});
+
+// Mutation called from the Education page or onboarding to populate the
+// initial 2 active lessons for the signed-in user. Idempotent.
+export const ensureInitialActive = mutation({
+  args: { familyId: v.id("families") },
+  handler: async (ctx, { familyId }) => {
+    const { user } = await requireFamilyMember(ctx, familyId);
+    const result = await advanceLearner(ctx, { userId: user._id, familyId });
+    return result;
+  },
+});
+
+// Persist reading progress (slide index / scroll position). Caller must be
+// the lesson's family member; behavior matches legacy setSlideIndex but
+// uses new vocabulary (no "in_progress" — active lessons stay active until
+// quiz pass).
+export const recordSlideIndex = mutation({
+  args: { lessonId: v.id("lessons"), slideIndex: v.number() },
+  handler: async (ctx, { lessonId, slideIndex }) => {
+    const lesson = await ctx.db.get(lessonId);
+    if (!lesson || lesson.deleted_at) throw new ConvexError({ code: "NOT_FOUND" });
+    const { user } = await requireFamilyMember(ctx, lesson.family_id);
+
+    const existing = await ctx.db
+      .query("lesson_users")
+      .withIndex("by_user_and_lesson", (q) => q.eq("user_id", user._id).eq("lesson_id", lessonId))
+      .unique();
+    if (existing) {
+      await ctx.db.patch(existing._id, { slide_index: slideIndex });
+      return existing._id;
+    }
+    return await ctx.db.insert("lesson_users", {
+      lesson_id: lessonId,
+      user_id: user._id,
+      family_id: lesson.family_id,
+      status: "active",
+      slide_index: slideIndex,
+    });
+  },
+});
+
+// Programs view (admin/advisor only): tree of phase → programs → tracks → lessons.
+export const programsTree = query({
+  args: { familyId: v.id("families") },
+  handler: async (ctx, { familyId }) => {
+    await requireFamilyMember(ctx, familyId, ["admin", "advisor"]);
+    const programs = await ctx.db
+      .query("programs")
+      .withIndex("by_family", (q) => q.eq("family_id", familyId))
+      .collect();
+    const livePrograms = programs.filter((p) => !p.deleted_at);
+
+    const tree = [];
+    for (const program of livePrograms) {
+      const tracks = await ctx.db
+        .query("tracks")
+        .withIndex("by_program", (q) => q.eq("program_id", program._id))
+        .collect();
+      const liveTracks = tracks.filter((t) => !t.deleted_at);
+      const trackEntries = [];
+      for (const track of liveTracks) {
+        const lessons = await ctx.db
+          .query("lessons")
+          .withIndex("by_track", (q) => q.eq("track_id", track._id))
+          .collect();
+        const liveLessons = lessons
+          .filter((l) => !l.deleted_at)
+          .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+        trackEntries.push({
+          _id: track._id,
+          title: track.title,
+          sort_order: track.sort_order,
+          lessons: liveLessons.map((l) => ({
+            _id: l._id,
+            title: l.title,
+            sort_order: l.sort_order ?? 0,
+          })),
+        });
+      }
+      trackEntries.sort((a, b) => a.sort_order - b.sort_order);
+      tree.push({
+        _id: program._id,
+        title: program.title,
+        stewardship_phase: program.stewardship_phase,
+        sort_order: program.sort_order,
+        tracks: trackEntries,
+      });
+    }
+    tree.sort((a, b) => a.sort_order - b.sort_order);
+    return tree;
+  },
+});
+
+// Progress view (admin/advisor only): per-member completion rollup.
+export const familyProgress = query({
+  args: { familyId: v.id("families") },
+  handler: async (ctx, { familyId }) => {
+    await requireFamilyMember(ctx, familyId, ["admin", "advisor"]);
+    const memberships = await ctx.db
+      .query("family_users")
+      .withIndex("by_family", (q) => q.eq("family_id", familyId))
+      .collect();
+    const familyLessons = await ctx.db
+      .query("lessons")
+      .withIndex("by_family", (q) => q.eq("family_id", familyId))
+      .collect();
+    const totalLessons = familyLessons.filter((l) => !l.deleted_at).length;
+
+    const out = [];
+    for (const m of memberships) {
+      const u = await ctx.db.get(m.user_id);
+      if (!u) continue;
+      const rows = await ctx.db
+        .query("lesson_users")
+        .withIndex("by_user", (q) => q.eq("user_id", m.user_id))
+        .collect();
+      const familyRows = rows.filter(
+        (r) => r.family_id === familyId || familyLessons.some((l) => l._id === r.lesson_id),
+      );
+      const complete = familyRows.filter(
+        (r) => r.status === "complete" || r.status === "completed" || r.status === "advanced",
+      ).length;
+      const active = familyRows.filter(
+        (r) => r.status === "active" || r.status === "in_progress" || r.status === "assigned",
+      ).length;
+      out.push({
+        user_id: m.user_id,
+        name: [u.first_name, u.last_name].filter(Boolean).join(" ").trim() || u.email,
+        role: m.role,
+        stewardship_phase: u.stewardship_phase ?? null,
+        completed: complete,
+        active,
+        total: totalLessons,
+      });
+    }
+    return out;
   },
 });

@@ -62,7 +62,7 @@ type LoadedDocument = {
 
 export const handle = internalAction({
   args: { args: v.any(), toolCallId: v.string(), runId: v.id("thread_runs") },
-  handler: async (ctx, { args }): Promise<Record<string, unknown>> => {
+  handler: async (ctx, { args, runId }): Promise<Record<string, unknown>> => {
     const signalId = args?.signalId as Id<"signals"> | undefined;
     const documentId = args?.documentId as Id<"documents"> | undefined;
     const instructions =
@@ -72,8 +72,14 @@ export const handle = internalAction({
       return { success: false, error: "signalId required", widget: null };
     }
 
+    const { run } = await ctx.runQuery(internal.agent.runInternal.loadRunContext, { runId });
+    const familyId = run.family_id;
+    const userId = run.user_id;
+
     const signal = (await ctx.runQuery(internal.signals.getSignal, {
       signalId,
+      familyId,
+      userId,
     })) as SignalDoc | null;
     if (!signal) {
       return { success: false, error: "signal not found", widget: null };
@@ -87,6 +93,8 @@ export const handle = internalAction({
     if (resolvedDocId) {
       const loaded = (await ctx.runQuery(internal.documents.loadDocumentWithPages, {
         documentId: resolvedDocId,
+        familyId,
+        userId,
       })) as LoadedDocument | null;
       if (loaded) {
         documentName = loaded.document.name;

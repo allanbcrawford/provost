@@ -1,5 +1,11 @@
 "use client";
 
+// FLOATING CHAT MODE — right-rail panel, opened/closed via the header's chat
+// toggle. PRD also calls for a separate FULL-SCREEN mode (triggered by a (+)
+// icon in the header) with its own thread history and a "Chatting…" header
+// label that disables the floating mode while active. The full-screen mode
+// is not implemented yet — see P3.2 follow-up. Today this rail uses a stub
+// thread; wiring real threads is a prerequisite for both modes.
 import { emptyThread } from "@/entities/threads/thread";
 import { ChatPanel } from "@/features/chat/chat-panel";
 import { useChatPanel } from "@/features/chat/chat-panel-context";

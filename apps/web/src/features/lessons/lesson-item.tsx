@@ -9,24 +9,45 @@ export type LessonListItem = {
   title: string;
   description: string;
   category: string;
-  status: "assigned" | "in_progress" | "completed" | "overdue" | null;
+  // Status vocabulary spans legacy + P0b values during the migration window.
+  // Display layer collapses them into "Recommended" / "Up next" / "Completed".
+  status:
+    | "assigned"
+    | "in_progress"
+    | "completed"
+    | "overdue"
+    | "locked"
+    | "active"
+    | "complete"
+    | "advanced"
+    | null;
   slide_index: number;
-  due_date: number | null;
+  // due_date kept on the type only because legacy `lessons.list` still
+  // returns it; we no longer surface it in the UI per PRD ("avoid 'due date'
+  // language; frame as personalized recommendations").
+  due_date?: number | null;
 };
 
-const STATUS_LABEL: Record<NonNullable<LessonListItem["status"]>, string> = {
-  assigned: "Assigned",
-  in_progress: "In progress",
-  completed: "Completed",
-  overdue: "Overdue",
-};
-
-const STATUS_CLASS: Record<NonNullable<LessonListItem["status"]>, string> = {
-  assigned: "bg-blue-50 text-blue-700",
-  in_progress: "bg-amber-50 text-amber-800",
-  completed: "bg-emerald-50 text-emerald-800",
-  overdue: "bg-red-50 text-red-700",
-};
+function statusDisplay(status: NonNullable<LessonListItem["status"]>): {
+  label: string;
+  className: string;
+} {
+  switch (status) {
+    case "active":
+    case "assigned":
+    case "in_progress":
+      return { label: "Up next", className: "bg-amber-50 text-amber-800" };
+    case "complete":
+    case "completed":
+    case "advanced":
+      return { label: "Completed", className: "bg-emerald-50 text-emerald-800" };
+    case "locked":
+      return { label: "Locked", className: "bg-provost-neutral-100 text-provost-neutral-600" };
+    case "overdue":
+      // Legacy value — display as "Up next" rather than "Overdue" per new copy.
+      return { label: "Up next", className: "bg-amber-50 text-amber-800" };
+  }
+}
 
 export function LessonItem({ lesson }: { lesson: LessonListItem }) {
   return (
@@ -46,22 +67,22 @@ export function LessonItem({ lesson }: { lesson: LessonListItem }) {
         </p>
         <div className="mt-3 flex items-center gap-2 text-[14px] tracking-[-0.42px] text-provost-neutral-600">
           <span className="font-light">{lesson.category}</span>
-          {lesson.due_date && (
-            <>
-              <span aria-hidden className="size-[3px] shrink-0 rounded-full bg-provost-neutral-600" />
-              <span className="font-light">
-                Due {new Date(lesson.due_date).toLocaleDateString()}
-              </span>
-            </>
-          )}
           {lesson.status && (
             <>
-              <span aria-hidden className="size-[3px] shrink-0 rounded-full bg-provost-neutral-600" />
               <span
-                className={`rounded-full px-2 py-0.5 text-[12px] font-medium ${STATUS_CLASS[lesson.status]}`}
-              >
-                {STATUS_LABEL[lesson.status]}
-              </span>
+                aria-hidden
+                className="size-[3px] shrink-0 rounded-full bg-provost-neutral-600"
+              />
+              {(() => {
+                const d = statusDisplay(lesson.status);
+                return (
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[12px] font-medium ${d.className}`}
+                  >
+                    {d.label}
+                  </span>
+                );
+              })()}
             </>
           )}
         </div>

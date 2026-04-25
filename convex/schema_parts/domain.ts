@@ -1,9 +1,14 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
+import { learningStatusValidator } from "./learning";
 
 export const domainTables = {
   lessons: defineTable({
     family_id: v.id("families"),
+    // Programs/Tracks hierarchy added by P0b. Optional during migration window;
+    // post-migration every lesson belongs to a track.
+    track_id: v.optional(v.id("tracks")),
+    sort_order: v.optional(v.number()),
     title: v.string(),
     description: v.optional(v.string()),
     category: v.string(),
@@ -12,6 +17,7 @@ export const domainTables = {
     deleted_at: v.optional(v.number()),
   })
     .index("by_family", ["family_id"])
+    .index("by_track", ["track_id"])
     .vectorIndex("by_embedding", {
       vectorField: "embedding",
       dimensions: 1536,
@@ -21,18 +27,18 @@ export const domainTables = {
   lesson_users: defineTable({
     lesson_id: v.id("lessons"),
     user_id: v.id("users"),
+    family_id: v.optional(v.id("families")),
     approved_by: v.optional(v.id("users")),
+    // due_date kept for backward compat during migration; new writes must omit
+    // (PRD explicitly forbids "due date" framing).
     due_date: v.optional(v.number()),
-    status: v.union(
-      v.literal("assigned"),
-      v.literal("in_progress"),
-      v.literal("completed"),
-      v.literal("overdue"),
-    ),
+    status: learningStatusValidator,
     slide_index: v.number(),
+    quiz_passed_at: v.optional(v.number()),
   })
     .index("by_user", ["user_id"])
-    .index("by_lesson", ["lesson_id"]),
+    .index("by_lesson", ["lesson_id"])
+    .index("by_user_and_lesson", ["user_id", "lesson_id"]),
 
   knowledge_graphs: defineTable({
     family_id: v.id("families"),
@@ -102,11 +108,17 @@ export const domainTables = {
   }).index("by_family", ["family_id"]),
 
   professionals: defineTable({
+    // family_id is optional during the migration window — once backfill has
+    // assigned every professional to a family, this becomes effectively
+    // required and queries reject rows that haven't been migrated.
+    family_id: v.optional(v.id("families")),
     name: v.string(),
     profession: v.string(),
     firm: v.string(),
     email: v.string(),
-  }).index("by_profession", ["profession"]),
+  })
+    .index("by_family", ["family_id"])
+    .index("by_profession", ["profession"]),
 
   assets: defineTable({
     family_id: v.id("families"),

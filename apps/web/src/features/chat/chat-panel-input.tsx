@@ -1,7 +1,7 @@
 "use client";
 
 import { Icon } from "@provost/ui";
-import { useMutation } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import {
   type ChangeEvent,
   type KeyboardEvent,
@@ -10,6 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useSelectedFamily } from "@/context/family-context";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 
@@ -24,6 +25,10 @@ export type ChatPanelInputProps = {
   disabled?: boolean;
   placeholder?: string;
   onPromptIdeas?: () => void;
+  // The route the chat panel is currently displayed on. Used to fetch
+  // page-contextual prompt suggestions; pass undefined to hide chips
+  // (e.g. in full-screen mode where PRD wants generic prompts).
+  contextRoute?: string;
 };
 
 function formatSize(bytes: number): string {
@@ -37,6 +42,7 @@ export function ChatPanelInput({
   disabled = false,
   placeholder = "Chat with Provost...",
   onPromptIdeas,
+  contextRoute,
 }: ChatPanelInputProps) {
   const [value, setValue] = useState("");
   const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
@@ -47,6 +53,25 @@ export function ChatPanelInput({
 
   const uploadUrlMut = useMutation(api.files.uploadUrl);
   const createFileMut = useMutation(api.files.createFile);
+
+  // Page-contextual prompt suggestions. We read from the cache reactively and
+  // fire the action to populate it on first mount per (family, route). The
+  // chips show only when the textarea is empty AND we're in floating mode
+  // (contextRoute provided).
+  const family = useSelectedFamily();
+  const familyId = family?._id as Id<"families"> | undefined;
+  const cacheKey = contextRoute ? `${contextRoute}::` : null;
+  const cached = useQuery(
+    api.promptSuggestionsRead.read,
+    familyId && cacheKey ? { familyId, cacheKey } : "skip",
+  );
+  const ensureSuggestions = useAction(api.agent.promptSuggestions.ensure);
+  useEffect(() => {
+    if (!familyId || !contextRoute) return;
+    if (cached !== null) return; // already loaded (or still loading)
+    void ensureSuggestions({ familyId, route: contextRoute }).catch(() => {});
+  }, [familyId, contextRoute, cached, ensureSuggestions]);
+  const suggestions = cached?.prompts ?? null;
 
   useEffect(() => {
     if (!disabled) textareaRef.current?.focus();
@@ -144,6 +169,24 @@ export function ChatPanelInput({
               {uploadError}
             </span>
           )}
+        </div>
+      )}
+
+      {value.trim().length === 0 && suggestions && suggestions.length > 0 && (
+        <div className="mb-2 flex flex-wrap gap-1.5">
+          {suggestions.slice(0, 4).map((s) => (
+            <button
+              type="button"
+              key={s}
+              onClick={() => {
+                setValue(s);
+                textareaRef.current?.focus();
+              }}
+              className="rounded-full border border-provost-border-subtle bg-provost-bg-secondary px-3 py-1 text-[12px] text-provost-text-secondary hover:bg-white hover:text-provost-text-primary"
+            >
+              {s}
+            </button>
+          ))}
         </div>
       )}
 

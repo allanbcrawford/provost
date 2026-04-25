@@ -163,6 +163,7 @@ export const run = internalMutation({
       email: string;
     }>) {
       await ctx.db.insert("professionals", {
+        family_id: familyId,
         name: p.name,
         profession: p.profession,
         firm: p.firm,

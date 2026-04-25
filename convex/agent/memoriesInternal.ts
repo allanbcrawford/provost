@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery } from "../_generated/server";
+import { grantParty } from "../lib/acl";
 
 export const insertMemory = internalMutation({
   args: {
@@ -14,6 +15,14 @@ export const insertMemory = internalMutation({
       text,
       source_run_id: runId,
       created_by_user_id: run.user_id,
+    });
+    await grantParty(ctx, {
+      familyId: run.family_id,
+      resourceType: "memory",
+      resourceId: memoryId,
+      userId: run.user_id,
+      role: "owner",
+      grantedBy: run.user_id,
     });
     return { memoryId };
   },

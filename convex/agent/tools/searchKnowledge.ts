@@ -31,6 +31,7 @@ export const handle = internalAction({
 
     const { run } = await ctx.runQuery(internal.agent.runInternal.loadRunContext, { runId });
     const familyId = run.family_id;
+    const userId = run.user_id;
 
     const embedding: number[] = await ctx.runAction(internal.agent.embed.embedText, {
       text: query,
@@ -61,6 +62,8 @@ export const handle = internalAction({
     for (const h of docHits) {
       const doc = await ctx.runQuery(internal.agent.knowledgeHydrate.getDocument, {
         documentId: h._id as Id<"documents">,
+        familyId,
+        userId,
       });
       if (!doc) continue;
       hydrated.push({
@@ -74,6 +77,8 @@ export const handle = internalAction({
     for (const h of lessonHits) {
       const lesson = await ctx.runQuery(internal.agent.knowledgeHydrate.getLesson, {
         lessonId: h._id as Id<"lessons">,
+        familyId,
+        userId,
       });
       if (!lesson) continue;
       hydrated.push({

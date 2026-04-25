@@ -1,5 +1,7 @@
 import { v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
+import { filterByAccess, grantParty, requireResourceWrite } from "./lib/acl";
 import { writeAudit } from "./lib/audit";
 import { requireFamilyMember, requireUserRecord } from "./lib/authz";
 import { checkAndIncrement } from "./lib/rateLimit";
@@ -40,6 +42,24 @@ export const create = mutation({
       status: "open",
       source_signal_id: args.sourceSignalId,
     });
+    await grantParty(ctx, {
+      familyId: args.familyId,
+      resourceType: "task",
+      resourceId: taskId,
+      userId: user._id,
+      role: "owner",
+      grantedBy: user._id,
+    });
+    if (args.assigneeType === "member" && args.assigneeId) {
+      await grantParty(ctx, {
+        familyId: args.familyId,
+        resourceType: "task",
+        resourceId: taskId,
+        userId: args.assigneeId as Id<"users">,
+        role: "party",
+        grantedBy: user._id,
+      });
+    }
     await writeAudit(ctx, {
       familyId: args.familyId,
       actorUserId: user._id,
@@ -63,17 +83,19 @@ export const list = query({
     status: v.optional(statusValidator),
   },
   handler: async (ctx, { familyId, status }) => {
-    await requireFamilyMember(ctx, familyId);
-    if (status) {
-      return await ctx.db
-        .query("tasks")
-        .withIndex("by_family_and_status", (q) => q.eq("family_id", familyId).eq("status", status))
-        .collect();
-    }
-    return await ctx.db
-      .query("tasks")
-      .withIndex("by_family", (q) => q.eq("family_id", familyId))
-      .collect();
+    const { membership } = await requireFamilyMember(ctx, familyId);
+    const rows = status
+      ? await ctx.db
+          .query("tasks")
+          .withIndex("by_family_and_status", (q) =>
+            q.eq("family_id", familyId).eq("status", status),
+          )
+          .collect()
+      : await ctx.db
+          .query("tasks")
+          .withIndex("by_family", (q) => q.eq("family_id", familyId))
+          .collect();
+    return await filterByAccess(ctx, "task", rows, membership);
   },
 });
 
@@ -85,7 +107,7 @@ export const updateStatus = mutation({
   handler: async (ctx, { taskId, status }) => {
     const task = await ctx.db.get(taskId);
     if (!task) return null;
-    const { user } = await requireFamilyMember(ctx, task.family_id);
+    const { user } = await requireResourceWrite(ctx, "task", task, taskId);
     await ctx.db.patch(taskId, { status });
     await writeAudit(ctx, {
       familyId: task.family_id,

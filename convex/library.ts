@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { query } from "./_generated/server";
-import { requireFamilyMember, requireSiteAdmin } from "./lib/authz";
+import { requireFamilyMember, requireSiteAdmin, requireUserRecord } from "./lib/authz";
 
 type TagEntry = { label: string; confidence?: number };
 
@@ -89,6 +89,9 @@ export const listSources = query({
   },
 });
 
+// Family-scoped sources require family membership; global sources (no family_id)
+// are readable by any authed user — they are shared knowledge content. Site-admin
+// curation views below operate on global sources.
 export const getSource = query({
   args: { sourceId: v.id("library_sources") },
   handler: async (ctx, { sourceId }) => {
@@ -96,6 +99,8 @@ export const getSource = query({
     if (!source) return null;
     if (source.family_id) {
       await requireFamilyMember(ctx, source.family_id);
+    } else {
+      await requireUserRecord(ctx);
     }
     return {
       _id: source._id,

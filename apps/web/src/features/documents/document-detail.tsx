@@ -22,6 +22,7 @@ type DocumentDetailProps = {
 export function DocumentDetail({ documentId }: DocumentDetailProps) {
   const document = useQuery(api.documents.get, { documentId });
   const pages = useQuery(api.documents.listPages, { documentId });
+  const versions = useQuery(api.documents.listVersions, { documentId });
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -55,6 +56,33 @@ export function DocumentDetail({ documentId }: DocumentDetailProps) {
             <span className="capitalize">{document.type}</span>
             {document.creator_name ? `  ·  By ${document.creator_name}` : ""}
           </p>
+          {versions && versions.length > 1 && (
+            <div className="mt-2 flex items-center gap-2 text-[13px] tracking-[-0.39px] text-provost-text-secondary">
+              <span>Version</span>
+              <select
+                value={documentId}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  if (next && next !== documentId) {
+                    window.location.href = `/documents/${next}`;
+                  }
+                }}
+                className="rounded-md border border-provost-border-default bg-white px-2 py-1 text-[13px] text-provost-text-primary"
+              >
+                {versions.map((v) => {
+                  const label = v.version_date
+                    ? new Date(v.version_date).toLocaleDateString()
+                    : "(undated)";
+                  return (
+                    <option key={v._id} value={v._id}>
+                      {label}
+                      {v.is_current ? " — current" : ""}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          )}
           {document.summary && (
             <p className="mt-2 max-w-3xl text-[15px] tracking-[-0.4px] text-provost-text-secondary">
               {document.summary}

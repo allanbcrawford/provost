@@ -1,55 +1,61 @@
 "use client";
 
-import { Button, Tabs, TabsContent, TabsList, TabsTrigger } from "@provost/ui";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@provost/ui";
 import { useQuery } from "convex/react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useSelectedFamily } from "@/context/family-context";
+import { BookmarksGrid } from "@/features/lessons/bookmarks-grid";
 import type { LessonListItem } from "@/features/lessons/lesson-item";
 import { LessonsList } from "@/features/lessons/lessons-list";
+import { ProgramsTree } from "@/features/lessons/programs-tree";
+import { ProgressTable } from "@/features/lessons/progress-table";
 import { withRoleGuard } from "@/HOCs/with-role-guard";
 import { APP_ROLES } from "@/lib/roles";
 import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
 
-type TabKey = "my" | "fun-facts" | "completed" | "curriculum" | "progress";
-
-const TABS: { key: TabKey; label: string }[] = [
-  { key: "my", label: "My Lessons" },
-  { key: "fun-facts", label: "Fun Facts" },
-  { key: "completed", label: "Completed" },
-  { key: "curriculum", label: "Curriculum" },
-  { key: "progress", label: "Progress" },
-];
+// Tabs follow the PRD: My Lessons (default) and Bookmarks for everyone;
+// Programs and Progress only for admins / advisors.
+type TabKey = "my" | "bookmarks" | "programs" | "progress";
 
 function LessonsPage() {
   const family = useSelectedFamily();
-  const lessons = useQuery(
-    api.lessons.list,
-    family ? { familyId: family._id as Id<"families"> } : "skip",
+  // Programs and Progress tabs are scoped to roles that maintain or supervise
+  // the curriculum — admins, advisors, trustees. Plain members see only the
+  // first two tabs.
+  const role = family?.myRole;
+  const isCurriculumViewer = role === "admin" || role === "advisor" || role === "trustee";
+
+  const familyId = family?._id as Id<"families"> | undefined;
+  const activeLessons = useQuery(api.lessons.myActiveLessons, familyId ? { familyId } : "skip");
+  const bookmarks = useQuery(api.bookmarks.list, family ? {} : "skip");
+  const programsTree = useQuery(
+    api.lessons.programsTree,
+    familyId && isCurriculumViewer ? { familyId } : "skip",
   );
-  const [tab, setTab] = useState<TabKey>("my");
+  const progressRows = useQuery(
+    api.lessons.familyProgress,
+    familyId && isCurriculumViewer ? { familyId } : "skip",
+  );
 
-  const filtered = useMemo<LessonListItem[]>(() => {
-    if (!lessons) return [];
-    const list = lessons as LessonListItem[];
-    if (tab === "my")
-      return list.filter((l) => l.status === "assigned" || l.status === "in_progress");
-    if (tab === "completed") return list.filter((l) => l.status === "completed");
-    return [];
-  }, [lessons, tab]);
+  const myLessonsForList = useMemo<LessonListItem[]>(() => {
+    if (!activeLessons) return [];
+    return activeLessons.map((l) => ({
+      _id: l._id,
+      title: l.title,
+      description: l.description,
+      category: l.category,
+      status: (l.status as LessonListItem["status"]) ?? null,
+      slide_index: l.slide_index,
+    }));
+  }, [activeLessons]);
 
-  const isLoading = lessons === undefined;
-
-  const emptyMessage =
-    tab === "my"
-      ? "No lessons in progress. Browse the curriculum to get started."
-      : tab === "completed"
-        ? "You haven't completed any lessons yet."
-        : tab === "fun-facts"
-          ? "No family fun facts yet."
-          : tab === "curriculum"
-            ? "Curriculum management coming soon."
-            : "Progress tracking coming soon.";
+  const tabs: { key: TabKey; label: string; visible: boolean }[] = [
+    { key: "my", label: "My Lessons", visible: true },
+    { key: "bookmarks", label: "Bookmarks", visible: true },
+    { key: "programs", label: "Programs", visible: isCurriculumViewer },
+    { key: "progress", label: "Progress", visible: isCurriculumViewer },
+  ];
 
   return (
     <div className="p-8">
@@ -57,34 +63,45 @@ function LessonsPage() {
         <h1 className="font-dm-serif text-[42px] font-medium tracking-[-0.84px] text-provost-text-primary">
           Lessons
         </h1>
-        <Button
-          variant="outline"
-          className="h-[35px] rounded-full border-provost-text-primary px-5 text-[15px] font-medium"
-        >
-          Request new lesson
-        </Button>
       </div>
 
-      <Tabs value={tab} onValueChange={(v) => setTab(v as TabKey)} className="flex flex-col gap-6">
+      <Tabs defaultValue="my" className="flex flex-col gap-6">
         <TabsList>
-          {TABS.map((t) => (
-            <TabsTrigger key={t.key} value={t.key}>
-              {t.label}
-            </TabsTrigger>
-          ))}
+          {tabs
+            .filter((t) => t.visible)
+            .map((t) => (
+              <TabsTrigger key={t.key} value={t.key}>
+                {t.label}
+              </TabsTrigger>
+            ))}
         </TabsList>
 
-        {TABS.map((t) => (
-          <TabsContent key={t.key} value={t.key}>
-            {isLoading ? (
-              <p className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">
-                Loading lessons…
-              </p>
-            ) : (
-              <LessonsList lessons={filtered} emptyMessage={emptyMessage} />
-            )}
+        <TabsContent value="my">
+          {activeLessons === undefined ? (
+            <p className="text-[14px] tracking-[-0.42px] text-provost-text-secondary">Loading…</p>
+          ) : (
+            <LessonsList
+              lessons={myLessonsForList}
+              emptyMessage="No active lessons. Provost will recommend ones suited to your stewardship phase."
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="bookmarks">
+          <BookmarksGrid bookmarks={bookmarks ?? null} />
+        </TabsContent>
+
+        {isCurriculumViewer && (
+          <TabsContent value="programs">
+            <ProgramsTree tree={programsTree ?? null} />
           </TabsContent>
-        ))}
+        )}
+
+        {isCurriculumViewer && (
+          <TabsContent value="progress">
+            <ProgressTable rows={progressRows ?? null} />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

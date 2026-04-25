@@ -107,4 +107,16 @@ export const platformTables = {
     source_run_id: v.optional(v.id("thread_runs")),
     created_by_user_id: v.optional(v.id("users")),
   }).index("by_family", ["family_id"]),
+
+  // Page-contextual prompt suggestions cache. Keyed by (family_id, route,
+  // selection_signature). Refilled lazily by an action when the cached entry
+  // is missing or older than the TTL.
+  prompt_suggestions_cache: defineTable({
+    family_id: v.id("families"),
+    cache_key: v.string(),
+    prompts: v.array(v.string()),
+    generated_at: v.number(),
+  })
+    .index("by_family_and_key", ["family_id", "cache_key"])
+    .index("by_generated_at", ["generated_at"]),
 };

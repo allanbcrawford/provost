@@ -19,6 +19,17 @@ export const coreTables = {
     clerk_user_id: v.string(),
     learning_path: v.optional(v.string()),
     onboarding_status: v.string(),
+    // Stewardship phase drives program selection in the learning system. Set
+    // by advisor at onboarding; editable by admins/advisors. Optional during
+    // migration window; new onboarding flows must set it.
+    stewardship_phase: v.optional(
+      v.union(
+        v.literal("emerging"),
+        v.literal("developing"),
+        v.literal("operating"),
+        v.literal("enduring"),
+      ),
+    ),
     // Site-admin flag (distinct from per-family family_users.role). Site
     // admins see the /(admin) UI for Library curation and Governance; they
     // have no family context by default.
@@ -45,6 +56,11 @@ export const coreTables = {
       v.literal("advisor"),
       v.literal("trustee"),
     ),
+    // Optional employment label for the family's "Internal" Professionals tab
+    // (e.g. "CFO", "Family Office Director", "Bookkeeper"). When set, this
+    // member is treated as on the family's payroll/team and surfaces in the
+    // Internal directory.
+    employment_role: v.optional(v.string()),
   })
     .index("by_family", ["family_id"])
     .index("by_user", ["user_id"])
@@ -72,10 +88,17 @@ export const coreTables = {
     observation_type: v.union(v.literal("observation"), v.literal("danger")),
     observation_is_observed: v.boolean(),
     embedding: v.optional(v.array(v.float64())),
+    // Lightweight version chain (P3.3). When this row is a newer version of an
+    // existing document, parent_document_id points to the original (which
+    // itself stays the canonical "v1"). version_date is the document's
+    // effective date, used to sort versions in the UI dropdown.
+    parent_document_id: v.optional(v.id("documents")),
+    version_date: v.optional(v.number()),
     deleted_at: v.optional(v.number()),
   })
     .index("by_family", ["family_id"])
     .index("by_category", ["category"])
+    .index("by_parent", ["parent_document_id"])
     .vectorIndex("by_embedding", {
       vectorField: "embedding",
       dimensions: 1536,

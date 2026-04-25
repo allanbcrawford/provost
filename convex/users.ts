@@ -204,6 +204,21 @@ export const me = mutation({
   },
 });
 
+// Read-only counterpart to `me`. Use this from `useQuery`; reactive across
+// updates without triggering a write.
+export const meQuery = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_user_id", identity.subject))
+      .unique();
+    return user;
+  },
+});
+
 // Small, cheap query used by the admin UI to decide whether to render the
 // /(admin) layout or redirect away. Never throws for signed-in users; returns
 // { isSiteAdmin: false } when the row exists but the flag is unset.
