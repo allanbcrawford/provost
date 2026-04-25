@@ -13,10 +13,14 @@ export const APPROVAL_REQUIRED_TOOLS: Record<string, boolean> = {
   create_task: true,
   search_library: false,
   summarize_lesson: false,
+  recommend_lesson: false,
   assign_lesson: true,
   invite_member: true,
-  attach_file: false,
+  attach_file: true,
   list_observations: false,
+  search_knowledge: false,
+  extract_waterfall_state: true,
+  remember: true,
 };
 
 export function requiresApproval(toolName: string, registryFlag: boolean | undefined): boolean {
