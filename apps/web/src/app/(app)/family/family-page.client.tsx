@@ -2,7 +2,7 @@
 
 import { Icon, type LayerOption, LayerToggle, Tabs, TabsList, TabsTrigger } from "@provost/ui";
 import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
-import { usePreloadedQuery, useQuery } from "convex/react";
+import { useQuery } from "convex/react";
 import type { FunctionReturnType } from "convex/server";
 import { useCallback, useMemo, useState } from "react";
 import { useAuthedFamily } from "@/context/family-context";
@@ -19,6 +19,7 @@ import { SignalsRail } from "@/features/signals/signals-rail";
 import type { CustomEdits, RevisionState } from "@/features/waterfall/types";
 import { WaterfallModal } from "@/features/waterfall/waterfall-modal";
 import { withRoleGuard } from "@/HOCs/with-role-guard";
+import { AuthedPreloadedQuery } from "@/lib/authed-preloaded-query";
 import { APP_ROLES } from "@/lib/roles";
 import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
@@ -228,8 +229,11 @@ function PreloadedFamilyPage({
 }: {
   preloaded: NonNullable<ReturnType<typeof usePreloadedFamilyGraph>>;
 }) {
-  const graphData = usePreloadedQuery(preloaded) as GraphData;
-  return <FamilyPageInner graphData={graphData} />;
+  return (
+    <AuthedPreloadedQuery preloaded={preloaded}>
+      {(graphData) => <FamilyPageInner graphData={graphData as GraphData} />}
+    </AuthedPreloadedQuery>
+  );
 }
 
 function LiveFamilyPage() {

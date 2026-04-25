@@ -5,7 +5,7 @@
 // mode lives at /chat — when that route is active, this rail is hidden by the
 // chat-panel-context.
 
-import { useMutation, usePreloadedQuery, useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { useEffect } from "react";
 import { useAuthedFamily } from "@/context/family-context";
 import { usePreloadedThreads } from "@/context/preloaded-data-context";
@@ -14,6 +14,7 @@ import { ChatPanel } from "@/features/chat/chat-panel";
 import { useChatPanel } from "@/features/chat/chat-panel-context";
 import { useRun } from "@/hooks/use-run";
 import { useThread } from "@/hooks/use-thread";
+import { AuthedPreloadedQuery } from "@/lib/authed-preloaded-query";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 
@@ -38,8 +39,11 @@ function PreloadedChatRail({
   preloaded: NonNullable<ReturnType<typeof usePreloadedThreads>>;
   familyId: Id<"families"> | undefined;
 }) {
-  const threads = usePreloadedQuery(preloaded) as ThreadRow[];
-  return <ChatRailInner threads={threads} familyId={familyId} />;
+  return (
+    <AuthedPreloadedQuery preloaded={preloaded}>
+      {(threads) => <ChatRailInner threads={threads as ThreadRow[]} familyId={familyId} />}
+    </AuthedPreloadedQuery>
+  );
 }
 
 function LiveChatRail({ familyId }: { familyId: Id<"families"> | undefined }) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { Icon } from "@provost/ui";
-import { useMutation, usePreloadedQuery, useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -11,6 +11,7 @@ import { usePreloadedThreads } from "@/context/preloaded-data-context";
 import { useSidebar } from "@/context/sidebar-context";
 import { useChatPanel } from "@/features/chat/chat-panel-context";
 import { useUserRole } from "@/hooks/use-user-role";
+import { AuthedPreloadedQuery } from "@/lib/authed-preloaded-query";
 import { APP_ROLES, type Role } from "@/lib/roles";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
@@ -157,8 +158,11 @@ function PreloadedThreadsSection({
   preloaded: NonNullable<ReturnType<typeof usePreloadedThreads>>;
   familyId: Id<"families"> | undefined;
 }) {
-  const threads = usePreloadedQuery(preloaded) as ThreadRow[];
-  return <ThreadsSectionInner threads={threads} familyId={familyId} />;
+  return (
+    <AuthedPreloadedQuery preloaded={preloaded}>
+      {(threads) => <ThreadsSectionInner threads={threads as ThreadRow[]} familyId={familyId} />}
+    </AuthedPreloadedQuery>
+  );
 }
 
 function LiveThreadsSection({ familyId }: { familyId: Id<"families"> | undefined }) {
