@@ -37,7 +37,7 @@ function ChatPage() {
     if (threads === undefined) return;
     if (threads.length > 0) {
       const sorted = [...threads].sort((a, b) => b._creationTime - a._creationTime);
-      setOpenThreadId(sorted[0]?._id);
+      setOpenThreadId(sorted[0]?._id ?? null);
       return;
     }
     createThread({ familyId, title: "Provost" })
