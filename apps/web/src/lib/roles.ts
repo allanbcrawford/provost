@@ -16,7 +16,13 @@ export const APP_ROLES: Record<string, Role[]> = {
   // Assets are admin/advisor/trustee only — same gate as Signals/Simulations.
   // PRD: "Permission-gated (family admin + advisor only)."
   ASSETS: [ROLES.ADMIN, ROLES.ADVISOR, ROLES.TRUSTEE],
-  SIGNALS: [ROLES.ADMIN, ROLES.ADVISOR, ROLES.TRUSTEE],
+  // Signals is open to all family roles. Backend filterByAccess scopes member
+  // visibility to signals where they appear in member_ids[] (rule-engine
+  // signals seed party rows for each named member); admins / advisors /
+  // trustees see everything in their family. signals.updateStatus uses
+  // requireResourceAccess so a member can only mutate signals they're a
+  // party on.
+  SIGNALS: ALL_ROLES,
   SIMULATIONS: [ROLES.ADMIN, ROLES.ADVISOR, ROLES.TRUSTEE],
   DOCUMENTS: ALL_ROLES,
   LESSONS: [ROLES.ADMIN, ROLES.MEMBER],

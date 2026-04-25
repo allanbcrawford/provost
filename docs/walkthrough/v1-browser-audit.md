@@ -5,7 +5,8 @@
 **Environment**
 - Convex dev deployment: `decisive-minnow-878`
 - `ACL_PARTY_CHECK_ENABLED=true` on dev
-- Demo data: 1 family ("Williams Family (demo)"), 12 members spanning 4 stewardship phases, 11 lessons under an "Operating" program, 7 assets totaling $92.4M, 4 signals, 12 documents, 3 external professionals.
+- Demo data: 1 family ("Williams Family (demo)"), 12 members spanning 4 stewardship phases, 11 lessons under an "Operating" program, 7 assets totaling $92.4M, 3 signals (rule-engine output), 12 documents, 3 external professionals.
+- Seed content note: the 11 legacy lessons all sit under the Operating program's "Foundations" track because the P0b migration parks all pre-existing lessons there. The lesson *content* is early-financial-literacy (Three Buckets, college selection, intro investing) — phase-mapped lessons authored per stewardship tier are a curriculum-authoring task tracked separately. Don't flag the phase ↔ content mismatch as a bug.
 - Frontend: `pnpm dev` in repo root, then sign in with a Clerk test account that's been linked to a seeded Williams member via `/(admin)` claim flow.
 - For ACL testing you need at least two test accounts — one in the **admin** role and one **member** role. If only one account is wired up, mark member-side checks as "deferred" rather than guessing.
 
@@ -19,13 +20,23 @@ For each item, mark one of:
 
 Add a "Notes" line under any item that's not ✅.
 
+**Harness gotchas (from prior runs, see audit findings F-8):**
+- Don't combine `agent-browser --session <name>` with `--cdp <port>` — the daemon wedges silently. Use a single default session and swap with `agent-browser close` + `agent-browser connect <port>`.
+- After `pkill -9 agent-browser-darwin-arm64`, also `rm -f ~/.agent-browser/*.{pid,sock,stream,version,engine}` before reconnecting.
+- Never `agent-browser wait --load networkidle` on Provost — Convex websockets keep the network active indefinitely; the daemon hangs.
+- Hydration race: every `open` returns at DOM commit, before Clerk + Convex hydrate. Always wait for at least URL settle + greeting personalization (`Hi, there → Hi, <name>`) + innerText length stable across two polls (~250–500ms).
+- If `pnpm dev` panics with `Every task must have a task type TaskGuard`, kill it, `rm -rf apps/web/.next`, restart. Stale Turbopack cache.
+
 ---
 
 ## 0. Smoke
 
 - [ ] App loads at `/` after sign-in without errors in browser console.
-- [ ] Header shows the family name "Williams Family (demo)".
-- [ ] Left nav shows the expected items: Home, Family, Documents, Library, Lessons, Signals, Simulations, Governance, Professionals (or "Our Team"), Messages, Events, Assets, Legacy, Settings. Items hidden for non-admin members are expected.
+- [ ] Header shows the family surname only — for the demo, just **"Williams"** (not the full "Williams Family (demo)" name; the header is intentionally surname-only).
+- [ ] Sidebar shows the production set of nav items (order may vary by role): **Highlights, Messages, Events, Assets, Signals, Simulations, Documents, Lessons, People, Legacy, Settings**. Notes:
+  - "People" is the renamed Family page (route still `/family`).
+  - **Library, Governance, and Our Team / Professionals are intentionally absent from the sidebar.** They are reachable only by direct URL: `/library` and `/governance` are site-admin curation surfaces (under the `(admin)` route group); `/professionals` deep-links to the "Our Team" page.
+  - Member roles see fewer items — Assets/Signals/Simulations admin-tier items hide; Signals is now visible to members per F-2 (it scopes by `member_ids[]`).
 - [ ] Browser console shows no red errors during navigation between pages.
 
 ---
@@ -41,12 +52,12 @@ These checks need a **Williams member** account (no bypass) and a **Williams adm
 ### 1.2 Member ACL — visibility scoping
 - [ ] As a Williams **admin**: `/documents` shows all 12 documents.
 - [ ] As a Williams **member** (subject to ACL): `/documents` shows only documents that have a `resource_parties` row for that user. With current dev seed (`seedDevShares`), members see all 12. **Note:** this matches the dev-only "everybody is a party" mode; if seedDevShares hasn't been re-run, members will see 0 documents — that's the production behavior, not a bug.
-- [ ] As admin: `/signals` shows 4 signals.
-- [ ] As member: signals visible match `member_ids[]` on each signal (rule-engine signals carry named members).
+- [ ] As admin: `/signals` shows the full set (3 today).
+- [ ] As member: `/signals` is now reachable (see §5 access model) and shows only signals where the member is in `member_ids[]`.
 
 ### 1.3 Audit trail
-- [ ] As admin, open `/governance`. Audit log shows recent activity.
-- [ ] Try a write you should not be allowed to do (e.g., flip the role of a `signals.updateStatus` for a signal you're not party to as a non-admin). Confirm a `FORBIDDEN_RESOURCE_WRITE` error is surfaced; check `/governance` audit log for the failure.
+- [ ] As **site-admin**, open `/governance` (it's site-admin-only — see §13). Audit log shows recent activity.
+- [ ] Try a write you should not be allowed to do (e.g., as a member, call `signals.updateStatus` for a signal you're not in `member_ids[]` of). Confirm a `FORBIDDEN_RESOURCE` (party check) error is surfaced; check `/governance` audit log for the failure.
 
 ### 1.4 Stage 4 — party management mutations
 - [ ] Backend-only check (run via `npx convex run`): `acl:listParties` for a known document returns at least one `owner` row.
@@ -93,7 +104,7 @@ These checks need a **Williams member** account (no bypass) and a **Williams adm
 
 ### 3.1 List + filter
 - [ ] `/documents` loads the 12 demo documents.
-- [ ] Category tabs (all/estate/tax/legal/financial) filter correctly.
+- [ ] Category tabs render only for non-empty categories present in the seed. Today the seed has Estate Plan and Financial Statement docs, so expect tabs roughly: **All documents, Estate Plan Documents, Financial statements**. (The static 5-tab list — all/estate/tax/legal/financial — only applies once the seed adds tax/legal documents.)
 - [ ] Document cards link into detail view.
 
 ### 3.2 Detail view
@@ -121,12 +132,15 @@ These checks need a **Williams member** account (no bypass) and a **Williams adm
 
 ## 5. Signals
 
-- [ ] `/signals` lists 4 demo signals.
+**Access model:** `/signals` is open to all family roles. Admins/advisors/trustees see every signal in the family; members see only signals where they appear in `member_ids[]` (the rule-engine seeds party rows for each named member). Member writes via `signals.updateStatus` go through `requireResourceAccess` and reject with `FORBIDDEN_RESOURCE` for signals the member isn't a party on.
+
+- [ ] `/signals` lists the 3 rule-engine signals currently produced by the seed. (Dev seed runs `signals.generateFromRules` against the Williams data — actual count tracks rule output, not a fixed number. Update the audit if seed output drifts.)
 - [ ] Severity / category badges render.
 - [ ] Status filter works (open / drafting / resolved / etc).
 - [ ] Click a signal → detail panel.
-- [ ] As **admin**: can change status via `signals.updateStatus`.
-- [ ] As **member** not on `member_ids[]`: status update should fail with FORBIDDEN_RESOURCE_WRITE.
+- [ ] As **admin**: sees all signals; can change status via `signals.updateStatus`.
+- [ ] As **member** named in a signal's `member_ids[]`: signal appears in the list, detail loads, status update via `signals.updateStatus` succeeds.
+- [ ] As **member** NOT named in a signal: signal is filtered out of the list; direct call to `signals.updateStatus` for that signal id should fail with `FORBIDDEN_RESOURCE` (party check) or return `null` (because `getSignal` soft-fails for non-parties).
 
 ---
 
@@ -224,7 +238,7 @@ These checks need a **Williams member** account (no bypass) and a **Williams adm
 
 ## 13. Governance (admin-only)
 
-- [ ] `/governance` is admin-only — member redirect.
+- [ ] `/governance` is **site-admin-only** — both family admin (Robert) and family member (David) hard-redirect to `/`. Test by signing in as a `users.is_site_admin = true` account; the page shell renders via the `(admin)` layout (admin sidebar + family picker), not the family shell. To grant site-admin in dev: `npx convex run users:promoteSiteAdmin '{"email":"...","value":true}'`.
 - [ ] Audit Log tab paginates recent events.
 - [ ] Approvals tab lists pending tool-call approvals (likely 0).
 - [ ] Tasks tab lists open tasks (likely 0).

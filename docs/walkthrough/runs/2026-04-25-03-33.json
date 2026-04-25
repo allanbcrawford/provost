@@ -1,0 +1,273 @@
+{
+  "runAt": "2026-04-25T03:34:16.689Z",
+  "baseUrl": "http://localhost:3000",
+  "results": [
+    {
+      "id": "0.1-home-loads",
+      "section": "§0 Smoke",
+      "title": "Home page loads without redirect",
+      "session": "robert",
+      "ok": true,
+      "actual": {
+        "title": "Provost",
+        "url": "/"
+      },
+      "error": null,
+      "durationMs": 2441
+    },
+    {
+      "id": "0.2-no-page-errors",
+      "section": "§0 Smoke",
+      "title": "No JS errors on home",
+      "session": "robert",
+      "ok": true,
+      "actual": "",
+      "error": null,
+      "durationMs": 161
+    },
+    {
+      "id": "0.3-greeting-personalized",
+      "section": "§0 Smoke",
+      "title": "Greeting matches user first name",
+      "session": "robert",
+      "ok": true,
+      "actual": "Hi, Robert",
+      "error": null,
+      "durationMs": 2447
+    },
+    {
+      "id": "0.4-sidebar-key-routes",
+      "section": "§0 Smoke",
+      "title": "Sidebar links to /lessons and /documents (both roles); /assets and /signals only for admin",
+      "session": "robert",
+      "ok": true,
+      "actual": {
+        "assets": true,
+        "documents": true,
+        "lessons": true,
+        "signals": true
+      },
+      "error": null,
+      "durationMs": 2041
+    },
+    {
+      "id": "1.1-documents-count",
+      "section": "§1 Tenant isolation",
+      "title": "/documents shows 12 docs (dev seed-shares mode)",
+      "session": "robert",
+      "ok": true,
+      "actual": 12,
+      "error": null,
+      "durationMs": 2596
+    },
+    {
+      "id": "1.2-assets-admin-only",
+      "section": "§1 Tenant isolation",
+      "title": "/assets — admin loads, member redirects",
+      "session": "robert",
+      "ok": true,
+      "actual": "/assets",
+      "error": null,
+      "durationMs": 2385
+    },
+    {
+      "id": "1.3-signals-admin-only-current",
+      "section": "§1 Tenant isolation",
+      "title": "/signals — admin loads (member redirect — surprise vs audit)",
+      "session": "robert",
+      "ok": true,
+      "actual": "/signals",
+      "error": null,
+      "durationMs": 2401
+    },
+    {
+      "id": "2.1-lessons-active-count",
+      "section": "§2 Learning",
+      "title": "Active lessons by phase",
+      "session": "robert",
+      "ok": true,
+      "actual": 0,
+      "error": null,
+      "durationMs": 2502
+    },
+    {
+      "id": "2.2-no-forbidden-pill-text",
+      "section": "§2 Learning",
+      "title": "No 'Assigned'/'Overdue'/'Due [date]' pill text on /lessons",
+      "session": "robert",
+      "ok": true,
+      "actual": {
+        "assigned": false,
+        "dueDate": false,
+        "overdue": false
+      },
+      "error": null,
+      "durationMs": 2398
+    },
+    {
+      "id": "2.3-lesson-tabs-by-role",
+      "section": "§2 Learning",
+      "title": "Lesson tabs: admin sees Programs/Progress, member does not",
+      "session": "robert",
+      "ok": true,
+      "actual": ["My Lessons", "Bookmarks", "Programs", "Progress"],
+      "error": null,
+      "durationMs": 2424
+    },
+    {
+      "id": "8.1-assets-total",
+      "section": "§8 Assets",
+      "title": "Total assets = $92,400,000 (admin)",
+      "session": "robert",
+      "ok": true,
+      "actual": "$92,400,000",
+      "error": null,
+      "durationMs": 2417
+    },
+    {
+      "id": "8.2-asset-filter-chips",
+      "section": "§8 Assets",
+      "title": "Filter chips: All / Brokerage / Private Equity / Real Estate / Checking / Entities",
+      "session": "robert",
+      "ok": true,
+      "actual": ["All", "Brokerage", "Private Equity", "Real Estate", "Checking", "Entities"],
+      "error": null,
+      "durationMs": 2460
+    },
+    {
+      "id": "11.1-our-team-page",
+      "section": "§11 Professionals",
+      "title": "/professionals heading is 'Our Team' with Internal/External tabs",
+      "session": "robert",
+      "ok": true,
+      "actual": {
+        "hasHeading": true,
+        "tabs": ["Internal", "External"]
+      },
+      "error": null,
+      "durationMs": 2424
+    },
+    {
+      "id": "13.1-governance-admin-route",
+      "section": "§13 Governance",
+      "title": "/governance — admin can access (FAILS today; site_admin gate)",
+      "session": "robert",
+      "ok": false,
+      "actual": "/",
+      "error": null,
+      "durationMs": 2007
+    },
+    {
+      "id": "0.1-home-loads",
+      "section": "§0 Smoke",
+      "title": "Home page loads without redirect",
+      "session": "david",
+      "ok": true,
+      "actual": {
+        "title": "Provost",
+        "url": "/"
+      },
+      "error": null,
+      "durationMs": 2446
+    },
+    {
+      "id": "0.2-no-page-errors",
+      "section": "§0 Smoke",
+      "title": "No JS errors on home",
+      "session": "david",
+      "ok": true,
+      "actual": "",
+      "error": null,
+      "durationMs": 161
+    },
+    {
+      "id": "0.3-greeting-personalized",
+      "section": "§0 Smoke",
+      "title": "Greeting matches user first name",
+      "session": "david",
+      "ok": true,
+      "actual": "Hi, David",
+      "error": null,
+      "durationMs": 2441
+    },
+    {
+      "id": "0.4-sidebar-key-routes",
+      "section": "§0 Smoke",
+      "title": "Sidebar links to /lessons and /documents (both roles); /assets and /signals only for admin",
+      "session": "david",
+      "ok": true,
+      "actual": {
+        "assets": false,
+        "documents": true,
+        "lessons": true,
+        "signals": false
+      },
+      "error": null,
+      "durationMs": 2421
+    },
+    {
+      "id": "1.1-documents-count",
+      "section": "§1 Tenant isolation",
+      "title": "/documents shows 12 docs (dev seed-shares mode)",
+      "session": "david",
+      "ok": true,
+      "actual": 12,
+      "error": null,
+      "durationMs": 2420
+    },
+    {
+      "id": "1.2-assets-admin-only",
+      "section": "§1 Tenant isolation",
+      "title": "/assets — admin loads, member redirects",
+      "session": "david",
+      "ok": true,
+      "actual": "/",
+      "error": null,
+      "durationMs": 2434
+    },
+    {
+      "id": "1.3-signals-admin-only-current",
+      "section": "§1 Tenant isolation",
+      "title": "/signals — admin loads (member redirect — surprise vs audit)",
+      "session": "david",
+      "ok": true,
+      "actual": "/",
+      "error": null,
+      "durationMs": 2413
+    },
+    {
+      "id": "2.1-lessons-active-count",
+      "section": "§2 Learning",
+      "title": "Active lessons by phase",
+      "session": "david",
+      "ok": true,
+      "actual": 2,
+      "error": null,
+      "durationMs": 2425
+    },
+    {
+      "id": "2.2-no-forbidden-pill-text",
+      "section": "§2 Learning",
+      "title": "No 'Assigned'/'Overdue'/'Due [date]' pill text on /lessons",
+      "session": "david",
+      "ok": true,
+      "actual": {
+        "assigned": false,
+        "dueDate": false,
+        "overdue": false
+      },
+      "error": null,
+      "durationMs": 2412
+    },
+    {
+      "id": "2.3-lesson-tabs-by-role",
+      "section": "§2 Learning",
+      "title": "Lesson tabs: admin sees Programs/Progress, member does not",
+      "session": "david",
+      "ok": true,
+      "actual": ["My Lessons", "Bookmarks"],
+      "error": null,
+      "durationMs": 2414
+    }
+  ]
+}

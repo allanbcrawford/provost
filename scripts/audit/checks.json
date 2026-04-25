@@ -1,0 +1,135 @@
+{
+  "$schema": "./checks.schema.txt",
+  "_doc": "Each check is run for one or more sessions. Checks shell out to agent-browser. 'eval' must be a single JS expression that returns a JSON-serializable value; 'expect' compares the result via deepEqual or, for objects, key-by-key. 'pass' overrides expect with a JS expression evaluated in Node against the result (named `r`). 'navigate' navigates first, then evaluates.",
+  "sessions": [
+    { "name": "robert", "port": 9222, "role": "admin", "phase": "enduring" },
+    { "name": "david", "port": 9223, "role": "member", "phase": "operating" }
+  ],
+  "checks": [
+    {
+      "id": "0.1-home-loads",
+      "section": "§0 Smoke",
+      "title": "Home page loads without redirect",
+      "for": ["robert", "david"],
+      "navigate": "/",
+      "eval": "({url:location.pathname, title:document.title})",
+      "pass": "r.url === '/' && r.title === 'Provost'"
+    },
+    {
+      "id": "0.2-no-page-errors",
+      "section": "§0 Smoke",
+      "title": "No JS errors on home",
+      "for": ["robert", "david"],
+      "useErrorsCommand": true,
+      "pass": "r.trim() === ''"
+    },
+    {
+      "id": "0.3-greeting-personalized",
+      "section": "§0 Smoke",
+      "title": "Greeting matches user first name",
+      "for": ["robert", "david"],
+      "navigate": "/",
+      "eval": "[...document.querySelectorAll('h2')].map(h=>h.innerText).find(t=>t.startsWith('Hi,'))||null",
+      "pass": "(session.name==='robert' && r==='Hi, Robert') || (session.name==='david' && r==='Hi, David')"
+    },
+    {
+      "id": "0.4-sidebar-key-routes",
+      "section": "§0 Smoke",
+      "title": "Sidebar links to /lessons and /documents (both roles); /assets and /signals only for admin",
+      "for": ["robert", "david"],
+      "navigate": "/",
+      "eval": "(()=>{const hrefs=new Set([...document.querySelectorAll('a[href]')].map(a=>a.getAttribute('href'))); return {lessons:hrefs.has('/lessons'), documents:hrefs.has('/documents'), assets:hrefs.has('/assets'), signals:hrefs.has('/signals')};})()",
+      "pass": "r.lessons && r.documents && (session.role==='admin' ? (r.assets && r.signals) : (!r.assets && !r.signals))"
+    },
+    {
+      "id": "1.1-documents-count",
+      "section": "§1 Tenant isolation",
+      "title": "/documents shows 12 docs (dev seed-shares mode)",
+      "for": ["robert", "david"],
+      "navigate": "/documents",
+      "eval": "document.querySelectorAll('a[href*=\"/documents/\"]').length",
+      "pass": "r === 12"
+    },
+    {
+      "id": "1.2-assets-admin-only",
+      "section": "§1 Tenant isolation",
+      "title": "/assets — admin loads, member redirects",
+      "for": ["robert", "david"],
+      "navigate": "/assets",
+      "eval": "location.pathname",
+      "pass": "(session.role==='admin' && r==='/assets') || (session.role==='member' && r==='/')"
+    },
+    {
+      "id": "1.3-signals-admin-only-current",
+      "section": "§1 Tenant isolation",
+      "title": "/signals — admin loads (member redirect — surprise vs audit)",
+      "for": ["robert", "david"],
+      "navigate": "/signals",
+      "eval": "location.pathname",
+      "pass": "(session.role==='admin' && r==='/signals') || (session.role==='member' && r==='/')"
+    },
+    {
+      "id": "2.1-lessons-active-count",
+      "section": "§2 Learning",
+      "title": "Active lessons by phase",
+      "for": ["robert", "david"],
+      "navigate": "/lessons",
+      "eval": "document.querySelectorAll('a[href*=\"/lessons/\"]').length",
+      "pass": "(session.phase==='operating' && r===2) || (session.phase==='enduring' && r===0)"
+    },
+    {
+      "id": "2.2-no-forbidden-pill-text",
+      "section": "§2 Learning",
+      "title": "No 'Assigned'/'Overdue'/'Due [date]' pill text on /lessons",
+      "for": ["robert", "david"],
+      "navigate": "/lessons",
+      "eval": "(()=>{const t=document.body.innerText; return {assigned:t.includes('Assigned'), overdue:t.includes('Overdue'), dueDate:/Due [A-Z][a-z]+ \\d/.test(t)};})()",
+      "pass": "!r.assigned && !r.overdue && !r.dueDate"
+    },
+    {
+      "id": "2.3-lesson-tabs-by-role",
+      "section": "§2 Learning",
+      "title": "Lesson tabs: admin sees Programs/Progress, member does not",
+      "for": ["robert", "david"],
+      "navigate": "/lessons",
+      "eval": "[...document.querySelectorAll('button')].map(b=>(b.innerText||'').trim()).filter(t=>['My Lessons','Bookmarks','Programs','Progress'].includes(t))",
+      "pass": "(session.role==='admin' && r.includes('Programs') && r.includes('Progress')) || (session.role==='member' && !r.includes('Programs') && !r.includes('Progress'))"
+    },
+    {
+      "id": "8.1-assets-total",
+      "section": "§8 Assets",
+      "title": "Total assets = $92,400,000 (admin)",
+      "for": ["robert"],
+      "navigate": "/assets",
+      "eval": "(document.body.innerText.match(/\\$[0-9,]+/)||[null])[0]",
+      "pass": "r === '$92,400,000'"
+    },
+    {
+      "id": "8.2-asset-filter-chips",
+      "section": "§8 Assets",
+      "title": "Filter chips: All / Brokerage / Private Equity / Real Estate / Checking / Entities",
+      "for": ["robert"],
+      "navigate": "/assets",
+      "eval": "[...document.querySelectorAll('button')].map(b=>(b.innerText||'').trim()).filter(t=>['All','Brokerage','Private Equity','Real Estate','Checking','Entities'].includes(t))",
+      "pass": "['All','Brokerage','Private Equity','Real Estate','Checking','Entities'].every(c=>r.includes(c))"
+    },
+    {
+      "id": "11.1-our-team-page",
+      "section": "§11 Professionals",
+      "title": "/professionals heading is 'Our Team' with Internal/External tabs",
+      "for": ["robert"],
+      "navigate": "/professionals",
+      "eval": "(()=>{const h=[...document.querySelectorAll('h1,h2')].map(x=>x.innerText); const tabs=[...document.querySelectorAll('button')].map(b=>(b.innerText||'').trim()).filter(t=>['Internal','External'].includes(t)); return {hasHeading:h.includes('Our Team'), tabs};})()",
+      "pass": "r.hasHeading && r.tabs.includes('Internal') && r.tabs.includes('External')"
+    },
+    {
+      "id": "13.1-governance-admin-route",
+      "section": "§13 Governance",
+      "title": "/governance — admin can access (FAILS today; site_admin gate)",
+      "for": ["robert"],
+      "navigate": "/governance",
+      "eval": "location.pathname",
+      "pass": "r === '/governance'"
+    }
+  ]
+}
