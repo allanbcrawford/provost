@@ -7,7 +7,7 @@
 
 import type { GenericId } from "convex/values";
 import type { TestConvex } from "convex-test";
-import type schema from "../schema";
+import type schema from "../convex/schema";
 
 type T = TestConvex<typeof schema>;
 

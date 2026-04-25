@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { createContext, type ReactNode, useContext, useMemo, useState } from "react";
 
 export type ChatPanelContextValue = {
@@ -7,6 +8,11 @@ export type ChatPanelContextValue = {
   setOpenThreadId: (id: string | null) => void;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
+  // True while the user is on the dedicated /chat route. Floating rail is
+  // hidden in this mode so the two surfaces don't render the same thread
+  // twice. Computed from the route, not toggled — the URL is the source of
+  // truth.
+  isFullScreen: boolean;
 };
 
 const ChatPanelContext = createContext<ChatPanelContextValue | null>(null);
@@ -24,10 +30,12 @@ export function ChatPanelProvider({
 }: ChatPanelProviderProps) {
   const [openThreadId, setOpenThreadId] = useState<string | null>(defaultThreadId);
   const [isOpen, setIsOpen] = useState<boolean>(defaultOpen);
+  const pathname = usePathname();
+  const isFullScreen = pathname === "/chat" || pathname.startsWith("/chat/");
 
   const value = useMemo<ChatPanelContextValue>(
-    () => ({ openThreadId, setOpenThreadId, isOpen, setIsOpen }),
-    [openThreadId, isOpen],
+    () => ({ openThreadId, setOpenThreadId, isOpen, setIsOpen, isFullScreen }),
+    [openThreadId, isOpen, isFullScreen],
   );
 
   return <ChatPanelContext.Provider value={value}>{children}</ChatPanelContext.Provider>;

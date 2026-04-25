@@ -3,7 +3,7 @@
 import { UserButton } from "@clerk/nextjs";
 import { Icon } from "@provost/ui";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Fragment, useMemo } from "react";
 import { useBreadcrumbs } from "@/context/breadcrumb-context";
 import { useSelectedFamily } from "@/context/family-context";
@@ -32,9 +32,10 @@ function buildCrumbsFromPath(pathname: string) {
 
 export function Header() {
   const pathname = usePathname() ?? "/";
+  const router = useRouter();
   const { overrides } = useBreadcrumbs();
   const family = useSelectedFamily();
-  const { isOpen: isChatPanelOpen, setIsOpen: setChatPanelOpen } = useChatPanel();
+  const { isOpen: isChatPanelOpen, setIsOpen: setChatPanelOpen, isFullScreen } = useChatPanel();
   const { toggle: toggleSidebar } = useSidebar();
 
   const crumbs = useMemo(() => overrides ?? buildCrumbsFromPath(pathname), [overrides, pathname]);
@@ -146,22 +147,44 @@ export function Header() {
 
         <div className="hidden md:block h-[31px] w-px bg-provost-border-subtle mx-2" />
 
-        <button
-          type="button"
-          onClick={() => setChatPanelOpen(!isChatPanelOpen)}
-          className={`hidden md:flex p-2 rounded-lg transition-colors items-center ${
-            isChatPanelOpen ? "bg-provost-bg-secondary" : "hover:bg-provost-bg-secondary"
-          }`}
-          aria-label={isChatPanelOpen ? "Close assistant" : "Open assistant"}
-          aria-expanded={isChatPanelOpen}
-        >
-          <Icon name="asterisk" size={30} />
-          <Icon
-            name="keyboard_arrow_right"
-            size={23}
-            className={isChatPanelOpen ? "" : "rotate-180"}
-          />
-        </button>
+        {isFullScreen ? (
+          // Full-screen chat is active. Per PRD: header shows non-clickable
+          // "Chatting…" label and the floating-rail / open-chat affordances
+          // are suppressed.
+          <span
+            className="hidden md:flex items-center px-2 text-[14px] tracking-[-0.42px] text-provost-text-secondary"
+            aria-live="polite"
+          >
+            Chatting…
+          </span>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={() => setChatPanelOpen(!isChatPanelOpen)}
+              className={`hidden md:flex p-2 rounded-lg transition-colors items-center ${
+                isChatPanelOpen ? "bg-provost-bg-secondary" : "hover:bg-provost-bg-secondary"
+              }`}
+              aria-label={isChatPanelOpen ? "Close assistant" : "Open assistant"}
+              aria-expanded={isChatPanelOpen}
+            >
+              <Icon name="asterisk" size={30} />
+              <Icon
+                name="keyboard_arrow_right"
+                size={23}
+                className={isChatPanelOpen ? "" : "rotate-180"}
+              />
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/chat")}
+              className="hidden md:flex p-2 rounded-lg transition-colors items-center hover:bg-provost-bg-secondary"
+              aria-label="Open chat in full screen"
+            >
+              <Icon name="add" size={26} className="text-provost-text-secondary" />
+            </button>
+          </>
+        )}
       </div>
     </header>
   );

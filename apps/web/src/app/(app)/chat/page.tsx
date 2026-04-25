@@ -1,9 +1,9 @@
 "use client";
 
-// Floating-mode chat rail. Wires a real Convex thread (creates one on demand
-// if the user has none yet) so chat sends actually run the agent. Full-screen
-// mode lives at /chat — when that route is active, this rail is hidden by the
-// chat-panel-context.
+// Full-screen chat mode. Same plumbing as the floating rail — useThread +
+// useRun against a real Convex thread — but rendered as the page's main
+// region instead of a 25vw aside. While this route is active, the floating
+// chat rail collapses (see chat-panel-context.isFullScreen).
 
 import { useMutation, useQuery } from "convex/react";
 import { useEffect } from "react";
@@ -11,26 +11,27 @@ import { useSelectedFamily } from "@/context/family-context";
 import { threadFromSchema } from "@/entities/threads/thread";
 import { ChatPanel } from "@/features/chat/chat-panel";
 import { useChatPanel } from "@/features/chat/chat-panel-context";
+import { withRoleGuard } from "@/HOCs/with-role-guard";
 import { useRun } from "@/hooks/use-run";
 import { useThread } from "@/hooks/use-thread";
-import { api } from "../../../../convex/_generated/api";
-import type { Id } from "../../../../convex/_generated/dataModel";
+import { APP_ROLES } from "@/lib/roles";
+import { api } from "../../../../../../convex/_generated/api";
+import type { Id } from "../../../../../../convex/_generated/dataModel";
 
-export function ChatRail() {
-  const { isOpen, isFullScreen, openThreadId, setOpenThreadId } = useChatPanel();
+function ChatPage() {
   const family = useSelectedFamily();
   const familyId = family?._id as Id<"families"> | undefined;
+  const { openThreadId, setOpenThreadId } = useChatPanel();
 
   const threads = useQuery(api.threads.list, familyId ? { familyId } : "skip") as
     | Array<{ _id: Id<"threads">; title: string | null; _creationTime: number }>
     | undefined;
   const createThread = useMutation(api.threads.create);
 
-  // Pick the most-recent thread on first mount. If the user has none, create
-  // one. Idempotent because we only fire when openThreadId is null and the
-  // query result has settled.
+  // Same default-thread plumbing as the rail. Reuses the rail's selection if
+  // one is already in context (so opening /chat while the rail had a thread
+  // open keeps you on that thread).
   useEffect(() => {
-    if (!isOpen || isFullScreen) return;
     if (!familyId) return;
     if (openThreadId) return;
     if (threads === undefined) return;
@@ -42,39 +43,29 @@ export function ChatRail() {
     createThread({ familyId, title: "Provost" })
       .then(({ threadId }) => setOpenThreadId(threadId))
       .catch(() => {});
-  }, [isOpen, isFullScreen, familyId, openThreadId, threads, createThread, setOpenThreadId]);
-
-  // While the full-screen page owns chat, the rail collapses to width 0
-  // regardless of isOpen — PRD: "disables the floating mode while active."
-  const railVisible = isOpen && !isFullScreen;
+  }, [familyId, openThreadId, threads, createThread, setOpenThreadId]);
 
   return (
-    <aside
-      className={`
-        shrink-0 border-l border-provost-border-subtle bg-white
-        flex h-full overflow-hidden
-        transition-[width] duration-200 ease-in-out
-        ${railVisible ? "w-[clamp(300px,25vw,400px)]" : "w-0 border-l-0"}
-      `}
-    >
-      <div
-        className={`
-          flex flex-col h-full w-full overflow-hidden
-          transition-opacity duration-150
-          ${railVisible ? "delay-150 opacity-100" : "opacity-0 delay-0 pointer-events-none"}
-        `}
-      >
-        {railVisible && openThreadId ? (
-          <RailBody threadId={openThreadId as Id<"threads">} />
-        ) : (
-          <div className="p-4 text-[13px] text-provost-text-secondary">Loading…</div>
-        )}
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="border-b border-provost-border-subtle bg-white px-6 py-4">
+        <h1 className="font-dm-serif text-[28px] font-medium tracking-[-0.56px] text-provost-text-primary">
+          Chat
+        </h1>
       </div>
-    </aside>
+      <div className="flex min-h-0 flex-1">
+        <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col">
+          {openThreadId ? (
+            <FullScreenBody threadId={openThreadId as Id<"threads">} />
+          ) : (
+            <div className="p-8 text-[13px] text-provost-text-secondary">Loading…</div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
-function RailBody({ threadId }: { threadId: Id<"threads"> }) {
+function FullScreenBody({ threadId }: { threadId: Id<"threads"> }) {
   const threadDoc = useThread(threadId);
   const {
     send,
@@ -87,11 +78,11 @@ function RailBody({ threadId }: { threadId: Id<"threads"> }) {
   } = useRun(threadId);
 
   if (threadDoc === undefined) {
-    return <div className="p-4 text-[13px] text-provost-text-secondary">Loading…</div>;
+    return <div className="p-8 text-[13px] text-provost-text-secondary">Loading…</div>;
   }
   if (threadDoc === null) {
     return (
-      <div className="p-4 text-[13px] text-provost-text-secondary">Conversation not found.</div>
+      <div className="p-8 text-[13px] text-provost-text-secondary">Conversation not found.</div>
     );
   }
   const thread = threadFromSchema(threadDoc as Parameters<typeof threadFromSchema>[0]);
@@ -115,3 +106,5 @@ function RailBody({ threadId }: { threadId: Id<"threads"> }) {
     />
   );
 }
+
+export default withRoleGuard(ChatPage, APP_ROLES.HOME!);
