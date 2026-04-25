@@ -25,6 +25,7 @@ export function ChatRail() {
     | Array<{ _id: Id<"threads">; title: string | null; _creationTime: number }>
     | undefined;
   const createThread = useMutation(api.threads.create);
+  const renameThread = useMutation(api.threads.rename);
 
   // Pick the most-recent thread on first mount. If the user has none, create
   // one. Idempotent because we only fire when openThreadId is null and the
@@ -62,6 +63,12 @@ export function ChatRail() {
             threadId={openThreadId as Id<"threads">}
             selection={pageContext.selection}
             visibleState={pageContext.visibleState}
+            onMaybeAutoTitle={(text) => {
+              void renameThread({
+                threadId: openThreadId as Id<"threads">,
+                title: deriveTitle(text),
+              }).catch(() => {});
+            }}
           />
         ) : (
           <div className="p-4 text-[13px] text-provost-text-secondary">Loading…</div>
@@ -71,14 +78,26 @@ export function ChatRail() {
   );
 }
 
+// Title heuristic: trim, collapse whitespace, cap to ~60 chars on a word
+// boundary. Keeps the sidebar list readable without an LLM round-trip.
+function deriveTitle(raw: string): string {
+  const cleaned = raw.replace(/\s+/g, " ").trim();
+  if (cleaned.length <= 60) return cleaned || "Untitled";
+  const truncated = cleaned.slice(0, 60);
+  const lastSpace = truncated.lastIndexOf(" ");
+  return (lastSpace > 30 ? truncated.slice(0, lastSpace) : truncated) + "…";
+}
+
 function RailBody({
   threadId,
   selection,
   visibleState,
+  onMaybeAutoTitle,
 }: {
   threadId: Id<"threads">;
   selection: { kind: string; id: string } | null;
   visibleState: Record<string, unknown> | undefined;
+  onMaybeAutoTitle: (firstMessage: string) => void;
 }) {
   const threadDoc = useThread(threadId);
   const {
@@ -100,6 +119,7 @@ function RailBody({
     );
   }
   const thread = threadFromSchema(threadDoc as Parameters<typeof threadFromSchema>[0]);
+  const isUntitled = !thread.title?.trim() || thread.title.trim() === "Provost";
 
   return (
     <ChatPanel
@@ -107,6 +127,7 @@ function RailBody({
       events={events}
       isStreaming={isStreaming}
       onSend={(text, fileIds) => {
+        if (isUntitled && text.trim()) onMaybeAutoTitle(text);
         void send(text, { fileIds, selection, visibleState });
       }}
       onApprove={(toolCallId) => {

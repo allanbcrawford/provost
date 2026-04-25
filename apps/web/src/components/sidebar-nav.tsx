@@ -1,12 +1,18 @@
 "use client";
 
 import { Icon } from "@provost/ui";
+import { useMutation, useQuery } from "convex/react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { useSelectedFamily } from "@/context/family-context";
 import { useSidebar } from "@/context/sidebar-context";
+import { useChatPanel } from "@/features/chat/chat-panel-context";
 import { useUserRole } from "@/hooks/use-user-role";
 import { APP_ROLES, type Role } from "@/lib/roles";
+import { api } from "../../../../convex/_generated/api";
+import type { Id } from "../../../../convex/_generated/dataModel";
 
 type NavItem = {
   key: keyof typeof APP_ROLES;
@@ -91,6 +97,7 @@ export function SidebarNav() {
           </Link>
         );
       })}
+      <ThreadsSection />
     </nav>
   );
 
@@ -124,5 +131,113 @@ export function SidebarNav() {
     >
       <div className="h-full min-w-[260px] overflow-hidden">{content}</div>
     </aside>
+  );
+}
+
+// Collapsible "Threads" section. Lists the user's threads from Convex; clicking
+// a thread opens it in the right-side chat rail. The trailing + creates a new
+// thread and opens it in the rail. Threads get titled lazily on first send
+// (see chat-rail.tsx / app/(app)/chat/page.tsx).
+function ThreadsSection() {
+  const [expanded, setExpanded] = useState(false);
+  const family = useSelectedFamily();
+  const familyId = family?._id as Id<"families"> | undefined;
+  const { isMobile, close } = useSidebar();
+  const { openThreadId, setOpenThreadId, setIsOpen: setChatPanelOpen } = useChatPanel();
+
+  const threads = useQuery(api.threads.list, familyId ? { familyId } : "skip") as
+    | Array<{ _id: Id<"threads">; title: string | null; _creationTime: number }>
+    | undefined;
+  const createThread = useMutation(api.threads.create);
+
+  if (!familyId) return null;
+
+  const openThread = (threadId: Id<"threads">) => {
+    setOpenThreadId(threadId);
+    setChatPanelOpen(true);
+    if (isMobile) close();
+  };
+
+  const handleNewThread = async () => {
+    if (!familyId) return;
+    try {
+      const { threadId } = await createThread({ familyId });
+      openThread(threadId);
+      setExpanded(true);
+    } catch {
+      // Swallow — surfacing here would need a toast system; rail will retry on
+      // next interaction.
+    }
+  };
+
+  return (
+    <div className="mt-1 border-provost-border-subtle border-t pt-1">
+      <div
+        className={`nav-item flex items-center px-5 py-3 text-[17px] text-provost-neutral-550 transition-colors hover:bg-provost-bg-menu-hover ${
+          expanded ? "" : ""
+        }`}
+      >
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="flex flex-1 items-center"
+          aria-expanded={expanded}
+          aria-controls="threads-list"
+        >
+          <span className="flex h-6 w-6 items-center justify-center text-gray-500">
+            <Icon name="asterisk" size={24} weight={200} />
+          </span>
+          <span className="ml-[15px] flex-1 text-left">Threads</span>
+          <Icon
+            name={expanded ? "keyboard_arrow_up" : "keyboard_arrow_down"}
+            size={20}
+            className="text-provost-text-secondary"
+          />
+        </button>
+        <button
+          type="button"
+          onClick={handleNewThread}
+          className="ml-1 rounded p-1 text-provost-text-secondary transition-colors hover:bg-provost-bg-secondary"
+          aria-label="New thread"
+        >
+          <Icon name="add" size={20} />
+        </button>
+      </div>
+      {expanded && (
+        <ul id="threads-list" className="pb-2">
+          {threads === undefined ? (
+            <li className="px-5 py-2 text-[13px] text-provost-text-secondary">Loading…</li>
+          ) : threads.length === 0 ? (
+            <li className="px-5 py-2 text-[13px] text-provost-text-secondary">No threads yet</li>
+          ) : (
+            threads.map((t) => {
+              const active = openThreadId === t._id;
+              const label = (t.title ?? "").trim() || "Untitled";
+              return (
+                <li key={t._id}>
+                  <button
+                    type="button"
+                    onClick={() => openThread(t._id)}
+                    className={`flex w-full items-center px-5 py-2 text-left text-[14px] transition-colors hover:bg-provost-bg-menu-hover ${
+                      active ? "text-provost-text-primary" : "text-provost-neutral-550"
+                    }`}
+                  >
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center">
+                      <Icon
+                        name="trip_origin"
+                        size={14}
+                        weight={200}
+                        className="text-provost-text-secondary"
+                      />
+                    </span>
+                    <span className="ml-[15px] truncate">{label}</span>
+                  </button>
+                </li>
+              );
+            })
+          )}
+        </ul>
+      )}
+    </div>
   );
 }

@@ -69,6 +69,14 @@ function ChatPage() {
   );
 }
 
+function deriveTitle(raw: string): string {
+  const cleaned = raw.replace(/\s+/g, " ").trim();
+  if (cleaned.length <= 60) return cleaned || "Untitled";
+  const truncated = cleaned.slice(0, 60);
+  const lastSpace = truncated.lastIndexOf(" ");
+  return (lastSpace > 30 ? truncated.slice(0, lastSpace) : truncated) + "…";
+}
+
 function FullScreenBody({
   threadId,
   selection,
@@ -79,6 +87,7 @@ function FullScreenBody({
   visibleState: Record<string, unknown> | undefined;
 }) {
   const threadDoc = useThread(threadId);
+  const renameThread = useMutation(api.threads.rename);
   const {
     send,
     events,
@@ -98,6 +107,7 @@ function FullScreenBody({
     );
   }
   const thread = threadFromSchema(threadDoc as Parameters<typeof threadFromSchema>[0]);
+  const isUntitled = !thread.title?.trim() || thread.title.trim() === "Provost";
 
   return (
     <ChatPanel
@@ -105,6 +115,9 @@ function FullScreenBody({
       events={events}
       isStreaming={isStreaming}
       onSend={(text, fileIds) => {
+        if (isUntitled && text.trim()) {
+          void renameThread({ threadId, title: deriveTitle(text) }).catch(() => {});
+        }
         void send(text, { fileIds, selection, visibleState });
       }}
       onApprove={(toolCallId) => {
