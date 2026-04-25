@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { createContext, type ReactNode, useContext, useMemo, useState } from "react";
 import type { Id } from "../../../../convex/_generated/dataModel";
 
@@ -25,7 +26,15 @@ export function FamilyProvider({
 }
 
 export function useSelectedFamily(): Family {
-  return useContext(FamilyContext)?.family ?? null;
+  // Gate the family on Clerk's signed-in state. During sign-out the family
+  // can briefly remain in context after Clerk has cleared identity, which
+  // would otherwise let family-scoped Convex queries fire unauthenticated
+  // and throw (e.g. requireFamilyMember). On sign-in, gate the same way
+  // until Clerk has finished hydrating, so the cookie-seeded family doesn't
+  // surface before ConvexProviderWithClerk has attached the user's token.
+  const { isSignedIn } = useAuth();
+  const family = useContext(FamilyContext)?.family ?? null;
+  return isSignedIn ? family : null;
 }
 
 export function useFamilyContext(): FamilyContextValue {

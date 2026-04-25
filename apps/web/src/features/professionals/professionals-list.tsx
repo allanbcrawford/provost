@@ -3,12 +3,12 @@
 import { Button, Icon } from "@provost/ui";
 import { useQuery } from "convex/react";
 import { Fragment } from "react";
-import { useFamilyContext } from "@/context/family-context";
+import { useSelectedFamily } from "@/context/family-context";
 import { api } from "../../../../../convex/_generated/api";
 import type { Doc } from "../../../../../convex/_generated/dataModel";
 
 export function ProfessionalsList() {
-  const { family } = useFamilyContext();
+  const family = useSelectedFamily();
   const professionals = useQuery(
     api.professionals.list,
     family?._id ? { familyId: family._id } : "skip",
