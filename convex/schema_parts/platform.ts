@@ -126,4 +126,14 @@ export const platformTables = {
   })
     .index("by_family_and_key", ["family_id", "cache_key"])
     .index("by_generated_at", ["generated_at"]),
+
+  // Feature flags. Site-admin toggles drive whether a UI surface renders
+  // its content or shows a "Launching soon" overlay. `family_overrides`
+  // lets demo families bypass an otherwise-disabled flag.
+  feature_flags: defineTable({
+    key: v.string(),
+    enabled: v.boolean(),
+    family_overrides: v.array(v.id("families")),
+    description: v.optional(v.string()),
+  }).index("by_key", ["key"]),
 };
