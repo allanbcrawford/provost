@@ -43,12 +43,14 @@ export function EventFormModal({
   familyId,
   currentUserId,
   onCreated,
+  initialStart,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   familyId: Id<"families">;
   currentUserId: Id<"users"> | null;
   onCreated?: (eventId: Id<"events">) => void;
+  initialStart?: number | null;
 }) {
   const contacts = useQuery(api.events.listEventableContacts, open ? { familyId } : "skip");
   const createEvent = useMutation(api.events.create);
@@ -72,6 +74,19 @@ export function EventFormModal({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [start, end]);
+
+  // Apply caller-provided initial start when the modal opens (e.g. user
+  // clicked an empty calendar day).
+  useEffect(() => {
+    if (!open || initialStart === null || initialStart === undefined) return;
+    const d = new Date(initialStart);
+    // If the timestamp is a date-only midnight, default to 9am local for
+    // a sensible meeting time.
+    if (d.getHours() === 0 && d.getMinutes() === 0) d.setHours(9);
+    const s = toDatetimeLocalValue(d);
+    setStart(s);
+    setEnd(plusHourLocal(s));
+  }, [open, initialStart]);
 
   // Reset on close.
   useEffect(() => {
