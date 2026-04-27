@@ -229,23 +229,29 @@ function PreloadedFamilyPage({
 }: {
   preloaded: NonNullable<ReturnType<typeof usePreloadedFamilyGraph>>;
 }) {
+  const family = useAuthedFamily();
+  const familyId = family?._id as Id<"families"> | undefined;
   return (
     <AuthedPreloadedQuery preloaded={preloaded}>
-      {(graphData) => <FamilyPageInner graphData={graphData as GraphData} />}
+      {(graphData) => <FamilyPageInner graphData={graphData as GraphData} familyId={familyId} />}
     </AuthedPreloadedQuery>
   );
 }
 
 function LiveFamilyPage() {
   const family = useAuthedFamily();
-  const graphData = useQuery(
-    api.family.getGraph,
-    family ? { familyId: family._id as Id<"families"> } : "skip",
-  ) as GraphData;
-  return <FamilyPageInner graphData={graphData} />;
+  const familyId = family?._id as Id<"families"> | undefined;
+  const graphData = useQuery(api.family.getGraph, familyId ? { familyId } : "skip") as GraphData;
+  return <FamilyPageInner graphData={graphData} familyId={familyId} />;
 }
 
-function FamilyPageInner({ graphData }: { graphData: GraphData }) {
+function FamilyPageInner({
+  graphData,
+  familyId,
+}: {
+  graphData: GraphData;
+  familyId?: Id<"families">;
+}) {
   const [activeTab, setActiveTab] = useState<FamilyTab>("our-family");
   const [view, setView] = useState<FamilyView>("list");
   const members = graphData?.members ?? [];
@@ -306,7 +312,7 @@ function FamilyPageInner({ graphData }: { graphData: GraphData }) {
             </ReactFlowProvider>
           ) : (
             <div className="h-full overflow-auto px-8 pt-6 pb-8">
-              <MembersList members={members} />
+              <MembersList members={members} familyId={familyId} />
             </div>
           )
         ) : (

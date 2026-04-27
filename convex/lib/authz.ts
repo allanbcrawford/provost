@@ -43,6 +43,9 @@ export async function requireFamilyMember(
     .withIndex("by_family_and_user", (q) => q.eq("family_id", familyId).eq("user_id", user._id))
     .unique();
   if (!membership) throw new ConvexError({ code: "FORBIDDEN", familyId });
+  if (membership.lifecycle_status === "suspended") {
+    throw new ConvexError({ code: "FORBIDDEN_SUSPENDED", familyId });
+  }
   if (allowedRoles && !allowedRoles.includes(membership.role as Role)) {
     throw new ConvexError({
       code: "FORBIDDEN_ROLE",

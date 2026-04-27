@@ -12,7 +12,17 @@ async function loadFamilyMembers(ctx: QueryCtx, familyId: Id<"families">) {
     .withIndex("by_family", (q) => q.eq("family_id", familyId))
     .collect();
   const users = await Promise.all(memberships.map((m) => ctx.db.get(m.user_id)));
-  return users.flatMap((u) => (u && !u.deleted_at ? [u] : []));
+  return users.flatMap((u, i) => {
+    if (!u || u.deleted_at) return [];
+    const m = memberships[i];
+    return [
+      {
+        ...u,
+        family_role: m?.role,
+        lifecycle_status: m?.lifecycle_status ?? "active",
+      },
+    ];
+  });
 }
 
 export const getGraph = query({
@@ -146,6 +156,7 @@ export const createMember = mutation({
       family_id: args.familyId,
       user_id: userId,
       role: args.familyRole,
+      lifecycle_status: "pending",
     });
     await writeAudit(ctx, {
       familyId: args.familyId,

@@ -1,6 +1,13 @@
 "use client";
 
 import { Icon } from "@provost/ui";
+import { useMutation } from "convex/react";
+import { useState } from "react";
+import { useUserRole } from "@/hooks/use-user-role";
+import { api } from "../../../../../convex/_generated/api";
+import type { Id } from "../../../../../convex/_generated/dataModel";
+
+type LifecycleStatus = "pending" | "invited" | "active" | "dormant" | "suspended";
 
 type Member = {
   _id: string;
@@ -10,10 +17,26 @@ type Member = {
   date_of_birth?: string;
   generation: number;
   role: "admin" | "member";
+  lifecycle_status?: LifecycleStatus;
 };
 
 type Props = {
   members: Member[];
+  familyId?: Id<"families">;
+};
+
+const LIFECYCLE_PILL: Record<LifecycleStatus, { label: string; className: string } | null> = {
+  pending: {
+    label: "Pending",
+    className: "bg-provost-bg-secondary text-provost-text-secondary",
+  },
+  invited: {
+    label: "Invited",
+    className: "bg-provost-bg-secondary text-provost-text-secondary",
+  },
+  active: null,
+  dormant: { label: "Dormant", className: "bg-amber-100 text-amber-800" },
+  suspended: { label: "Suspended", className: "bg-red-100 text-red-800" },
 };
 
 function formatFullName(m: Member): string {
@@ -49,11 +72,35 @@ function initials(m: Member): string {
   return `${(m.first_name[0] ?? "").toUpperCase()}${(m.last_name[0] ?? "").toUpperCase()}`;
 }
 
-export function MembersList({ members }: Props) {
+export function MembersList({ members, familyId }: Props) {
   const sorted = [...members].sort((a, b) => {
     if (a.generation !== b.generation) return a.generation - b.generation;
     return a.last_name.localeCompare(b.last_name);
   });
+  const role = useUserRole();
+  const isAdmin = role === "admin";
+  const setLifecycleStatus = useMutation(api.familyUsers.setLifecycleStatus);
+  const [pendingFor, setPendingFor] = useState<string | null>(null);
+
+  async function changeStatus(userId: string, status: LifecycleStatus) {
+    if (!familyId) return;
+    if (status === "suspended") {
+      const ok = window.confirm(
+        "Suspend this member? They keep the family record but lose access until reinstated.",
+      );
+      if (!ok) return;
+    }
+    try {
+      setPendingFor(userId);
+      await setLifecycleStatus({
+        familyId,
+        userId: userId as Id<"users">,
+        status,
+      });
+    } finally {
+      setPendingFor(null);
+    }
+  }
 
   return (
     <div>
@@ -71,8 +118,19 @@ export function MembersList({ members }: Props) {
               </div>
 
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[20px] text-provost-text-primary leading-tight tracking-[-0.4px]">
-                  {formatFullName(m)}
+                <p className="flex items-center gap-2 truncate text-[20px] text-provost-text-primary leading-tight tracking-[-0.4px]">
+                  <span className="truncate">{formatFullName(m)}</span>
+                  {(() => {
+                    const pill = LIFECYCLE_PILL[m.lifecycle_status ?? "active"];
+                    if (!pill) return null;
+                    return (
+                      <span
+                        className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 font-medium text-[10px] uppercase tracking-wide ${pill.className}`}
+                      >
+                        {pill.label}
+                      </span>
+                    );
+                  })()}
                 </p>
                 <p className="mt-1.5 flex flex-wrap items-center gap-x-2.5 font-light text-[14px] text-provost-text-secondary">
                   {age !== null && <span>{age}</span>}
@@ -88,6 +146,21 @@ export function MembersList({ members }: Props) {
                     </>
                   )}
                 </p>
+                {isAdmin && familyId && (
+                  <select
+                    aria-label="Set lifecycle status"
+                    disabled={pendingFor === m._id}
+                    value={m.lifecycle_status ?? "active"}
+                    onChange={(e) => changeStatus(m._id, e.target.value as LifecycleStatus)}
+                    className="mt-2 rounded-md border border-provost-border-subtle bg-white px-2 py-1 text-[12px] text-provost-text-primary"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="invited">Invited</option>
+                    <option value="active">Active</option>
+                    <option value="dormant">Dormant</option>
+                    <option value="suspended">Suspended</option>
+                  </select>
+                )}
               </div>
 
               <div className="hidden w-[200px] shrink-0 md:block">

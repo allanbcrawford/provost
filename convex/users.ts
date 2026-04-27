@@ -362,8 +362,17 @@ export const addUserToFamilyByEmail = internalMutation({
       v.literal("advisor"),
       v.literal("trustee"),
     ),
+    lifecycleStatus: v.optional(
+      v.union(
+        v.literal("pending"),
+        v.literal("invited"),
+        v.literal("active"),
+        v.literal("dormant"),
+        v.literal("suspended"),
+      ),
+    ),
   },
-  handler: async (ctx, { email, familyName, role }) => {
+  handler: async (ctx, { email, familyName, role, lifecycleStatus }) => {
     const user = await ctx.db
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", email))
@@ -397,6 +406,7 @@ export const addUserToFamilyByEmail = internalMutation({
       family_id: family._id,
       user_id: user._id,
       role,
+      lifecycle_status: lifecycleStatus ?? "invited",
     });
     return { membershipId, action: "inserted" as const };
   },
@@ -479,13 +489,19 @@ export const linkSeededMemberByEmail = internalMutation({
       onboarding_status: "claimed",
     });
 
-    // Ensure they have a family_users row as a regular member.
+    // Ensure they have a family_users row as a regular member, and flip
+    // lifecycle to "active" since they've now signed in via Clerk.
     const membership = await ctx.db
       .query("family_users")
       .withIndex("by_user", (q) => q.eq("user_id", seeded._id))
       .first();
-    if (membership && membership.role === "admin") {
-      await ctx.db.patch(membership._id, { role: "member" });
+    if (membership) {
+      const patch: { role?: "member"; lifecycle_status?: "active" } = {};
+      if (membership.role === "admin") patch.role = "member";
+      if (membership.lifecycle_status !== "active") patch.lifecycle_status = "active";
+      if (Object.keys(patch).length > 0) {
+        await ctx.db.patch(membership._id, patch);
+      }
     }
 
     await writeAudit(ctx, {

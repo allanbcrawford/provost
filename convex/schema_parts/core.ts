@@ -61,6 +61,19 @@ export const coreTables = {
     // member is treated as on the family's payroll/team and surfaces in the
     // Internal directory.
     employment_role: v.optional(v.string()),
+    // Membership lifecycle. Optional during widen phase; backfilled to
+    // "active" by lifecycleBackfill.backfillAll. New email-add invites land
+    // as "invited" and flip to "active" on first Clerk-backed link. Suspended
+    // memberships keep the row but are rejected by requireFamilyMember.
+    lifecycle_status: v.optional(
+      v.union(
+        v.literal("pending"),
+        v.literal("invited"),
+        v.literal("active"),
+        v.literal("dormant"),
+        v.literal("suspended"),
+      ),
+    ),
   })
     .index("by_family", ["family_id"])
     .index("by_user", ["user_id"])
