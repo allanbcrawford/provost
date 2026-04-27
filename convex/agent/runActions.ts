@@ -189,7 +189,7 @@ export const execute = internalAction({
     const context = await ctx.runQuery(internal.agent.runInternal.loadRunContext, {
       runId: args.runId,
     });
-    const { run, thread, familyName, members, memories } = context;
+    const { run, thread, familyName, members, memories, caller } = context;
 
     let sequence = 0;
     const nextSeq = () => ++sequence;
@@ -340,6 +340,22 @@ export const execute = internalAction({
         visibleState: args.visibleState,
         members,
         memories,
+        familyRole: caller?.familyRole ?? null,
+        stewardshipPhase:
+          (caller?.stewardshipPhase as
+            | "emerging"
+            | "developing"
+            | "operating"
+            | "enduring"
+            | undefined) ?? null,
+        self: caller
+          ? {
+              firstName: caller.firstName,
+              lastName: caller.lastName,
+              generation: caller.generation,
+              stewardshipPhase: caller.stewardshipPhase,
+            }
+          : null,
       });
 
       const systemContent = guardDisclaimer

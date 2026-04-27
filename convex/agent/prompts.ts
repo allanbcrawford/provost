@@ -1,4 +1,13 @@
 import { PROVOST_INSTRUCTIONS } from "@provost/agent";
+import { memberContextFragment } from "./prompts/memberContext";
+import { pageContextFragment } from "./prompts/pageContext";
+import { phaseToneFragment, type StewardshipPhase } from "./prompts/phaseTone";
+import { type FamilyRole, roleFramingFragment } from "./prompts/roleFraming";
+
+// Kept around as a fallback in case a future change to the layered builder
+// breaks something at runtime — callers can revert by setting
+// PROVOST_FALLBACK_PROMPT as the system message.
+export const PROVOST_FALLBACK_PROMPT = PROVOST_INSTRUCTIONS;
 
 export type FamilyRosterEntry = {
   name: string;
@@ -13,6 +22,16 @@ export interface ProvostPromptContext {
   visibleState?: Record<string, unknown>;
   members?: FamilyRosterEntry[];
   memories?: Array<{ text: string; createdAt: number }>;
+  // Layered fragments — added in the prompt rewrite. Optional so legacy
+  // callers without these fields still work.
+  stewardshipPhase?: StewardshipPhase | null;
+  familyRole?: FamilyRole | null;
+  self?: {
+    firstName?: string;
+    lastName?: string;
+    generation?: number;
+    stewardshipPhase?: string;
+  } | null;
 }
 
 function renderRoster(members: FamilyRosterEntry[]): string {
@@ -20,33 +39,42 @@ function renderRoster(members: FamilyRosterEntry[]): string {
   const lines = members.map(
     (m) => `  <member><name>${m.name}</name> (role: ${m.role}, gen: ${m.generation})</member>`,
   );
-  return `\n\n<family_roster>\n${lines.join("\n")}\n</family_roster>`;
+  return `<family_roster>\n${lines.join("\n")}\n</family_roster>`;
 }
 
 export function buildSystemPrompt(context: ProvostPromptContext): string {
-  const parts: string[] = [PROVOST_INSTRUCTIONS];
+  const fragments: string[] = [PROVOST_INSTRUCTIONS];
 
-  const runtime: string[] = [];
-  if (context.familyName) runtime.push(`Current family: ${context.familyName}`);
-  if (context.route) runtime.push(`User is on route: ${context.route}`);
-  if (context.selection) {
-    runtime.push(`Selected entity: ${context.selection.kind} (${context.selection.id})`);
-  }
-  if (context.visibleState && Object.keys(context.visibleState).length > 0) {
-    runtime.push(`Visible UI state:\n${JSON.stringify(context.visibleState, null, 2)}`);
-  }
-  if (runtime.length > 0) {
-    parts.push(`\n\n<runtime_context>\n${runtime.join("\n\n")}\n</runtime_context>`);
+  // Layered scaffolding: each fragment renders as a self-contained tagged
+  // block that's safe to drop when the input is missing.
+  const phase = phaseToneFragment(context.stewardshipPhase ?? null);
+  if (phase) fragments.push(phase);
+
+  const role = roleFramingFragment(context.familyRole ?? null, context.familyName);
+  if (role) fragments.push(role);
+
+  const page = pageContextFragment({
+    route: context.route,
+    selection: context.selection ?? null,
+    visibleState: context.visibleState ?? null,
+  });
+  if (page) fragments.push(page);
+
+  const self = memberContextFragment(context.self ?? null);
+  if (self) fragments.push(self);
+
+  if (context.familyName && !role) {
+    fragments.push(`<runtime_context>Current family: ${context.familyName}</runtime_context>`);
   }
 
   if (context.members && context.members.length > 0) {
-    parts.push(renderRoster(context.members));
+    fragments.push(renderRoster(context.members));
   }
 
   if (context.memories && context.memories.length > 0) {
     const memLines = context.memories.map((m) => `  <memory>${m.text}</memory>`);
-    parts.push(`\n\n<family_memory>\n${memLines.join("\n")}\n</family_memory>`);
+    fragments.push(`<family_memory>\n${memLines.join("\n")}\n</family_memory>`);
   }
 
-  return parts.join("");
+  return fragments.join("\n\n---\n\n");
 }

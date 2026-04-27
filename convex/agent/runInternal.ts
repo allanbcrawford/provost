@@ -15,6 +15,14 @@ type RunContext = {
   familyName: string | null;
   members: RosterEntry[];
   memories: Array<{ text: string; createdAt: number }>;
+  // Layered-prompt inputs: who's asking, in what role, at what phase.
+  caller: {
+    firstName?: string;
+    lastName?: string;
+    generation?: number;
+    stewardshipPhase?: string;
+    familyRole?: "admin" | "member" | "advisor" | "trustee" | null;
+  } | null;
 };
 
 export const loadRunContext = internalQuery({
@@ -49,7 +57,25 @@ export const loadRunContext = internalQuery({
       createdAt: r._creationTime,
     }));
 
-    return { run, thread, familyName: family?.name ?? null, members, memories };
+    // Caller self-context for the layered system prompt.
+    let caller: RunContext["caller"] = null;
+    const callerUser = await ctx.db.get(run.user_id);
+    if (callerUser && !callerUser.deleted_at) {
+      const callerMembership = memberships.find((m) => m.user_id === callerUser._id);
+      const role = callerMembership?.role;
+      caller = {
+        firstName: callerUser.first_name,
+        lastName: callerUser.last_name,
+        generation: callerUser.generation,
+        stewardshipPhase: callerUser.stewardship_phase,
+        familyRole:
+          role === "admin" || role === "member" || role === "advisor" || role === "trustee"
+            ? role
+            : null,
+      };
+    }
+
+    return { run, thread, familyName: family?.name ?? null, members, memories, caller };
   },
 });
 
