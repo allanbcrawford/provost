@@ -19,4 +19,13 @@ crons.cron(
   internal.agent.digest.weeklyDigest,
 );
 
+// Monthly: capture an asset_snapshots row for every active asset so the
+// trend chart on /assets has fresh time-series data even when assets are
+// not edited.
+crons.cron(
+  "monthly-asset-snapshot",
+  "0 0 1 * *", // 1st of month, 00:00 UTC
+  internal.assetsInternal.captureMonthly,
+);
+
 export default crons;

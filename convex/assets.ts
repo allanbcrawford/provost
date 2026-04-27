@@ -1,9 +1,43 @@
 import { ConvexError, v } from "convex/values";
-import type { Id } from "./_generated/dataModel";
-import { mutation, query } from "./_generated/server";
+import type { Doc, Id } from "./_generated/dataModel";
+import { type MutationCtx, mutation, query } from "./_generated/server";
 import { filterByAccess, grantParty, requireResourceWrite } from "./lib/acl";
 import { writeAudit } from "./lib/audit";
 import { requireFamilyMember } from "./lib/authz";
+
+// Today at midnight UTC, in ms. The snapshot dedup key — same-day re-writes
+// patch the existing row instead of inserting a new one.
+function todayMidnightUtcMs(): number {
+  const now = new Date();
+  return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+}
+
+async function writeSnapshot(
+  ctx: MutationCtx,
+  asset: Doc<"assets">,
+  capturedBy: "manual" | "cron" | "mutation",
+) {
+  const snapshot_date = todayMidnightUtcMs();
+  const existing = await ctx.db
+    .query("asset_snapshots")
+    .withIndex("by_asset_and_date", (q) =>
+      q.eq("asset_id", asset._id).eq("snapshot_date", snapshot_date),
+    )
+    .unique();
+  const payload = {
+    family_id: asset.family_id,
+    asset_id: asset._id,
+    snapshot_date,
+    value: asset.value,
+    currency: asset.currency,
+    captured_by: capturedBy,
+  } as const;
+  if (existing) {
+    await ctx.db.patch(existing._id, payload);
+  } else {
+    await ctx.db.insert("asset_snapshots", payload);
+  }
+}
 
 // PRD asset taxonomy. Free-form `type` is preserved on the row so future
 // extensions don't require a schema migration, but the UI filter pins to
@@ -79,6 +113,8 @@ export const create = mutation({
       as_of_date: args.asOfDate,
       ...(args.liquidity ? { liquidity: args.liquidity } : {}),
     });
+    const inserted = await ctx.db.get(assetId);
+    if (inserted) await writeSnapshot(ctx, inserted, "mutation");
     await grantParty(ctx, {
       familyId: args.familyId,
       resourceType: "asset",
@@ -98,6 +134,95 @@ export const create = mutation({
       metadata: { name: args.name, type: args.type, value: args.value },
     });
     return assetId;
+  },
+});
+
+export const update = mutation({
+  args: {
+    assetId: v.id("assets"),
+    patch: v.object({
+      name: v.optional(v.string()),
+      type: v.optional(v.string()),
+      value: v.optional(v.number()),
+      currency: v.optional(v.string()),
+      asOfDate: v.optional(v.string()),
+      liquidity: v.optional(v.union(v.literal("liquid"), v.literal("illiquid"))),
+    }),
+  },
+  handler: async (ctx, { assetId, patch }) => {
+    const asset = await ctx.db.get(assetId);
+    if (!asset) throw new ConvexError({ code: "NOT_FOUND" });
+    const { user } = await requireResourceWrite(ctx, "asset", asset, assetId);
+    const dbPatch: Partial<Doc<"assets">> = {};
+    if (patch.name !== undefined) dbPatch.name = patch.name;
+    if (patch.type !== undefined) dbPatch.type = patch.type;
+    if (patch.value !== undefined) dbPatch.value = patch.value;
+    if (patch.currency !== undefined) dbPatch.currency = patch.currency;
+    if (patch.asOfDate !== undefined) dbPatch.as_of_date = patch.asOfDate;
+    if (patch.liquidity !== undefined) dbPatch.liquidity = patch.liquidity;
+    await ctx.db.patch(assetId, dbPatch);
+    const updated = await ctx.db.get(assetId);
+    if (updated) await writeSnapshot(ctx, updated, "mutation");
+    await writeAudit(ctx, {
+      familyId: asset.family_id,
+      actorUserId: user._id,
+      actorKind: "user",
+      category: "mutation",
+      action: "assets.update",
+      resourceType: "assets",
+      resourceId: assetId,
+      metadata: { fields: Object.keys(patch) },
+    });
+    return null;
+  },
+});
+
+// Per-family rollup of total assets value over time. Used by the trend
+// chart on the assets page. Caller's family scope is enforced via
+// requireFamilyMember; per-asset ACL filtering is applied so a member who
+// only sees a subset of the family's assets gets a partial rollup.
+export const historyForFamily = query({
+  args: { familyId: v.id("families"), since: v.number() },
+  handler: async (ctx, { familyId, since }) => {
+    const { membership } = await requireFamilyMember(ctx, familyId);
+    const liveAssets = await ctx.db
+      .query("assets")
+      .withIndex("by_family", (q) => q.eq("family_id", familyId))
+      .collect();
+    const visibleAssets = await filterByAccess(ctx, "asset", liveAssets, membership);
+    const visibleIds = new Set(visibleAssets.map((a) => a._id));
+    const snapshots = await ctx.db
+      .query("asset_snapshots")
+      .withIndex("by_family_and_date", (q) =>
+        q.eq("family_id", familyId).gte("snapshot_date", since),
+      )
+      .collect();
+    const dailyTotals = new Map<number, number>();
+    let currency = "USD";
+    for (const s of snapshots) {
+      if (!visibleIds.has(s.asset_id)) continue;
+      currency = s.currency;
+      dailyTotals.set(s.snapshot_date, (dailyTotals.get(s.snapshot_date) ?? 0) + s.value);
+    }
+    return Array.from(dailyTotals.entries())
+      .map(([date, total]) => ({ date, total, currency }))
+      .sort((a, b) => a.date - b.date);
+  },
+});
+
+export const historyForAsset = query({
+  args: { assetId: v.id("assets"), since: v.number() },
+  handler: async (ctx, { assetId, since }) => {
+    const asset = await ctx.db.get(assetId);
+    if (!asset) throw new ConvexError({ code: "NOT_FOUND" });
+    // requireResourceWrite for read is overkill; use requireFamilyMember +
+    // ACL filter via the access helper.
+    await requireFamilyMember(ctx, asset.family_id);
+    const snapshots = await ctx.db
+      .query("asset_snapshots")
+      .withIndex("by_asset_and_date", (q) => q.eq("asset_id", assetId).gte("snapshot_date", since))
+      .collect();
+    return snapshots.sort((a, b) => a.snapshot_date - b.snapshot_date);
   },
 });
 

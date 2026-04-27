@@ -6,6 +6,7 @@ import { useUserRole } from "@/hooks/use-user-role";
 import { APP_ROLES, type Role } from "@/lib/roles";
 import type { Doc, Id } from "../../../../../convex/_generated/dataModel";
 import { AssetFormModal } from "./asset-form-modal";
+import { AssetsTrendChart } from "./assets-trend-chart";
 
 function formatCurrency(value: number, currency: string): string {
   try {
@@ -80,7 +81,8 @@ export function AssetsList({ assets, familyId }: AssetsListProps) {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
+      {familyId ? <AssetsTrendChart familyId={familyId} /> : null}
       {header}
       {body}
       {canAdd && familyId ? (

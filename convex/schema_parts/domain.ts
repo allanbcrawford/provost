@@ -139,6 +139,22 @@ export const domainTables = {
     liquidity: v.optional(v.union(v.literal("liquid"), v.literal("illiquid"))),
   }).index("by_family", ["family_id"]),
 
+  // Time-series snapshots for the assets trend chart. Written from
+  // assets.create / assets.update (captured_by="mutation") and from a
+  // monthly cron (captured_by="cron"). Idempotent per
+  // (asset_id, snapshot_date) day key — same-day re-writes patch the
+  // existing row.
+  asset_snapshots: defineTable({
+    family_id: v.id("families"),
+    asset_id: v.id("assets"),
+    snapshot_date: v.number(),
+    value: v.number(),
+    currency: v.string(),
+    captured_by: v.union(v.literal("manual"), v.literal("cron"), v.literal("mutation")),
+  })
+    .index("by_asset_and_date", ["asset_id", "snapshot_date"])
+    .index("by_family_and_date", ["family_id", "snapshot_date"]),
+
   library_sources: defineTable({
     family_id: v.optional(v.id("families")),
     title: v.string(),
