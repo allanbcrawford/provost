@@ -1,10 +1,10 @@
 "use client";
 
-import { UserButton } from "@clerk/nextjs";
 import { Icon } from "@provost/ui";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Fragment, useMemo } from "react";
+import { UserMenu } from "@/components/user-menu";
 import { useBreadcrumbs } from "@/context/breadcrumb-context";
 import { useSelectedFamily } from "@/context/family-context";
 import { useSidebar } from "@/context/sidebar-context";
@@ -133,16 +133,7 @@ export function Header() {
           <Icon name="notifications" size={30} className="text-provost-text-secondary" />
         </button>
 
-        <div className="flex h-[45px] w-[45px] items-center justify-center overflow-hidden rounded-full">
-          <UserButton
-            appearance={{
-              elements: {
-                avatarBox: "w-[45px] h-[45px]",
-                userButtonAvatarBox: "w-[45px] h-[45px]",
-              },
-            }}
-          />
-        </div>
+        <UserMenu />
 
         <div className="mx-2 hidden h-[31px] w-px bg-provost-border-subtle md:block" />
 

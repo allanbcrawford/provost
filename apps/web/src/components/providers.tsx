@@ -7,7 +7,14 @@ import { useState } from "react";
 function ConvexClerkProviders({ children }: { children: React.ReactNode }) {
   const [convex] = useState(() => new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!));
   return (
-    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+    <ClerkProvider
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      signInUrl="/sign-in"
+      signInFallbackRedirectUrl="/"
+      allowedRedirectOrigins={[typeof window !== "undefined" ? window.location.origin : ""].filter(
+        Boolean,
+      )}
+    >
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
         {children}
       </ConvexProviderWithClerk>
