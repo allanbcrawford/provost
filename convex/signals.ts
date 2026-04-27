@@ -11,6 +11,13 @@ import { writeAudit } from "./lib/audit";
 import { requireFamilyMember } from "./lib/authz";
 import { computeSignals } from "./lib/signalRules";
 
+// Members only see signals where review_status is "approved" (or undefined,
+// which means pre-feature rows that are implicitly approved). Admins,
+// advisors, and trustees see all states so they can curate the queue.
+function isVisibleToMember(s: Doc<"signals">): boolean {
+  return s.review_status === undefined || s.review_status === "approved";
+}
+
 export const listOpen = query({
   args: { familyId: v.id("families") },
   handler: async (ctx, { familyId }) => {
@@ -20,7 +27,8 @@ export const listOpen = query({
       .withIndex("by_family", (q) => q.eq("family_id", familyId))
       .collect();
     const open = rows.filter((s) => s.status === "open" || s.status === "drafting");
-    return await filterByAccess(ctx, "signal", open, membership);
+    const reviewFiltered = membership.role === "member" ? open.filter(isVisibleToMember) : open;
+    return await filterByAccess(ctx, "signal", reviewFiltered, membership);
   },
 });
 
@@ -32,7 +40,90 @@ export const listAll = query({
       .query("signals")
       .withIndex("by_family", (q) => q.eq("family_id", familyId))
       .collect();
-    return await filterByAccess(ctx, "signal", rows, membership);
+    const reviewFiltered = membership.role === "member" ? rows.filter(isVisibleToMember) : rows;
+    return await filterByAccess(ctx, "signal", reviewFiltered, membership);
+  },
+});
+
+// Queue for advisors / family admins. Returns pending_review signals
+// scoped to the family. Members are not allowed to call this.
+export const listPendingReview = query({
+  args: { familyId: v.id("families") },
+  handler: async (ctx, { familyId }) => {
+    const { membership } = await requireFamilyMember(ctx, familyId, [
+      "admin",
+      "advisor",
+      "trustee",
+    ]);
+    const rows = await ctx.db
+      .query("signals")
+      .withIndex("by_family", (q) => q.eq("family_id", familyId))
+      .collect();
+    const pending = rows.filter((s) => s.review_status === "pending_review");
+    return await filterByAccess(ctx, "signal", pending, membership);
+  },
+});
+
+export const countPendingReview = query({
+  args: { familyId: v.id("families") },
+  handler: async (ctx, { familyId }) => {
+    const { membership } = await requireFamilyMember(ctx, familyId);
+    if (membership.role === "member") return 0;
+    const rows = await ctx.db
+      .query("signals")
+      .withIndex("by_family", (q) => q.eq("family_id", familyId))
+      .collect();
+    return rows.filter((s) => s.review_status === "pending_review").length;
+  },
+});
+
+export const approveSignal = mutation({
+  args: { signalId: v.id("signals") },
+  handler: async (ctx, { signalId }) => {
+    const signal = await ctx.db.get(signalId);
+    if (!signal) return null;
+    const { user } = await requireFamilyMember(ctx, signal.family_id, [
+      "admin",
+      "advisor",
+      "trustee",
+    ]);
+    await ctx.db.patch(signalId, { review_status: "approved" });
+    await writeAudit(ctx, {
+      familyId: signal.family_id,
+      actorUserId: user._id,
+      actorKind: "user",
+      category: "mutation",
+      action: "signals.approve",
+      resourceType: "signals",
+      resourceId: signalId,
+      metadata: { previousReview: signal.review_status ?? "approved" },
+    });
+    return null;
+  },
+});
+
+export const dismissSignal = mutation({
+  args: { signalId: v.id("signals"), reason: v.optional(v.string()) },
+  handler: async (ctx, { signalId, reason }) => {
+    const signal = await ctx.db.get(signalId);
+    if (!signal) return null;
+    const { user } = await requireFamilyMember(ctx, signal.family_id, [
+      "admin",
+      "advisor",
+      "trustee",
+    ]);
+    await ctx.db.patch(signalId, { review_status: "dismissed" });
+    await writeAudit(ctx, {
+      familyId: signal.family_id,
+      actorUserId: user._id,
+      actorKind: "user",
+      category: "mutation",
+      action: "signals.dismiss",
+      resourceType: "signals",
+      resourceId: signalId,
+      metadata: { reason: reason ?? null, previousReview: signal.review_status ?? "approved" },
+    });
+    return null;
   },
 });
 

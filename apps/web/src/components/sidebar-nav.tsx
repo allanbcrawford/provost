@@ -57,6 +57,13 @@ export function SidebarNav() {
   const { isOpen, isMobile, close } = useSidebar();
 
   const items = NAV_ITEMS.filter((item) => canSee(role, item.key));
+  const family = useAuthedFamily();
+  const familyId = family?._id as Id<"families"> | undefined;
+  const pendingReview = useQuery(
+    api.signals.countPendingReview,
+    familyId && role !== "member" ? { familyId } : "skip",
+  );
+  const signalsBadge = typeof pendingReview === "number" && pendingReview > 0 ? pendingReview : 0;
 
   const content = (
     <nav className="flex h-full flex-col overflow-y-auto pt-6">
@@ -96,6 +103,11 @@ export function SidebarNav() {
               )}
             </span>
             <span className="ml-[15px]">{item.label}</span>
+            {item.key === "SIGNALS" && signalsBadge > 0 && (
+              <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 font-medium text-[11px] text-white">
+                {signalsBadge}
+              </span>
+            )}
           </Link>
         );
       })}

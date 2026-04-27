@@ -26,6 +26,13 @@ export const platformTables = {
     ),
     source: v.union(v.literal("rule"), v.literal("llm"), v.literal("manual")),
     rule_key: v.optional(v.string()),
+    // Review workflow gate. Optional during widen phase. New LLM-sourced
+    // signals default to "pending_review"; rule + manual signals stay
+    // visible to family members immediately. Backfill defaults all
+    // existing rows to "approved" to preserve current behavior.
+    review_status: v.optional(
+      v.union(v.literal("pending_review"), v.literal("approved"), v.literal("dismissed")),
+    ),
   })
     .index("by_family", ["family_id"])
     .index("by_family_and_status", ["family_id", "status"])
