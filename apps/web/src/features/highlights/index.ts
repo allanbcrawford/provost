@@ -10,6 +10,7 @@ export { LegacyCard } from "./legacy-card";
 export { LessonsCard } from "./lessons-card";
 export { LiquidityCard } from "./liquidity-card";
 export { MessagesCard } from "./messages-card";
+export { PendingReviewCard } from "./pending-review-card";
 export { TaxLawCard } from "./tax-law-card";
 export { UrgentCard } from "./urgent-card";
 export { YearReviewCard } from "./year-review-card";

@@ -5,42 +5,54 @@ import {
   LessonsCard,
   LiquidityCard,
   MessagesCard,
+  PendingReviewCard,
   TaxLawCard,
   YearReviewCard,
 } from "@/features/highlights";
 
+// Bento dashboard. Uses grid-auto-flow: dense so any tile we add later
+// (e.g. PendingReviewCard, which only renders for advisors when there's
+// something to review) backfills any gap left by a missing tile rather
+// than leaving a hole in the layout.
 export default function DashboardPage() {
   return (
     <div className="p-6">
-      <div className="mx-auto grid max-w-[776px] grid-cols-1 gap-4 md:grid-cols-2 md:grid-rows-[137px_137px_293px_137px_137px]">
-        <div className="h-[293px] md:row-span-2 md:h-[290px]">
+      <div
+        className="mx-auto grid max-w-[776px] grid-cols-1 gap-4 md:grid-cols-2 md:auto-rows-[137px]"
+        style={{ gridAutoFlow: "dense" }}
+      >
+        <div className="md:row-span-2">
           <AssetsCard />
         </div>
 
-        <div className="h-[137px]">
+        <div>
           <TaxLawCard />
         </div>
 
-        <div className="h-[137px]">
+        <div>
           <LiquidityCard />
         </div>
 
-        <div className="h-[293px]">
+        <div className="md:row-span-2">
           <YearReviewCard />
         </div>
-        <div className="h-[293px]">
+        <div className="md:row-span-2">
           <ActivityCard />
         </div>
 
-        <div className="h-[293px] md:row-span-2 md:h-[290px]">
+        <div className="md:row-span-2">
           <LessonsCard />
         </div>
-        <div className="h-[137px]">
+        <div>
           <EventsCard />
         </div>
-        <div className="h-[137px]">
+        <div>
           <MessagesCard />
         </div>
+
+        {/* Renders only when there are signals waiting for review.
+            grid-auto-flow: dense slots it into the first available gap. */}
+        <PendingReviewCard />
       </div>
     </div>
   );
