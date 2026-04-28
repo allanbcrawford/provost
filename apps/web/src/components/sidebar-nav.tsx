@@ -27,7 +27,7 @@ type NavItem = {
 // Ordered to match provost-fe's sidebar, with our additional routes woven in
 // at intuitive positions.
 const NAV_ITEMS: NavItem[] = [
-  { key: "HOME", label: "Highlights", href: "/", customIconSrc: "/icons/highlights.svg" },
+  { key: "HOME", label: "Highlights", href: "/home", customIconSrc: "/icons/highlights.svg" },
   { key: "MESSAGES", label: "Messages", href: "/messages", icon: "inbox_text" },
   { key: "EVENTS", label: "Events", href: "/events", icon: "calendar_month" },
   { key: "ASSETS", label: "Assets", href: "/assets", icon: "request_quote" },
@@ -41,7 +41,7 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 function isActive(pathname: string, href: string): boolean {
-  if (href === "/") return pathname === "/";
+  if (href === "/home") return pathname === "/home";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
