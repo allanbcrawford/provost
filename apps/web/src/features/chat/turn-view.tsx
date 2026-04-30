@@ -24,16 +24,29 @@ export function TurnView({ turn, onApprove, onReject }: TurnViewProps) {
       )}
 
       {assistantMessages.map((message) => {
-        const textParts = (message.content ?? []).filter((p) => p.type === "text");
+        // message.content can be string (OpenAI default), Content[] (after
+        // schema normalization), or null/undefined (tool-only turns).
+        // MessageContent normalizes; here we just need to check whether
+        // there's any text content worth rendering at all.
+        const rawContent = message.content as unknown;
+        const hasTextContent =
+          typeof rawContent === "string"
+            ? rawContent.length > 0
+            : Array.isArray(rawContent)
+              ? rawContent.some(
+                  (p) =>
+                    p && typeof p === "object" && p.type === "text" && (p.text?.length ?? 0) > 0,
+                )
+              : false;
         const toolCalls = message.tool_calls ?? [];
 
         return (
           <div key={message.id} className="flex flex-col gap-3">
-            {textParts.length > 0 && (
+            {hasTextContent && (
               <div className="flex flex-col gap-1">
                 {/* biome-ignore lint/a11y/useValidAriaRole: MessageBubble uses `role` as a component prop, not ARIA */}
                 <MessageBubble role="assistant">
-                  <MessageContent parts={textParts} markdown={true} />
+                  <MessageContent parts={rawContent as never} markdown={true} />
                 </MessageBubble>
                 <span className="px-1 text-[10.5px] text-provost-text-tertiary">
                   AI-generated content

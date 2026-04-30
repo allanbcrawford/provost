@@ -5,14 +5,29 @@ import { Markdown } from "@provost/ui";
 import Image from "next/image";
 
 export type MessageContentProps = {
-  parts: Content[];
+  // Server-side run history stores OpenAI's `ChatCompletionMessageParam`
+  // shape, where content can be a plain string. The thread schema typing
+  // promises a Content[], but at runtime we sometimes get a string (or
+  // null/undefined for tool-only assistant turns). Normalize here so
+  // every consumer renders consistently.
+  parts: Content[] | string | null | undefined;
   markdown?: boolean;
 };
 
+function normalize(parts: MessageContentProps["parts"]): Content[] {
+  if (!parts) return [];
+  if (typeof parts === "string") {
+    return parts.length > 0 ? [{ type: "text", text: parts, name: null }] : [];
+  }
+  if (!Array.isArray(parts)) return [];
+  return parts;
+}
+
 export function MessageContent({ parts, markdown = true }: MessageContentProps) {
+  const normalized = normalize(parts);
   return (
     <div className="flex flex-col gap-2">
-      {parts.map((part, index) => {
+      {normalized.map((part, index) => {
         const key = `${part.type}-${index}`;
         if (part.type === "text") {
           return markdown ? (
