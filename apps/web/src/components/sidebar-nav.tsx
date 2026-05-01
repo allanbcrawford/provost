@@ -4,7 +4,7 @@ import { Icon } from "@provost/ui";
 import { useMutation, useQuery } from "convex/react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuthedFamily } from "@/context/family-context";
 import { usePreloadedThreads } from "@/context/preloaded-data-context";
@@ -112,6 +112,7 @@ export function SidebarNav() {
         );
       })}
       <ThreadsSection />
+      <ChatHistorySection />
     </nav>
   );
 
@@ -279,6 +280,98 @@ function ThreadsSectionInner({
                 </li>
               );
             })
+          )}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+// Phase 4.4 — recent chat history surfaced in left nav (Claude Recents pattern).
+// Cross-kind (side_rail + full_screen) read-only list of last 10 threads;
+// click opens the thread in the rail (side_rail) or navigates to /chat (full_screen).
+function ChatHistorySection() {
+  const family = useAuthedFamily();
+  const familyId = family?._id as Id<"families"> | undefined;
+  const router = useRouter();
+  const { isMobile, close } = useSidebar();
+  const { setOpenThreadId, setIsOpen: setChatPanelOpen } = useChatPanel();
+  const [expanded, setExpanded] = useState(false);
+
+  const rows = useQuery(
+    api.threads.recentThreads,
+    familyId && expanded ? { familyId, limit: 10 } : "skip",
+  ) as
+    | Array<{
+        id: Id<"threads">;
+        title: string;
+        preview: string;
+        updatedAt: number;
+        kind: "side_rail" | "full_screen" | null;
+      }>
+    | undefined;
+
+  if (!familyId) return null;
+
+  const onClickRow = (row: NonNullable<typeof rows>[number]) => {
+    if (row.kind === "full_screen") {
+      setOpenThreadId(row.id);
+      router.push(`/chat?threadId=${row.id}`);
+    } else {
+      setOpenThreadId(row.id);
+      setChatPanelOpen(true);
+    }
+    if (isMobile) close();
+  };
+
+  return (
+    <div className="px-2 pt-1">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="flex w-full items-center justify-between rounded-md px-2 py-1 text-left text-[12px] uppercase tracking-wide text-provost-text-tertiary hover:bg-provost-bg-muted/50"
+        aria-expanded={expanded}
+      >
+        <span>Chat history</span>
+        <span className="material-symbols-outlined text-[16px]">
+          {expanded ? "expand_less" : "expand_more"}
+        </span>
+      </button>
+      {expanded && (
+        <ul className="mt-1 space-y-0.5">
+          {rows === undefined ? (
+            <li className="px-2 py-1 text-[12px] text-provost-text-tertiary">Loading…</li>
+          ) : rows.length === 0 ? (
+            <li className="px-2 py-1 text-[12px] text-provost-text-tertiary">
+              No conversations yet
+            </li>
+          ) : (
+            rows.map((row) => (
+              <li key={String(row.id)}>
+                <button
+                  type="button"
+                  onClick={() => onClickRow(row)}
+                  className="flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left hover:bg-provost-bg-muted/50"
+                >
+                  <span
+                    className="material-symbols-outlined mt-0.5 text-[16px] text-provost-text-tertiary"
+                    aria-hidden
+                  >
+                    {row.kind === "full_screen" ? "chat" : "chat_bubble_outline"}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[13px] text-provost-text-primary">
+                      {row.title}
+                    </span>
+                    {row.preview && (
+                      <span className="block truncate text-[11px] text-provost-text-tertiary">
+                        {row.preview}
+                      </span>
+                    )}
+                  </span>
+                </button>
+              </li>
+            ))
           )}
         </ul>
       )}
