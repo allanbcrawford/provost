@@ -156,3 +156,27 @@ export const submit = mutation({
     return { ok: true };
   },
 });
+
+// Phase 5 Issue 5.1 — "Provost is analyzing this document" banner. Returns
+// true iff caller has a thread_runs row with status in {running,
+// waiting_for_approval} AND selection.kind === "document" AND
+// selection.id === documentId. Uses by_user index for efficiency.
+export const activeForDocument = query({
+  args: { documentId: v.id("documents") },
+  handler: async (ctx, { documentId }) => {
+    const doc = await ctx.db.get(documentId);
+    if (!doc || doc.deleted_at) return false;
+    const { user } = await requireFamilyMember(ctx, doc.family_id);
+
+    const rows = await ctx.db
+      .query("thread_runs")
+      .withIndex("by_user", (q) => q.eq("user_id", user._id))
+      .collect();
+    return rows.some((r) => {
+      if (r.status !== "running" && r.status !== "waiting_for_approval") return false;
+      const sel = r.selection;
+      if (!sel) return false;
+      return sel.kind === "document" && sel.id === documentId;
+    });
+  },
+});
