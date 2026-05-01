@@ -44,6 +44,11 @@ export const coreTables = {
     name: v.string(),
     description: v.optional(v.string()),
     created_by: v.id("users"),
+    // Phase 6.2 — family mission/values statement, free-text editable by
+    // family_admin/advisor. Renders on the Family > Values tab.
+    values_statement: v.optional(v.string()),
+    values_updated_at: v.optional(v.number()),
+    values_updated_by: v.optional(v.id("users")),
     deleted_at: v.optional(v.number()),
   }).index("by_created_by", ["created_by"]),
 

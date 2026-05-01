@@ -355,12 +355,15 @@ export const documentSections = query({
       const desc = (o.description ?? "").toLowerCase();
       let attachIdx = 0;
       for (let i = 0; i < sections.length; i++) {
-        if (desc.includes(sections[i].heading.toLowerCase())) {
+        const sec = sections[i];
+        if (sec && desc.includes(sec.heading.toLowerCase())) {
           attachIdx = i;
           break;
         }
       }
-      sections[attachIdx].observations.push({
+      const target = sections[attachIdx];
+      if (!target) continue;
+      target.observations.push({
         id: String(o._id),
         // observations table has no severity column; default to "info"
         severity: "info",

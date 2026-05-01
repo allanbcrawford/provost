@@ -823,7 +823,7 @@ export const relatedLessons = query({
               const prg = cachedP ?? (await ctx.db.get(trk.program_id));
               if (prg) {
                 programCache.set(String(trk.program_id), prg);
-                programTitle = prg.name ?? null;
+                programTitle = prg.title ?? null;
               }
             }
           }
@@ -1042,7 +1042,7 @@ export const familyProgressOverview = query({
         memberId: m.user_id,
         memberName,
         stewardshipPhase: phase,
-        programName: program?.name ?? null,
+        programName: program?.title ?? null,
         completedLessonCount,
         totalLessonCount,
         completionByDate: dayCounts,
