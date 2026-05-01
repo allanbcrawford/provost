@@ -3,6 +3,7 @@ import { internal } from "../../_generated/api";
 import { mutation } from "../../_generated/server";
 import { writeAudit } from "../../lib/audit";
 import { requireFamilyMember } from "../../lib/authz";
+import { touchThread } from "../../lib/threads";
 
 export const submit = mutation({
   args: {
@@ -27,6 +28,8 @@ export const submit = mutation({
     const newMessages = [...(thread.messages ?? []), toolMessage];
     await ctx.db.patch(run.thread_id, { messages: newMessages });
     await ctx.db.patch(runId, { history: newMessages });
+    // Phase 4 follow-up — bump last_message_at for recentThreads recency
+    await touchThread(ctx, run.thread_id);
 
     await writeAudit(ctx, {
       familyId: run.family_id,

@@ -5,6 +5,7 @@ import { mutation } from "../_generated/server";
 import { writeAudit } from "../lib/audit";
 import { requireFamilyMember } from "../lib/authz";
 import { checkAndIncrement } from "../lib/rateLimit";
+import { touchThread } from "../lib/threads";
 
 const toolSurfaceValidator = v.union(
   v.literal("family"),
@@ -45,6 +46,8 @@ export const start = mutation({
     const userMessage = { role: "user" as const, content: args.userMessage };
     const messages = [...(thread.messages ?? []), userMessage];
     await ctx.db.patch(args.threadId, { messages });
+    // Phase 4 follow-up — bump last_message_at for recentThreads recency
+    await touchThread(ctx, args.threadId);
 
     const runId = await ctx.db.insert("thread_runs", {
       thread_id: args.threadId,

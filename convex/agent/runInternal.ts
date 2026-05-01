@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { internalMutation, internalQuery } from "../_generated/server";
 import { writeAudit } from "../lib/audit";
+import { touchThread } from "../lib/threads";
 
 type RosterEntry = {
   name: string;
@@ -254,6 +255,8 @@ export const appendMessages = internalMutation({
     if (!thread) throw new Error("thread not found");
     await ctx.db.patch(args.threadId, { messages: args.messages });
     await ctx.db.patch(args.runId, { history: args.messages });
+    // Phase 4 follow-up — bump last_message_at for recentThreads recency
+    await touchThread(ctx, args.threadId);
   },
 });
 
