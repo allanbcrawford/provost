@@ -16,6 +16,7 @@
 
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
+import { touchLessonUser } from "./lib/lessonUsers";
 
 const ACTIVE_LIMIT = 2;
 
@@ -163,6 +164,8 @@ export async function completeLessonAndAdvance(
       status: "complete",
       quiz_passed_at: Date.now(),
     });
+    // Phase 5.5.4 — quiz pass is a user-driven touch
+    await touchLessonUser(ctx, row._id);
   } else {
     await ctx.db.insert("lesson_users", {
       lesson_id: args.lessonId,
@@ -171,6 +174,7 @@ export async function completeLessonAndAdvance(
       status: "complete",
       slide_index: 0,
       quiz_passed_at: Date.now(),
+      last_touched_at: Date.now(),
     });
   }
 
