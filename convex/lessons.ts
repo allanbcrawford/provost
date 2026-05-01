@@ -851,8 +851,9 @@ export const memberLessonRollup = query({
       .query("family_users")
       .withIndex("by_user", (q) => q.eq("user_id", memberId))
       .collect();
-    if (memberships.length === 0) return [];
-    const familyId = memberships[0].family_id;
+    const firstMembership = memberships[0];
+    if (!firstMembership) return [];
+    const familyId = firstMembership.family_id;
     await requireFamilyMember(ctx, familyId, ["admin", "advisor"]);
 
     const lessonUsers = await ctx.db
