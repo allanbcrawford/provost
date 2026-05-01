@@ -4,9 +4,11 @@ import { chatTables } from "./schema_parts/chat";
 import { coreTables } from "./schema_parts/core";
 import { domainTables } from "./schema_parts/domain";
 import { eventTables } from "./schema_parts/events";
+import { familyHistoryTables } from "./schema_parts/familyHistory";
 import { learningTables } from "./schema_parts/learning";
 import { messageTables } from "./schema_parts/messages";
 import { platformTables } from "./schema_parts/platform";
+import { presenceTables } from "./schema_parts/presence";
 
 export default defineSchema({
   ...coreTables,
@@ -17,4 +19,6 @@ export default defineSchema({
   ...learningTables,
   ...messageTables,
   ...eventTables,
+  ...familyHistoryTables,
+  ...presenceTables,
 });
