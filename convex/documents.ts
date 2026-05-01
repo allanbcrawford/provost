@@ -319,11 +319,14 @@ export const documentSections = query({
       } else {
         const seenIds = new Map<string, number>();
         for (let i = 0; i < matches.length; i++) {
-          const headingText = matches[i][1].trim();
-          const start = matches[i].index! + matches[i][0].length;
-          const end = i + 1 < matches.length ? matches[i + 1].index! : summary.length;
+          const m = matches[i];
+          if (!m || m.index == null) continue;
+          const headingText = (m[1] ?? "").trim();
+          const start = m.index + m[0].length;
+          const next = matches[i + 1];
+          const end = next?.index != null ? next.index : summary.length;
           const body = summary.slice(start, end).trim();
-          let baseId = slug(headingText) || `section-${i + 1}`;
+          const baseId = slug(headingText) || `section-${i + 1}`;
           const dupCount = seenIds.get(baseId) ?? 0;
           seenIds.set(baseId, dupCount + 1);
           const id = dupCount === 0 ? baseId : `${baseId}-${dupCount + 1}`;
