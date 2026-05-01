@@ -14,6 +14,12 @@ export const chatTables = {
     summary: v.optional(v.string()),
     summarized_up_to_index: v.optional(v.number()),
     summarized_at: v.optional(v.number()),
+    // Phase 4 Issue 4.1 — distinguishes side-rail vs full-screen chat threads.
+    // Optional: legacy threads with missing kind resolve as side_rail.
+    kind: v.optional(v.union(v.literal("side_rail"), v.literal("full_screen"))),
+    // Phase 4 follow-up — denormalized timestamp of the most recent message
+    // append, patched via convex/lib/threads.ts touchThread helper.
+    last_message_at: v.optional(v.number()),
     deleted_at: v.optional(v.number()),
   })
     .index("by_family", ["family_id"])

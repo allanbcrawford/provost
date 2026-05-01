@@ -20,6 +20,11 @@ export const domainTables = {
     // path. Lessons missing format are treated as slides.
     format: v.optional(v.union(v.literal("article"), v.literal("slides"))),
     article_markdown: v.optional(v.string()),
+    // Phase 5.5.3 — curriculum priority tier per education-curriculum.md.
+    // Optional: legacy lessons resolve as `core` (the default).
+    priority: v.optional(
+      v.union(v.literal("core"), v.literal("extended"), v.literal("exploratory")),
+    ),
     embedding: v.optional(v.array(v.float64())),
     deleted_at: v.optional(v.number()),
   })
@@ -42,6 +47,10 @@ export const domainTables = {
     status: learningStatusValidator,
     slide_index: v.number(),
     quiz_passed_at: v.optional(v.number()),
+    // Phase 5.5.4 — denormalized timestamp of the most recent user-driven
+    // touch (start, complete, slide advance, quiz pass). Patched via
+    // convex/lib/lessonUsers.ts touchLessonUser helper.
+    last_touched_at: v.optional(v.number()),
   })
     .index("by_user", ["user_id"])
     .index("by_lesson", ["lesson_id"])

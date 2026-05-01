@@ -41,6 +41,12 @@ export type ChatPanelContextValue = {
   registerPageContext: (token: symbol, ctx: PageContext) => void;
   updatePageContext: (token: symbol, ctx: PageContext) => void;
   unregisterPageContext: (token: symbol) => void;
+  // Phase 2 Issue 2.1 — seeded-prompt mechanism. Surfaces like "Add Member"
+  // or end-of-article "Feedback" queue a user message that the rail consumes
+  // once a thread is open.
+  pendingSeedPrompt: string | null;
+  requestSeedPrompt: (text: string) => void;
+  consumeSeedPrompt: () => string | null;
 };
 
 const ChatPanelContext = createContext<ChatPanelContextValue | null>(null);
@@ -62,6 +68,22 @@ export function ChatPanelProvider({
   const [isOpen, setIsOpen] = useState<boolean>(defaultOpen);
   const pathname = usePathname();
   const isFullScreen = pathname === "/chat" || pathname.startsWith("/chat/");
+
+  // Phase 2.1 seeded-prompt queue. Held in a ref so request → consume is a
+  // single round-trip without re-render churn between siblings.
+  const seedPromptRef = useRef<string | null>(null);
+  const [pendingSeedPrompt, setPendingSeedPrompt] = useState<string | null>(null);
+  const requestSeedPrompt = useCallback((text: string) => {
+    seedPromptRef.current = text;
+    setPendingSeedPrompt(text);
+    setIsOpen(true);
+  }, []);
+  const consumeSeedPrompt = useCallback((): string | null => {
+    const text = seedPromptRef.current;
+    seedPromptRef.current = null;
+    setPendingSeedPrompt(null);
+    return text;
+  }, []);
 
   // Stack of registered page contexts. The last entry wins — this matches
   // the natural mount order: a deeper detail panel mounted on top of a list
@@ -116,6 +138,9 @@ export function ChatPanelProvider({
       registerPageContext,
       updatePageContext,
       unregisterPageContext,
+      pendingSeedPrompt,
+      requestSeedPrompt,
+      consumeSeedPrompt,
     }),
     [
       openThreadId,
@@ -125,6 +150,9 @@ export function ChatPanelProvider({
       registerPageContext,
       updatePageContext,
       unregisterPageContext,
+      pendingSeedPrompt,
+      requestSeedPrompt,
+      consumeSeedPrompt,
     ],
   );
 
