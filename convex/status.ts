@@ -1,41 +1,31 @@
-// Phase 7.3: Public Convex queries for the /status page.
-// The /status route is unauthenticated (no auth required per status/page.tsx),
-// so these queries are registered as public and perform no auth check —
-// consistent with the existing page's design intent.
+// Public, unauthenticated Convex functions backing the /status page.
+// All queries/actions here are intentionally public — /status itself does not
+// require auth — so they must never return secrets or family-scoped data.
 
 import { v } from "convex/values";
 import { action, internalMutation, query } from "./_generated/server";
 
-// Returns p50 / p95 TTFT (time-to-first-token) statistics computed from
-// thread_runs rows that finished within the last `withinMinutes` minutes and
-// have a non-null ttft_ms value. Uses the by_family index is not useful here;
-// we scan by_user is also not ideal — we use the by_thread index indirectly
-// via a bounded take on the full table ordered by _creationTime descending.
-// For V1 volumes this is acceptable; add a dedicated index if needed at scale.
+const CRON_ACTION_PREFIX = "cron.";
+
+// ---------------------------------------------------------------------------
+// Chat TTFT (Phase 7.3)
+// ---------------------------------------------------------------------------
+
+// Returns p50/p95 time-to-first-token across recent completed thread_runs.
+// Scans the most recent 500 rows and stops once we cross the time window —
+// acceptable for V1 volumes. Add a dedicated index if scale demands it.
 export const recentChatTtftStats = query({
   args: {
     withinMinutes: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const windowMs = (args.withinMinutes ?? 60) * 60 * 1000;
-    const cutoff = Date.now() - windowMs;
-
-    // Take the most recent 500 completed runs and filter to the time window.
-    // 500 is a safe upper bound for a 60-minute window in early beta.
-    const rows = await ctx.db
-      .query("thread_runs")
-      .order("desc")
-      .take(500);
+    const cutoff = Date.now() - (args.withinMinutes ?? 60) * 60 * 1000;
+    const rows = await ctx.db.query("thread_runs").order("desc").take(500);
 
     const samples: number[] = [];
     for (const row of rows) {
-      // Stop scanning once we're past the time window.
       if (row._creationTime < cutoff) break;
-      if (
-        row.status === "completed" &&
-        row.ttft_ms !== undefined &&
-        row.ttft_ms !== null
-      ) {
+      if (row.status === "completed" && row.ttft_ms != null) {
         samples.push(row.ttft_ms);
       }
     }
@@ -45,18 +35,17 @@ export const recentChatTtftStats = query({
     }
 
     const sorted = [...samples].sort((a, b) => a - b);
-    const p50 = sorted[Math.floor(sorted.length * 0.5)] ?? null;
-    const p95 = sorted[Math.floor(sorted.length * 0.95)] ?? null;
-
-    return { p50, p95, sampleSize: samples.length };
+    return {
+      p50: sorted[Math.floor(sorted.length * 0.5)] ?? null,
+      p95: sorted[Math.floor(sorted.length * 0.95)] ?? null,
+      sampleSize: samples.length,
+    };
   },
 });
 
 // ---------------------------------------------------------------------------
-// Phase 7.4: cron health + OpenAI ping (additive — do not collapse with 7.3).
+// Cron health + OpenAI ping (Phase 7.4)
 // ---------------------------------------------------------------------------
-
-const CRON_ACTION_PREFIX = "cron.";
 
 // Names registered in convex/crons.ts. Listed manually so the status page
 // can show crons that have never run yet (lastRunAt: null).
