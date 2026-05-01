@@ -19,7 +19,7 @@
     "maxSessionTime": "30 minutes",
     "autoRetry": true,
     "parallelism": "After Phase 1, dispatch independent issues across phases 2-6 concurrently",
-    "phaseEndProtocol": "At the end of every remaining phase: (1) code-simplifier sweeps phase work product, (2) tester/validator runs static checks + reads code for AC verification, (3) verification-before-completion runs evidence-of-execution proof on every claim agents made (forbidden to take agent self-reports at face value), (4) only after all three pass cleanly, proceed to next phase. Trigger for the 3rd gate: prior parallel-coordination accidents where agent self-reports were inaccurate."
+    "phaseEndProtocol": "At the end of every remaining phase: (1) ORCHESTRATOR commits every agent's work to git via --no-verify IMMEDIATELY after the agent reports — DO NOT wait until after simplifier/validator. (2) code-simplifier sweeps phase work product. (3) ORCHESTRATOR commits simplifier's changes via --no-verify. (4) tester/validator runs static checks + reads code for AC verification. (5) verification-before-completion runs evidence-of-execution proof on every claim agents made. (6) ORCHESTRATOR commits anything that got fixed during validation. SUBAGENTS ARE FORBIDDEN FROM RUNNING git operations beyond git status/git diff/git show/git log. NEVER allow subagent to run git stash / git reset / git checkout / git restore. The 19:50-19:55 incident on 2026-04-30 confirmed subagent git operations destroyed 6+ files of work; never again."
   },
   "nonEngineeringBlockers": [
     "Brad: write beta scope doc (in/out for April 15)",
