@@ -18,6 +18,7 @@ import { mutation, query } from "./_generated/server";
 import { advanceLearner } from "./lessonDelivery";
 import { writeAudit } from "./lib/audit";
 import { requireFamilyMember, requireSiteAdmin, requireUserRecord } from "./lib/authz";
+import { touchLessonUser } from "./lib/lessonUsers";
 
 export const list = query({
   args: { familyId: v.id("families") },
@@ -174,6 +175,8 @@ export const start = mutation({
       if (existing.status !== "completed") {
         await ctx.db.patch(existing._id, { status: "in_progress" });
       }
+      // Phase 5.5.4 — user-driven touch
+      await touchLessonUser(ctx, existing._id);
       assignmentId = existing._id;
     } else {
       assignmentId = await ctx.db.insert("lesson_users", {
@@ -181,6 +184,7 @@ export const start = mutation({
         user_id: user._id,
         status: "in_progress",
         slide_index: 0,
+        last_touched_at: Date.now(),
       });
     }
     await writeAudit(ctx, {
@@ -211,6 +215,8 @@ export const complete = mutation({
     let assignmentId: Id<"lesson_users">;
     if (existing) {
       await ctx.db.patch(existing._id, { status: "completed" });
+      // Phase 5.5.4 — user-driven touch
+      await touchLessonUser(ctx, existing._id);
       assignmentId = existing._id;
     } else {
       assignmentId = await ctx.db.insert("lesson_users", {
@@ -218,6 +224,7 @@ export const complete = mutation({
         user_id: user._id,
         status: "completed",
         slide_index: 0,
+        last_touched_at: Date.now(),
       });
     }
     await writeAudit(ctx, {
@@ -251,6 +258,8 @@ export const setSlideIndex = mutation({
         slide_index: slideIndex,
         status: existing.status === "completed" ? existing.status : "in_progress",
       });
+      // Phase 5.5.4 — user-driven touch
+      await touchLessonUser(ctx, existing._id);
       assignmentId = existing._id;
     } else {
       assignmentId = await ctx.db.insert("lesson_users", {
@@ -258,6 +267,7 @@ export const setSlideIndex = mutation({
         user_id: user._id,
         status: "in_progress",
         slide_index: slideIndex,
+        last_touched_at: Date.now(),
       });
     }
     await writeAudit(ctx, {
@@ -585,6 +595,8 @@ export const recordSlideIndex = mutation({
       .unique();
     if (existing) {
       await ctx.db.patch(existing._id, { slide_index: slideIndex });
+      // Phase 5.5.4 — user-driven touch
+      await touchLessonUser(ctx, existing._id);
       return existing._id;
     }
     return await ctx.db.insert("lesson_users", {
@@ -593,6 +605,7 @@ export const recordSlideIndex = mutation({
       family_id: lesson.family_id,
       status: "active",
       slide_index: slideIndex,
+      last_touched_at: Date.now(),
     });
   },
 });
