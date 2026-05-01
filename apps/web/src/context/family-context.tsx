@@ -9,6 +9,10 @@ export type Family = { _id: Id<"families">; name: string; myRole: string } | nul
 type FamilyContextValue = {
   family: Family;
   setFamily: (f: Family) => void;
+  // Phase 6.1 — advisor multi-family aggregate view. When true, the app
+  // renders the cross-family dashboard instead of a per-family scope.
+  isAggregateView: boolean;
+  setAggregateView: (on: boolean) => void;
 };
 
 const FamilyContext = createContext<FamilyContextValue | null>(null);
@@ -16,13 +20,25 @@ const FamilyContext = createContext<FamilyContextValue | null>(null);
 export function FamilyProvider({
   children,
   initialFamily = null,
+  initialAggregateView = false,
 }: {
   children: ReactNode;
   initialFamily?: Family;
+  initialAggregateView?: boolean;
 }) {
   const [family, setFamily] = useState<Family>(initialFamily);
-  const value = useMemo<FamilyContextValue>(() => ({ family, setFamily }), [family]);
+  const [isAggregateView, setAggregateView] = useState<boolean>(initialAggregateView);
+  const value = useMemo<FamilyContextValue>(
+    () => ({ family, setFamily, isAggregateView, setAggregateView }),
+    [family, isAggregateView],
+  );
   return <FamilyContext.Provider value={value}>{children}</FamilyContext.Provider>;
+}
+
+// Phase 6.1 — convenience hook for components that only need the aggregate
+// flag (e.g. /home page deciding whether to render <MultiFamilyHome />).
+export function useAggregateView(): boolean {
+  return useContext(FamilyContext)?.isAggregateView ?? false;
 }
 
 export function useSelectedFamily(): Family {

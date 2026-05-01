@@ -19,3 +19,6 @@ storybook-static/
 *.tsbuildinfo
 .vercel
 .claude/settings.local.json
+
+# Stale Convex codegen artifact — root convex/ is canonical
+apps/web/convex/

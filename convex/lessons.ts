@@ -18,6 +18,7 @@ import { mutation, query } from "./_generated/server";
 import { advanceLearner } from "./lessonDelivery";
 import { writeAudit } from "./lib/audit";
 import { requireFamilyMember, requireSiteAdmin, requireUserRecord } from "./lib/authz";
+import { touchLessonUser } from "./lib/lessonUsers";
 
 export const list = query({
   args: { familyId: v.id("families") },
@@ -174,6 +175,8 @@ export const start = mutation({
       if (existing.status !== "completed") {
         await ctx.db.patch(existing._id, { status: "in_progress" });
       }
+      // Phase 5.5.4 — user-driven touch
+      await touchLessonUser(ctx, existing._id);
       assignmentId = existing._id;
     } else {
       assignmentId = await ctx.db.insert("lesson_users", {
@@ -181,6 +184,7 @@ export const start = mutation({
         user_id: user._id,
         status: "in_progress",
         slide_index: 0,
+        last_touched_at: Date.now(),
       });
     }
     await writeAudit(ctx, {
@@ -211,6 +215,8 @@ export const complete = mutation({
     let assignmentId: Id<"lesson_users">;
     if (existing) {
       await ctx.db.patch(existing._id, { status: "completed" });
+      // Phase 5.5.4 — user-driven touch
+      await touchLessonUser(ctx, existing._id);
       assignmentId = existing._id;
     } else {
       assignmentId = await ctx.db.insert("lesson_users", {
@@ -218,6 +224,7 @@ export const complete = mutation({
         user_id: user._id,
         status: "completed",
         slide_index: 0,
+        last_touched_at: Date.now(),
       });
     }
     await writeAudit(ctx, {
@@ -251,6 +258,8 @@ export const setSlideIndex = mutation({
         slide_index: slideIndex,
         status: existing.status === "completed" ? existing.status : "in_progress",
       });
+      // Phase 5.5.4 — user-driven touch
+      await touchLessonUser(ctx, existing._id);
       assignmentId = existing._id;
     } else {
       assignmentId = await ctx.db.insert("lesson_users", {
@@ -258,6 +267,7 @@ export const setSlideIndex = mutation({
         user_id: user._id,
         status: "in_progress",
         slide_index: slideIndex,
+        last_touched_at: Date.now(),
       });
     }
     await writeAudit(ctx, {
@@ -585,6 +595,8 @@ export const recordSlideIndex = mutation({
       .unique();
     if (existing) {
       await ctx.db.patch(existing._id, { slide_index: slideIndex });
+      // Phase 5.5.4 — user-driven touch
+      await touchLessonUser(ctx, existing._id);
       return existing._id;
     }
     return await ctx.db.insert("lesson_users", {
@@ -593,6 +605,7 @@ export const recordSlideIndex = mutation({
       family_id: lesson.family_id,
       status: "active",
       slide_index: slideIndex,
+      last_touched_at: Date.now(),
     });
   },
 });
@@ -692,5 +705,403 @@ export const familyProgress = query({
       });
     }
     return out;
+  },
+});
+
+// =============================================================================
+// Phase 3 + Phase 5 queries — for Education Polish + Smart View consumers
+// =============================================================================
+
+const STALE_DAYS = 14;
+const FAILED_QUIZ_THRESHOLD = 3;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Phase 3 Issue 3.2 — recommended adjacent lessons for end-of-article rail.
+// Phase 1: same-track siblings sorted by |sort_order - source| proximity
+// (after-then-before tie-break). Phase 2: expand to next track in same
+// program. Excludes source lesson + already-completed lessons.
+export const relatedLessons = query({
+  args: { lessonId: v.id("lessons"), limit: v.optional(v.number()) },
+  handler: async (ctx, { lessonId, limit }) => {
+    const source = await ctx.db.get(lessonId);
+    if (!source || source.deleted_at) return [];
+    const { user } = await requireFamilyMember(ctx, source.family_id);
+    const cap = Math.max(1, Math.min(limit ?? 3, 10));
+
+    const lessonUsers = await ctx.db
+      .query("lesson_users")
+      .withIndex("by_user", (q) => q.eq("user_id", user._id))
+      .collect();
+    const completedSet = new Set(
+      lessonUsers
+        .filter((lu) => lu.status === "complete" || lu.status === "advanced" || lu.status === "completed")
+        .map((lu) => String(lu.lesson_id)),
+    );
+
+    const excluded = new Set<string>([String(lessonId)]);
+    const out: Doc<"lessons">[] = [];
+
+    if (source.track_id) {
+      const trackLessons = await ctx.db
+        .query("lessons")
+        .withIndex("by_track", (q) => q.eq("track_id", source.track_id))
+        .collect();
+      const sourceOrder = source.sort_order ?? 0;
+      const candidates = trackLessons
+        .filter((l) => !l.deleted_at && !excluded.has(String(l._id)) && !completedSet.has(String(l._id)))
+        .map((l) => ({
+          lesson: l,
+          delta: (l.sort_order ?? 0) - sourceOrder,
+        }))
+        .sort((a, b) => {
+          const ad = Math.abs(a.delta);
+          const bd = Math.abs(b.delta);
+          if (ad !== bd) return ad - bd;
+          // tie-break: after first
+          if (a.delta > 0 && b.delta < 0) return -1;
+          if (a.delta < 0 && b.delta > 0) return 1;
+          return 0;
+        });
+      for (const c of candidates) {
+        if (out.length >= cap) break;
+        out.push(c.lesson);
+        excluded.add(String(c.lesson._id));
+      }
+    }
+
+    if (out.length < cap && source.track_id) {
+      const sourceTrack = await ctx.db.get(source.track_id);
+      if (sourceTrack?.program_id) {
+        const programTracks = await ctx.db
+          .query("tracks")
+          .withIndex("by_program", (q) => q.eq("program_id", sourceTrack.program_id))
+          .collect();
+        const sourceTrackOrder = sourceTrack.sort_order ?? 0;
+        const otherTracks = programTracks
+          .filter((t) => !t.deleted_at && t._id !== source.track_id)
+          .sort((a, b) => {
+            const aOrd = a.sort_order ?? Infinity;
+            const bOrd = b.sort_order ?? Infinity;
+            const aAfter = aOrd > sourceTrackOrder;
+            const bAfter = bOrd > sourceTrackOrder;
+            if (aAfter !== bAfter) return aAfter ? -1 : 1;
+            return Math.abs(aOrd - sourceTrackOrder) - Math.abs(bOrd - sourceTrackOrder);
+          });
+        for (const trk of otherTracks) {
+          if (out.length >= cap) break;
+          const lessons = await ctx.db
+            .query("lessons")
+            .withIndex("by_track", (q) => q.eq("track_id", trk._id))
+            .collect();
+          const sorted = lessons
+            .filter((l) => !l.deleted_at && !excluded.has(String(l._id)) && !completedSet.has(String(l._id)))
+            .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+          for (const l of sorted) {
+            if (out.length >= cap) break;
+            out.push(l);
+            excluded.add(String(l._id));
+          }
+        }
+      }
+    }
+
+    // Hydrate track + program titles
+    const trackCache = new Map<string, Doc<"tracks">>();
+    const programCache = new Map<string, Doc<"programs">>();
+    return await Promise.all(
+      out.map(async (l) => {
+        let trackTitle: string | null = null;
+        let programTitle: string | null = null;
+        if (l.track_id) {
+          const cachedT = trackCache.get(String(l.track_id));
+          const trk = cachedT ?? (await ctx.db.get(l.track_id));
+          if (trk) {
+            trackCache.set(String(l.track_id), trk);
+            trackTitle = trk.title;
+            if (trk.program_id) {
+              const cachedP = programCache.get(String(trk.program_id));
+              const prg = cachedP ?? (await ctx.db.get(trk.program_id));
+              if (prg) {
+                programCache.set(String(trk.program_id), prg);
+                programTitle = prg.title ?? null;
+              }
+            }
+          }
+        }
+        return {
+          id: l._id,
+          title: l.title,
+          trackTitle,
+          programTitle,
+          lessonType: (l.format ?? "slides") as "article" | "slides",
+          summary: l.description ?? "",
+        };
+      }),
+    );
+  },
+});
+
+// Phase 3 Issue 3.3 — per-member lesson rollup with stale/failed-quiz flags.
+// Resolves familyId from target member's family_users row, gates caller to
+// admin/advisor of that family.
+export const memberLessonRollup = query({
+  args: { memberId: v.id("users") },
+  handler: async (ctx, { memberId }) => {
+    const memberships = await ctx.db
+      .query("family_users")
+      .withIndex("by_user", (q) => q.eq("user_id", memberId))
+      .collect();
+    const firstMembership = memberships[0];
+    if (!firstMembership) return [];
+    const familyId = firstMembership.family_id;
+    await requireFamilyMember(ctx, familyId, ["admin", "advisor"]);
+
+    const lessonUsers = await ctx.db
+      .query("lesson_users")
+      .withIndex("by_user", (q) => q.eq("user_id", memberId))
+      .collect();
+    if (lessonUsers.length === 0) return [];
+
+    type Row = {
+      lessonId: Id<"lessons">;
+      lessonTitle: string;
+      trackTitle: string | null;
+      sort_order: number | null;
+      status: "locked" | "active" | "complete" | "advanced";
+      formatProgress: { read: number; listen: number; watch: number; quiz: number };
+      needsAttention: {
+        reason: "stale" | "failed_quiz" | null;
+        daysSinceLastTouch?: number;
+        failedAttempts?: number;
+      };
+      completedAt: number | null;
+      programOrder: number;
+      trackOrder: number;
+    };
+    const rows: Row[] = [];
+
+    for (const lu of lessonUsers) {
+      const lesson = await ctx.db.get(lu.lesson_id);
+      if (!lesson || lesson.deleted_at) continue;
+      const track = lesson.track_id ? await ctx.db.get(lesson.track_id) : null;
+      const program = track?.program_id ? await ctx.db.get(track.program_id) : null;
+
+      const rawStatus = lu.status ?? "locked";
+      const normalized: "locked" | "active" | "complete" | "advanced" =
+        rawStatus === "completed" ? "complete"
+        : rawStatus === "in_progress" || rawStatus === "active" || rawStatus === "assigned" ? "active"
+        : rawStatus === "advanced" ? "advanced"
+        : rawStatus === "complete" ? "complete"
+        : "locked";
+
+      const readProgress = normalized === "locked" ? 0 : normalized === "active" ? 0.5 : 1;
+      const quizProgress = lu.quiz_passed_at ? 1 : 0;
+
+      let attentionReason: "stale" | "failed_quiz" | null = null;
+      let daysSinceLastTouch: number | undefined;
+      let failedAttempts: number | undefined;
+      if (normalized === "active" && lu.last_touched_at != null) {
+        const days = (Date.now() - lu.last_touched_at) / DAY_MS;
+        if (days > STALE_DAYS) {
+          attentionReason = "stale";
+          daysSinceLastTouch = Math.floor(days);
+        }
+      }
+      if (attentionReason === null) {
+        const attempts = await ctx.db
+          .query("quiz_attempts")
+          .withIndex("by_user_and_lesson", (q) =>
+            q.eq("user_id", memberId).eq("lesson_id", lu.lesson_id),
+          )
+          .collect();
+        const failed = attempts.filter((a) => !a.passed).length;
+        if (failed >= FAILED_QUIZ_THRESHOLD) {
+          attentionReason = "failed_quiz";
+          failedAttempts = failed;
+        }
+      }
+
+      rows.push({
+        lessonId: lesson._id,
+        lessonTitle: lesson.title,
+        trackTitle: track?.title ?? null,
+        sort_order: lesson.sort_order ?? null,
+        status: normalized,
+        formatProgress: {
+          read: readProgress,
+          listen: 0,
+          watch: 0,
+          quiz: quizProgress,
+        },
+        needsAttention: { reason: attentionReason, daysSinceLastTouch, failedAttempts },
+        completedAt: normalized === "complete" && lu.quiz_passed_at ? lu.quiz_passed_at : null,
+        programOrder: program?.sort_order ?? Infinity,
+        trackOrder: track?.sort_order ?? Infinity,
+      });
+    }
+
+    rows.sort((a, b) => {
+      if (a.programOrder !== b.programOrder) return a.programOrder - b.programOrder;
+      if (a.trackOrder !== b.trackOrder) return a.trackOrder - b.trackOrder;
+      return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+    });
+
+    return rows.map(({ programOrder: _p, trackOrder: _t, ...rest }) => rest);
+  },
+});
+
+// Phase 3 Issue 3.3 — family-wide stewardship-phase progress chart data.
+// One row per member. 90-day cumulative completionByDate series.
+export const familyProgressOverview = query({
+  args: { familyId: v.id("families") },
+  handler: async (ctx, { familyId }) => {
+    await requireFamilyMember(ctx, familyId, ["admin", "advisor"]);
+
+    const members = await ctx.db
+      .query("family_users")
+      .withIndex("by_family", (q) => q.eq("family_id", familyId))
+      .collect();
+
+    const programs = await ctx.db
+      .query("programs")
+      .withIndex("by_family", (q) => q.eq("family_id", familyId))
+      .collect();
+    const livePrograms = programs.filter((p) => !p.deleted_at);
+
+    const lessonsByProgram = new Map<string, number>();
+    for (const program of livePrograms) {
+      const tracks = await ctx.db
+        .query("tracks")
+        .withIndex("by_program", (q) => q.eq("program_id", program._id))
+        .collect();
+      let total = 0;
+      for (const trk of tracks.filter((t) => !t.deleted_at)) {
+        const lessons = await ctx.db
+          .query("lessons")
+          .withIndex("by_track", (q) => q.eq("track_id", trk._id))
+          .collect();
+        total += lessons.filter((l) => !l.deleted_at).length;
+      }
+      lessonsByProgram.set(String(program._id), total);
+    }
+
+    const ninetyDaysAgo = Date.now() - 90 * DAY_MS;
+    const out = [] as Array<{
+      memberId: Id<"users">;
+      memberName: string;
+      stewardshipPhase: string;
+      programName: string | null;
+      completedLessonCount: number;
+      totalLessonCount: number;
+      completionByDate: Array<{ date: string; completedCount: number }>;
+    }>;
+
+    for (const m of members) {
+      const userDoc = await ctx.db.get(m.user_id);
+      if (!userDoc) continue;
+      const phase = (userDoc as { stewardship_phase?: string }).stewardship_phase ?? "emerging";
+
+      const matching = livePrograms
+        .filter((p) => p.stewardship_phase === phase)
+        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+      const program = matching[0] ?? null;
+
+      const lus = await ctx.db
+        .query("lesson_users")
+        .withIndex("by_user", (q) => q.eq("user_id", m.user_id))
+        .collect();
+
+      const completed = lus.filter(
+        (lu) => lu.status === "complete" || lu.status === "advanced" || lu.status === "completed",
+      );
+      const completedLessonCount = completed.length;
+      const totalLessonCount = program ? lessonsByProgram.get(String(program._id)) ?? 0 : 0;
+
+      const passedDates = completed
+        .filter((lu) => lu.quiz_passed_at != null && lu.quiz_passed_at >= ninetyDaysAgo)
+        .map((lu) => lu.quiz_passed_at as number)
+        .sort((a, b) => a - b);
+      const dayKey = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+      const dayCounts: Array<{ date: string; completedCount: number }> = [];
+      let running = 0;
+      let lastDay = "";
+      for (const ts of passedDates) {
+        running += 1;
+        const day = dayKey(ts);
+        if (day === lastDay) {
+          dayCounts[dayCounts.length - 1] = { date: day, completedCount: running };
+        } else {
+          dayCounts.push({ date: day, completedCount: running });
+          lastDay = day;
+        }
+      }
+
+      const memberName =
+        [userDoc.first_name, userDoc.last_name].filter(Boolean).join(" ") || userDoc.email || "Member";
+
+      out.push({
+        memberId: m.user_id,
+        memberName,
+        stewardshipPhase: phase,
+        programName: program?.title ?? null,
+        completedLessonCount,
+        totalLessonCount,
+        completionByDate: dayCounts,
+      });
+    }
+
+    return out;
+  },
+});
+
+// Phase 3 Issue 3.4 — advisor manual unlock mutation. Patches lesson_users.status
+// without touching last_touched_at (advisor override is not a user touch).
+export const setLessonStatusForMember = mutation({
+  args: {
+    memberId: v.id("users"),
+    lessonId: v.id("lessons"),
+    status: v.union(
+      v.literal("locked"),
+      v.literal("active"),
+      v.literal("complete"),
+      v.literal("advanced"),
+    ),
+  },
+  handler: async (ctx, { memberId, lessonId, status }) => {
+    const lesson = await ctx.db.get(lessonId);
+    if (!lesson || lesson.deleted_at) throw new ConvexError({ code: "NOT_FOUND" });
+    await requireFamilyMember(ctx, lesson.family_id, ["admin", "advisor"]);
+
+    const existing = await ctx.db
+      .query("lesson_users")
+      .withIndex("by_user_and_lesson", (q) => q.eq("user_id", memberId).eq("lesson_id", lessonId))
+      .unique();
+
+    const before = existing?.status ?? null;
+    if (existing) {
+      // Intentionally do NOT call touchLessonUser — advisor override is not
+      // a user touch.
+      await ctx.db.patch(existing._id, { status });
+    } else {
+      await ctx.db.insert("lesson_users", {
+        lesson_id: lessonId,
+        user_id: memberId,
+        family_id: lesson.family_id,
+        status,
+        slide_index: 0,
+      });
+    }
+
+    await writeAudit(ctx, {
+      familyId: lesson.family_id,
+      actorKind: "user",
+      category: "mutation",
+      action: "lesson.status.advisor_override",
+      resourceType: "lessons",
+      resourceId: lessonId,
+      metadata: { memberId, before, after: status },
+    });
+
+    return { ok: true as const, before, after: status };
   },
 });

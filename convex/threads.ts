@@ -3,6 +3,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 import { type MutationCtx, mutation, type QueryCtx, query } from "./_generated/server";
 import { writeAudit } from "./lib/audit";
 import { requireFamilyMember } from "./lib/authz";
+import { touchThread } from "./lib/threads";
 
 async function assertThreadAccess(
   ctx: QueryCtx | MutationCtx,
@@ -61,8 +62,10 @@ export const create = mutation({
   args: {
     familyId: v.id("families"),
     title: v.optional(v.string()),
+    // Phase 4 Issue 4.1 — defaults to side_rail when omitted
+    kind: v.optional(v.union(v.literal("side_rail"), v.literal("full_screen"))),
   },
-  handler: async (ctx, { familyId, title }) => {
+  handler: async (ctx, { familyId, title, kind }) => {
     const { user } = await requireFamilyMember(ctx, familyId);
 
     const threadId = await ctx.db.insert("threads", {
@@ -70,6 +73,7 @@ export const create = mutation({
       creator_id: user._id,
       title,
       messages: [],
+      kind: kind ?? "side_rail",
     });
     await ctx.db.insert("thread_users", {
       thread_id: threadId,
@@ -249,6 +253,8 @@ export const addMessages = mutation({
 
     const next = [...(thread.messages ?? []), ...messages];
     await ctx.db.patch(threadId, { messages: next });
+    // Phase 4 follow-up — bump last_message_at so recentThreads sorts by recency.
+    await touchThread(ctx, threadId);
 
     await writeAudit(ctx, {
       familyId: thread.family_id,
@@ -262,5 +268,74 @@ export const addMessages = mutation({
     });
 
     return { ok: true, count: next.length };
+  },
+});
+
+// Phase 4 Issue 4.4 — surfaces recent threads in left-nav "Chat history".
+// Sorted by last_message_at desc with _creationTime fallback so resumed
+// threads bubble. Title precedence: thread.title → thread.summary
+// (truncated 60) → first user message (truncated 60) → "New conversation".
+export const recentThreads = query({
+  args: {
+    familyId: v.id("families"),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, { familyId, limit }) => {
+    const { user } = await requireFamilyMember(ctx, familyId);
+    const cap = Math.min(Math.max(limit ?? 10, 1), 25);
+
+    const ownThreads = await ctx.db
+      .query("threads")
+      .withIndex("by_creator", (q) => q.eq("creator_id", user._id))
+      .collect();
+    const sharedThreadUsers = await ctx.db
+      .query("thread_users")
+      .withIndex("by_user", (q) => q.eq("user_id", user._id))
+      .collect();
+    const sharedThreadIds = new Set(sharedThreadUsers.map((tu) => tu.thread_id));
+    const sharedThreads = await Promise.all(
+      [...sharedThreadIds].map((id) => ctx.db.get(id)),
+    );
+
+    const seen = new Set<string>();
+    const merged: Doc<"threads">[] = [];
+    for (const t of [...ownThreads, ...sharedThreads]) {
+      if (!t) continue;
+      if (t.deleted_at) continue;
+      if (t.family_id !== familyId) continue;
+      if (seen.has(String(t._id))) continue;
+      seen.add(String(t._id));
+      merged.push(t);
+    }
+
+    merged.sort((a, b) => {
+      const aTime = a.last_message_at ?? a._creationTime;
+      const bTime = b.last_message_at ?? b._creationTime;
+      return bTime - aTime;
+    });
+
+    const top = merged.slice(0, cap);
+    return top.map((t) => {
+      const userMsg = (t.messages ?? []).find(
+        (m: { role?: string; content?: string }) =>
+          m?.role === "user" && typeof m.content === "string",
+      ) as { content?: string } | undefined;
+      const fallbackTitle =
+        userMsg?.content?.slice(0, 60) ?? t.summary?.slice(0, 60) ?? "New conversation";
+      const lastAssistant = [...(t.messages ?? [])]
+        .reverse()
+        .find(
+          (m: { role?: string; content?: string }) =>
+            m?.role === "assistant" && typeof m.content === "string",
+        ) as { content?: string } | undefined;
+      const preview = lastAssistant?.content?.slice(0, 80) ?? "";
+      return {
+        id: t._id,
+        title: t.title || fallbackTitle,
+        preview,
+        updatedAt: t.last_message_at ?? t._creationTime,
+        kind: t.kind ?? null,
+      };
+    });
   },
 });

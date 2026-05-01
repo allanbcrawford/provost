@@ -1,6 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { filterByAccess, requireResourceAccess, requireResourceWrite } from "./lib/acl";
+import { writeAudit } from "./lib/audit";
 import { requireFamilyMember } from "./lib/authz";
 
 export const listByFamily = query({
@@ -32,6 +33,16 @@ export const markDone = mutation({
     if (!obs) throw new ConvexError({ code: "NOT_FOUND" });
     await requireResourceWrite(ctx, "observation", obs, observationId);
     await ctx.db.patch(observationId, { status: "done" });
+    // Phase 7.1 — audit coverage on observation approval
+    await writeAudit(ctx, {
+      familyId: obs.family_id,
+      actorKind: "user",
+      category: "mutation",
+      action: "observations.approved",
+      resourceType: "observations",
+      resourceId: observationId,
+      metadata: { before: obs.status, after: "done" },
+    });
     return null;
   },
 });
@@ -44,6 +55,16 @@ export const markRead = mutation({
     await requireResourceAccess(ctx, "observation", obs, observationId);
     if (obs.status === "new") {
       await ctx.db.patch(observationId, { status: "read" });
+      // Phase 7.1 — audit coverage on observation dismissal/read
+      await writeAudit(ctx, {
+        familyId: obs.family_id,
+        actorKind: "user",
+        category: "mutation",
+        action: "observations.dismissed",
+        resourceType: "observations",
+        resourceId: observationId,
+        metadata: { before: "new", after: "read" },
+      });
     }
     return null;
   },

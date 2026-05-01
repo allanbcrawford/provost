@@ -265,3 +265,139 @@ export const listVersions = query({
       }));
   },
 });
+
+// Phase 5 Issue 5.1 — Smart View sections derived from documents.summary
+// markdown headings + observations + cross-refs from other family docs.
+export const documentSections = query({
+  args: { documentId: v.id("documents") },
+  handler: async (ctx, { documentId }) => {
+    const doc = await ctx.db.get(documentId);
+    if (!doc || doc.deleted_at) return [];
+    await requireFamilyMember(ctx, doc.family_id);
+
+    type Section = {
+      id: string;
+      heading: string;
+      preview: string;
+      body: string;
+      observations: Array<{ id: string; severity: string; title: string }>;
+      crossRefs: Array<{
+        documentId: Id<"documents">;
+        documentTitle: string;
+        sectionId: string | null;
+        label: string;
+      }>;
+    };
+
+    const summary = (doc.summary ?? "").trim();
+    const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    const firstSentence = (s: string): string => {
+      const trimmed = s.trim();
+      if (!trimmed) return "";
+      const m = trimmed.match(/^[^.!?\n]+[.!?]?/);
+      const candidate = (m?.[0] ?? trimmed).trim();
+      if (candidate.length > 120) return candidate.slice(0, 117).trimEnd() + "...";
+      return candidate;
+    };
+
+    const sections: Section[] = [];
+    if (!summary) {
+      // intentional: empty summary → empty result; UI shows empty state
+    } else {
+      const headingRegex = /^(?:##|###)\s+(.+)$/gm;
+      const matches = [...summary.matchAll(headingRegex)];
+      if (matches.length === 0) {
+        // Single-section fallback (Phase 5.5.2 cleanup)
+        sections.push({
+          id: "summary",
+          heading: `Summary of ${doc.name}`,
+          preview: firstSentence(summary),
+          body: summary,
+          observations: [],
+          crossRefs: [],
+        });
+      } else {
+        const seenIds = new Map<string, number>();
+        for (let i = 0; i < matches.length; i++) {
+          const m = matches[i];
+          if (!m || m.index == null) continue;
+          const headingText = (m[1] ?? "").trim();
+          const start = m.index + m[0].length;
+          const next = matches[i + 1];
+          const end = next?.index != null ? next.index : summary.length;
+          const body = summary.slice(start, end).trim();
+          const baseId = slug(headingText) || `section-${i + 1}`;
+          const dupCount = seenIds.get(baseId) ?? 0;
+          seenIds.set(baseId, dupCount + 1);
+          const id = dupCount === 0 ? baseId : `${baseId}-${dupCount + 1}`;
+          sections.push({
+            id,
+            heading: headingText,
+            preview: firstSentence(body),
+            body,
+            observations: [],
+            crossRefs: [],
+          });
+        }
+      }
+    }
+
+    if (sections.length === 0) return [];
+
+    // Attach observations: substring-match heading against obs.description.
+    // Unmatched fall to sections[0].
+    const obsRows = await ctx.db
+      .query("observations")
+      .withIndex("by_document", (q) => q.eq("document_id", documentId))
+      .collect();
+    for (const o of obsRows) {
+      if (o.deleted_at) continue;
+      const desc = (o.description ?? "").toLowerCase();
+      let attachIdx = 0;
+      for (let i = 0; i < sections.length; i++) {
+        const sec = sections[i];
+        if (sec && desc.includes(sec.heading.toLowerCase())) {
+          attachIdx = i;
+          break;
+        }
+      }
+      const target = sections[attachIdx];
+      if (!target) continue;
+      target.observations.push({
+        id: String(o._id),
+        // observations table has no severity column; default to "info"
+        severity: "info",
+        title: o.title,
+      });
+    }
+
+    // Cross-refs: scan body for other family doc names (length >= 8).
+    // Dedupe per section by documentId. N×M is acceptable at Williams scale;
+    // revisit caching if family has >30 docs.
+    const otherDocs = await ctx.db
+      .query("documents")
+      .withIndex("by_family", (q) => q.eq("family_id", doc.family_id))
+      .collect();
+    const candidates = otherDocs.filter(
+      (d) => !d.deleted_at && d._id !== documentId && (d.name ?? "").length >= 8,
+    );
+    for (const section of sections) {
+      const seen = new Set<string>();
+      const lower = section.body.toLowerCase();
+      for (const c of candidates) {
+        if (seen.has(String(c._id))) continue;
+        if (lower.includes((c.name ?? "").toLowerCase())) {
+          seen.add(String(c._id));
+          section.crossRefs.push({
+            documentId: c._id,
+            documentTitle: c.name,
+            sectionId: null,
+            label: c.name,
+          });
+        }
+      }
+    }
+
+    return sections;
+  },
+});

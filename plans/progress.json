@@ -1,0 +1,775 @@
+{
+  "initiative": "beta-parity-2026-04",
+  "startDate": "2026-04-30",
+  "targetDate": "2026-04-15",
+  "status": "ready_to_execute",
+  "sourcePlan": "docs/plans/beta-parity-2026-04.md",
+  "sourceGapAnalysis": "docs/gap-analysis-2026-04.md",
+  "decisions": {
+    "stackAlignment": "Align docs to Convex/Clerk/Vercel reality, not the reverse",
+    "betaScope": "PRD V1 Beta only; Listen/Watch/mobile/Protopia explicitly deferred",
+    "contentPipeline": "345 Succession Advisors artifacts already ingested in Convex library_sources table; no bulk intake required",
+    "lessonGenerationTiming": "Pre-generate at path-assignment (recommended default; confirm with Brad)",
+    "stewardshipPhaseTrigger": "Quiz pass unlocks next lesson (recommended default; confirm with Brad)",
+    "vercelAiSdk": "Decision pending Phase 1 spike (Issue 1.4)"
+  },
+  "executionStrategy": {
+    "mode": "session_based",
+    "description": "Each issue worked in a fresh session in the <40% context smart zone. Phases 2-6 parallelizable after Phase 1.",
+    "maxSessionTime": "30 minutes",
+    "autoRetry": true,
+    "parallelism": "After Phase 1, dispatch independent issues across phases 2-6 concurrently",
+    "phaseEndProtocol": "At the end of every remaining phase: (1) ORCHESTRATOR commits every agent's work to git via --no-verify IMMEDIATELY after the agent reports — DO NOT wait until after simplifier/validator. (2) code-simplifier sweeps phase work product. (3) ORCHESTRATOR commits simplifier's changes via --no-verify. (4) tester/validator runs static checks + reads code for AC verification. (5) verification-before-completion runs evidence-of-execution proof on every claim agents made. (6) ORCHESTRATOR commits anything that got fixed during validation. SUBAGENTS ARE FORBIDDEN FROM RUNNING git operations beyond git status/git diff/git show/git log. NEVER allow subagent to run git stash / git reset / git checkout / git restore. The 19:50-19:55 incident on 2026-04-30 confirmed subagent git operations destroyed 6+ files of work; never again."
+  },
+  "nonEngineeringBlockers": [
+    "Brad: write beta scope doc (in/out for April 15)",
+    "Brad: decide AI chat in beta or lessons-only",
+    "Brad: identify 2-3 beta families with contacts",
+    "Brad: define beta success criteria",
+    "Brad: prioritize content from 345 artifacts for first cohort",
+    "Brad: walk through 9 curriculum margin notes with Tyler, accept/reject each",
+    "Brad: confirm stewardship-phase age thresholds (Roadmap Open Q #1)",
+    "Brad: confirm lesson cadence trigger (quiz pass vs time vs advisor; Roadmap Open Q #4)"
+  ],
+  "slices": [
+    {
+      "id": 0,
+      "name": "Phase 0 — Audit & Doc Reconciliation",
+      "priority": "CRITICAL",
+      "status": "pending",
+      "rationale": "Outcome dictates how much of phases 2-6 is verification vs greenfield. Run first.",
+      "issues": [
+        {
+          "id": "0.1",
+          "title": "Visual + functional audit pass against Figma Robert Beta frames",
+          "status": "pending",
+          "estimatedHours": 12,
+          "acceptanceCriteria": [
+            { "criterion": "Walk Dropbox/Provost/Design/ 68 PNGs side-by-side with running app", "met": false },
+            { "criterion": "Convert every yellow row in gap-analysis §1 to built/missing/partial with file citations", "met": false },
+            { "criterion": "Validate chat panel docked-collapsible (not floating)", "met": false },
+            { "criterion": "Validate fonts loaded: Fraunces, Source Serif 4, Geist", "met": false },
+            { "criterion": "Validate background is white (not cream)", "met": false },
+            { "criterion": "Output written to docs/audit-2026-04.md", "met": false }
+          ],
+          "filesToCreate": ["docs/audit-2026-04.md"],
+          "filesToModify": ["docs/gap-analysis-2026-04.md"],
+          "sessionHistory": []
+        },
+        {
+          "id": "0.2",
+          "title": "Doc reconciliation — write ADR-9, archive backend-map, rev V1 architecture, fix vault",
+          "status": "pending",
+          "estimatedHours": 8,
+          "acceptanceCriteria": [
+            { "criterion": "docs/adr/ADR-9-convex-over-postgres.md written explaining the reversal", "met": false },
+            { "criterion": "Dropbox/Provost/Product/backend-map.md and frontend-map.md banner-marked ARCHIVAL", "met": false },
+            { "criterion": "2026-04-07-provost-v1-architecture.md ADR-3/-4/-8 updated for Convex/Clerk reality", "met": false },
+            { "criterion": "Dropbox/Provost/CLAUDE.md updated to Convex/Clerk/Vercel + 345 artifacts in library_sources", "met": false },
+            { "criterion": "Maps/Architecture MOC.md updated", "met": false },
+            { "criterion": "Beta/onboarding-checklist.md DB-wipe blocker removed", "met": false }
+          ],
+          "filesToCreate": ["docs/adr/ADR-9-convex-over-postgres.md"],
+          "filesToModify": [
+            "Dropbox/Provost/Product/backend-map.md",
+            "Dropbox/Provost/Product/frontend-map.md",
+            "Dropbox/Provost/Product/2026-04-07-provost-v1-architecture.md",
+            "Dropbox/Provost/CLAUDE.md",
+            "Dropbox/Provost/Maps/Architecture MOC.md",
+            "Dropbox/Provost/Beta/onboarding-checklist.md"
+          ],
+          "sessionHistory": []
+        },
+        {
+          "id": "0.3",
+          "title": "Surface Brad's decision queue with recommended defaults",
+          "status": "pending",
+          "estimatedHours": 4,
+          "acceptanceCriteria": [
+            { "criterion": "docs/brad-decisions-2026-04.md lists 8 decisions with owner, downstream blockers, recommended defaults", "met": false },
+            { "criterion": "Recommended defaults documented: AI chat IN beta, margin notes APPLY, pre-generate lessons", "met": false }
+          ],
+          "filesToCreate": ["docs/brad-decisions-2026-04.md"],
+          "sessionHistory": []
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "name": "Phase 1 — Foundations",
+      "priority": "CRITICAL",
+      "status": "pending",
+      "dependsOn": [0],
+      "issues": [
+        {
+          "id": "1.1",
+          "title": "Verify or build FeatureGate runtime pattern",
+          "status": "pending",
+          "estimatedHours": 8,
+          "acceptanceCriteria": [
+            { "criterion": "FeatureGate component exists at apps/web/src/components/ui/feature-gate.tsx", "met": false },
+            { "criterion": "Supports states: real | launching_soon | disabled", "met": false },
+            { "criterion": "Demo families bypass to real; non-demo default to launching_soon", "met": false },
+            { "criterion": "Per-family override stored in Convex; flip is one mutation", "met": false },
+            { "criterion": "All 7 modules wrapped: education, family, messages, events, assets, estate, professionals", "met": false },
+            { "criterion": "LaunchingSoon overlay component blurs underlying content", "met": false }
+          ],
+          "filesToCreate": [
+            "apps/web/src/components/ui/feature-gate.tsx",
+            "apps/web/src/components/ui/launching-soon.tsx"
+          ],
+          "filesToModify": [
+            "convex/schema_parts/core.ts",
+            "apps/web/src/app/(app)/education/page.tsx",
+            "apps/web/src/app/(app)/family/page.tsx",
+            "apps/web/src/app/(app)/messages/page.tsx",
+            "apps/web/src/app/(app)/events/page.tsx",
+            "apps/web/src/app/(app)/assets/page.tsx",
+            "apps/web/src/app/(app)/estate/page.tsx",
+            "apps/web/src/app/(app)/professionals/page.tsx"
+          ],
+          "sessionHistory": []
+        },
+        {
+          "id": "1.2",
+          "title": "Wire Generation Tone (Gen 1/2/3) into AI system prompts and lesson generation",
+          "status": "pending",
+          "estimatedHours": 8,
+          "acceptanceCriteria": [
+            { "criterion": "Helper getGenerationTone(member) returns gen1|gen2|gen3 based on age (60+/35-55/16-30)", "met": false },
+            { "criterion": "Single canonical tone block constant; not duplicated", "met": false },
+            { "criterion": "Chat system prompt assembly injects tone block", "met": false },
+            { "criterion": "Lesson generation pipeline injects tone block", "met": false },
+            { "criterion": "Test: same lesson topic for Gen 1 vs Gen 3 produces noticeably different copy", "met": false }
+          ],
+          "filesToCreate": ["convex/lib/generationTone.ts"],
+          "filesToModify": [
+            "convex/agent/run.ts",
+            "convex/lessons.ts"
+          ],
+          "sessionHistory": []
+        },
+        {
+          "id": "1.3",
+          "title": "Cross-family isolation test in CI",
+          "status": "pending",
+          "estimatedHours": 4,
+          "acceptanceCriteria": [
+            { "criterion": "Test seeds two families with disjoint members", "met": false },
+            { "criterion": "User from Family A authenticated; assertions for Forbidden on every Family B query/mutation", "met": false },
+            { "criterion": "Runs in CI on every PR; failures block merge", "met": false }
+          ],
+          "filesToCreate": ["tests-convex/family-isolation.test.ts"],
+          "filesToModify": ["convex/lib/authz.ts"],
+          "sessionHistory": []
+        },
+        {
+          "id": "1.4",
+          "title": "Vercel AI SDK adoption decision spike",
+          "status": "pending",
+          "estimatedHours": 4,
+          "acceptanceCriteria": [
+            { "criterion": "All OpenAI direct-call sites in convex/ identified and counted", "met": false },
+            { "criterion": "Migration lift estimated", "met": false },
+            { "criterion": "ADR-10 written: adopt-now (with scope) or defer-to-V2 (with trigger)", "met": false }
+          ],
+          "filesToCreate": ["docs/adr/ADR-10-vercel-ai-sdk.md"],
+          "sessionHistory": []
+        },
+        {
+          "id": "1.5",
+          "title": "Font swap (DM Serif/Inter → Fraunces/Source Serif 4/Geist) + V1 architecture UX section supersession",
+          "status": "pending",
+          "estimatedHours": 4,
+          "source": "Audit Issue 0.1 — top-5 finding #1 (font mismatch); §6.6 doc note (UX section stale)",
+          "acceptanceCriteria": [
+            { "criterion": "apps/web/src/app/layout.tsx loads Fraunces (display), Source Serif 4 (body serif), Geist (sans) — replacing DM Serif Display + Inter", "met": false },
+            { "criterion": "Material Symbols icon font preserved", "met": false },
+            { "criterion": "Tailwind/CSS tokens in styles.css updated to reference new font families (font-display, font-serif, font-sans)", "met": false },
+            { "criterion": "Visual smoke check: dev server renders home page with new fonts (no FOUT/FOIT regressions)", "met": false },
+            { "criterion": "Dropbox/Provost/Product/2026-04-07-provost-v1-architecture.md UX Architecture section gets a SUPERSEDED 2026-04-30 note: chat panel is docked-collapsible (not floating with 40/40/40/50 padding); design language is white + Fraunces/Source Serif 4/Geist (not cream / warm tones). Cite Design MOC.md as the canonical reference.", "met": false }
+          ],
+          "filesToModify": [
+            "apps/web/src/app/layout.tsx",
+            "apps/web/src/styles.css",
+            "Dropbox/Provost/Product/2026-04-07-provost-v1-architecture.md"
+          ],
+          "sessionHistory": []
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Phase 2 — Onboarding & Living Map",
+      "priority": "HIGH",
+      "status": "pending",
+      "dependsOn": [1],
+      "parallelWith": [3, 4, 5, 6],
+      "issues": [
+        {
+          "id": "2.1",
+          "title": "Conversational New Member Form (chat tool) — Family + Professionals",
+          "status": "pending",
+          "estimatedHours": 16,
+          "acceptanceCriteria": [
+            { "criterion": "Chat tool add_family_member defined in convex/agent/tools/", "met": false },
+            { "criterion": "Tool prompts conversationally for 8+ fields: name, preferred name, DOB, relationship, role, education level, stewardship phase, email", "met": false },
+            { "criterion": "Tool call requires user approval via existing tool_call_approvals flow", "met": false },
+            { "criterion": "On approval: creates member, sets stewardship phase via Issue 1.2 helper, sends Clerk invite", "met": false },
+            { "criterion": "Variant tool add_professional with professional field set", "met": false },
+            { "criterion": "Empty-state Add Member buttons on Family page + Family Tree + Our Team open chat with tool primed", "met": false }
+          ],
+          "filesToCreate": [
+            "convex/agent/tools/addFamilyMember.ts",
+            "convex/agent/tools/addProfessional.ts"
+          ],
+          "filesToModify": [
+            "apps/web/src/features/family/family-page.client.tsx",
+            "apps/web/src/features/professionals/",
+            "apps/web/src/features/chat/"
+          ],
+          "sessionHistory": []
+        },
+        {
+          "id": "2.2",
+          "title": "Stewardship phase auto-assign + advisor override UI",
+          "status": "pending",
+          "estimatedHours": 4,
+          "blockedBy": "Brad confirmation on age thresholds (Roadmap Open Q #1)",
+          "acceptanceCriteria": [
+            { "criterion": "assignStewardshipPhase({ age, role }) function returns emerging|developing|operating|enduring", "met": false },
+            { "criterion": "Default rules: <22+non-trustee=emerging, 22-34=developing, 35-59+active=operating, 60+|trustee|grantor=enduring", "met": false },
+            { "criterion": "Auto-assign on member creation via Issue 2.1 tool", "met": false },
+            { "criterion": "Advisor UI: dropdown on member detail page to override; logged in audit_events", "met": false }
+          ],
+          "filesToCreate": ["convex/lib/stewardshipPhase.ts"],
+          "filesToModify": ["apps/web/src/features/family/member-detail.tsx"],
+          "sessionHistory": []
+        },
+        {
+          "id": "2.3",
+          "title": "Empty-state illustrations (list / waterfall / document styles)",
+          "status": "pending",
+          "estimatedHours": 8,
+          "acceptanceCriteria": [
+            { "criterion": "List-style illustration on Family list empty state", "met": false },
+            { "criterion": "Waterfall-style illustration on Family Tree modal empty state", "met": false },
+            { "criterion": "Document-style illustration on Estate empty state", "met": false },
+            { "criterion": "Match Figma frames (export from Design/) or consistent line-art aligned with white-bg design tokens", "met": false }
+          ],
+          "filesToCreate": ["apps/web/src/components/illustrations/"],
+          "sessionHistory": []
+        },
+        {
+          "id": "2.4",
+          "title": "Williams roster reconciliation + 2 seeded observations (pour-over date, ILIT trustee)",
+          "status": "pending",
+          "estimatedHours": 4,
+          "acceptanceCriteria": [
+            { "criterion": "convex/seed_data/family.json lists 12 PRD §19.1 members exactly", "met": false },
+            { "criterion": "Naming conflict with V1 architecture doc Margaret/Elizabeth Harper resolved (PRD wins)", "met": false },
+            { "criterion": "convex/seed_data/professionals.json lists Mike Harrington CFA, Sarah Lin JD/LLM, David Johnson CPA/CFP", "met": false },
+            { "criterion": "Observation 1 seeded: Pour-Over Will Date Mismatch (warning) on RLT with PRD §19.4 recommended action", "met": false },
+            { "criterion": "Observation 2 seeded: Grantor and Trustee Are the Same Person (critical) on ILIT with IRC §2042 risk language", "met": false },
+            { "criterion": "Both observations visible in advisor observation review UI", "met": false }
+          ],
+          "filesToModify": [
+            "convex/seed_data/family.json",
+            "convex/seed_data/professionals.json",
+            "convex/seed_data/observations.json",
+            "convex/seed.ts"
+          ],
+          "sessionHistory": []
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Phase 3 — Education Polish",
+      "priority": "HIGH",
+      "status": "pending",
+      "dependsOn": [1],
+      "parallelWith": [2, 4, 5, 6],
+      "issues": [
+        {
+          "id": "3.1",
+          "title": "4-format progress circle icons on lesson preview (PRO-131)",
+          "status": "pending",
+          "estimatedHours": 8,
+          "linearTicket": "PRO-131",
+          "acceptanceCriteria": [
+            { "criterion": "FormatProgressIcon component supports kind=read|listen|watch|quiz, progress 0-1, disabled flag", "met": false },
+            { "criterion": "Listen + Watch render disabled with Coming soon tooltip per beta scope", "met": false },
+            { "criterion": "Read progress = scroll depth or explicit completion event", "met": false },
+            { "criterion": "Quiz progress = 0/0.5/1.0 for not-started/in-progress/passed", "met": false },
+            { "criterion": "Used on lesson preview AND in family-progress views", "met": false }
+          ],
+          "filesToCreate": ["apps/web/src/components/lessons/format-progress-icon.tsx"],
+          "filesToModify": [
+            "apps/web/src/features/lessons/lesson-preview.tsx",
+            "apps/web/src/features/lessons/family-progress.tsx"
+          ],
+          "sessionHistory": []
+        },
+        {
+          "id": "3.2",
+          "title": "End-of-article controls (thumbs / Feedback / Share / You might also enjoy)",
+          "status": "pending",
+          "estimatedHours": 8,
+          "acceptanceCriteria": [
+            { "criterion": "Thumbs up/down writes to lesson_feedback with kind=thumb", "met": false },
+            { "criterion": "Feedback button opens chat with prompt primed for written feedback", "met": false },
+            { "criterion": "Share button copies auth-protected lesson link", "met": false },
+            { "criterion": "You might also enjoy pulls 2-3 lessons from same/adjacent tracks", "met": false }
+          ],
+          "filesToCreate": ["apps/web/src/features/lessons/end-of-article.tsx"],
+          "filesToModify": ["convex/lessons.ts"],
+          "sessionHistory": []
+        },
+        {
+          "id": "3.3",
+          "title": "Education Progress tab — stewardship-phase line chart (PRO-135)",
+          "status": "pending",
+          "estimatedHours": 12,
+          "linearTicket": "PRO-135",
+          "acceptanceCriteria": [
+            { "criterion": "Line chart per family member showing program progress over time", "met": false },
+            { "criterion": "Member-level X Lessons expand-row shows lesson-by-lesson progress with format icons", "met": false },
+            { "criterion": "Lesson complete = checkmark; needs attention = i icon (long stale or many failed quiz)", "met": false },
+            { "criterion": "Recharts or similar; matches Figma styling", "met": false }
+          ],
+          "filesToCreate": ["apps/web/src/components/charts/stewardship-phase-chart.tsx"],
+          "filesToModify": ["apps/web/src/features/lessons/progress-tab.tsx"],
+          "sessionHistory": []
+        },
+        {
+          "id": "3.4",
+          "title": "Lesson 2-at-a-time delivery cadence",
+          "status": "pending",
+          "estimatedHours": 12,
+          "blockedBy": "Brad confirmation on cadence trigger (Roadmap Open Q #4)",
+          "acceptanceCriteria": [
+            { "criterion": "Query myActiveLessons(memberId) returns exactly 2 currently-active lessons", "met": false },
+            { "criterion": "On lesson completion + passing quiz, next lesson in track flips locked → active", "met": false },
+            { "criterion": "Last lesson of track unlocks first lesson of next track", "met": false },
+            { "criterion": "Advisor manual unlock available; logged in audit_events", "met": false },
+            { "criterion": "Home highlights tile reads from this query", "met": false }
+          ],
+          "filesToModify": [
+            "convex/lessons.ts",
+            "convex/learning.ts",
+            "apps/web/src/app/(app)/lessons/page.tsx"
+          ],
+          "sessionHistory": []
+        },
+        {
+          "id": "3.5",
+          "title": "Apply Brad's 9 curriculum margin notes",
+          "status": "pending",
+          "estimatedHours": 4,
+          "blockedBy": "Brad sign-off per margin note",
+          "acceptanceCriteria": [
+            { "criterion": "Income Sources lesson expanded to enumerate income types + ordinary vs cap gains", "met": false },
+            { "criterion": "Building Blocks lesson moved Developing→Operating + split into Asset Classes + Asset Allocation", "met": false },
+            { "criterion": "How Assets Actually Transfer split into Titling + Beneficiary Designations", "met": false },
+            { "criterion": "When You Can't Speak for Yourself renamed to Powers of Attorney (Financial + Medical)", "met": false },
+            { "criterion": "$27.98M Window replaced with two Core lessons (Wealth Transfer Taxes Basics + Using Your Wealth Transfer Exemptions)", "met": false },
+            { "criterion": "Dynasty Trusts priority Core → Extended", "met": false },
+            { "criterion": "Charitable Structures priority Extended → Exploratory", "met": false },
+            { "criterion": "Across Borders deleted from catalog for beta", "met": false },
+            { "criterion": "Five Capitals lesson 3 renamed to Invisible Assets on the Family Balance Sheet", "met": false },
+            { "criterion": "Migration script idempotent and safe to re-run", "met": false }
+          ],
+          "filesToCreate": ["convex/migrations/2026-04-curriculum-edits.ts"],
+          "filesToModify": ["convex/seed_data/lessons.json"],
+          "sessionHistory": []
+        },
+        {
+          "id": "3.6",
+          "title": "Breadcrumbs lesson → track → program",
+          "status": "pending",
+          "estimatedHours": 4,
+          "acceptanceCriteria": [
+            { "criterion": "Header breadcrumb on /lessons/[lessonId] reads Education / Program / Track / Lesson", "met": false },
+            { "criterion": "Each segment links to its parent view", "met": false }
+          ],
+          "filesToModify": [
+            "apps/web/src/app/(app)/lessons/[lessonId]/page.tsx",
+            "apps/web/src/context/breadcrumb-context.tsx"
+          ],
+          "sessionHistory": []
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Phase 4 — AI Chat Completion",
+      "priority": "HIGH",
+      "status": "pending",
+      "dependsOn": [1],
+      "parallelWith": [2, 3, 5, 6],
+      "issues": [
+        {
+          "id": "4.1",
+          "title": "Full-screen chat parity (PRO-133)",
+          "status": "pending",
+          "estimatedHours": 12,
+          "linearTicket": "PRO-133",
+          "acceptanceCriteria": [
+            { "criterion": "Chat-bubble (+) icon in header opens full-screen chat in center panel", "met": false },
+            { "criterion": "While active: side rail Open Chat switches to Chatting… disabled state", "met": false },
+            { "criterion": "8 general starter prompts; expand panel; click populates input + collapses", "met": false },
+            { "criterion": "Input state machine: idle → blue arrow → black square (stop) → idle", "met": false },
+            { "criterion": "Markdown rendering matches Claude-style formatting", "met": false },
+            { "criterion": "Full-screen chat history stored separately from side-rail history (thread.kind)", "met": false }
+          ],
+          "filesToModify": [
+            "apps/web/src/app/(app)/chat/page.tsx",
+            "apps/web/src/components/header.tsx",
+            "apps/web/src/features/chat/prompt-ideas.tsx",
+            "convex/schema_parts/chat.ts"
+          ],
+          "sessionHistory": []
+        },
+        {
+          "id": "4.2",
+          "title": "Header Open Chat / Close Chat toggle (PRO-134)",
+          "status": "pending",
+          "estimatedHours": 2,
+          "linearTicket": "PRO-134",
+          "acceptanceCriteria": [
+            { "criterion": "Button label updates with isOpen state from chat-panel-context", "met": false },
+            { "criterion": "Disabled with Chatting… copy when full-screen chat is active", "met": false }
+          ],
+          "filesToModify": ["apps/web/src/components/header.tsx"],
+          "sessionHistory": []
+        },
+        {
+          "id": "4.3",
+          "title": "Page-contextual prompt ideas verified end-to-end",
+          "status": "pending",
+          "estimatedHours": 8,
+          "dependsOn": "v1-next-six.md Task 6 (page-context wiring) confirmed landed",
+          "acceptanceCriteria": [
+            { "criterion": "prompt_suggestions_cache populated per (page_kind, selection_id) tuple", "met": false },
+            { "criterion": "Cache miss triggers Convex action → OpenAI generates 3-5 prompts", "met": false },
+            { "criterion": "Cache TTL ~1hr; invalidated on relevant data mutation", "met": false },
+            { "criterion": "Prompts visibly differ between /lessons/[id] and /family", "met": false },
+            { "criterion": "Click populates input", "met": false }
+          ],
+          "filesToModify": [
+            "convex/agent/promptSuggestions.ts",
+            "apps/web/src/features/chat/prompt-ideas.tsx"
+          ],
+          "sessionHistory": []
+        },
+        {
+          "id": "4.4",
+          "title": "Chat history surfaced in left nav (Recents pattern)",
+          "status": "pending",
+          "estimatedHours": 6,
+          "acceptanceCriteria": [
+            { "criterion": "Collapsible Chat history section in sidebar-nav.tsx, defaults closed", "met": false },
+            { "criterion": "Lists last 10 threads for current user with first-line preview", "met": false },
+            { "criterion": "Click opens thread in side rail", "met": false },
+            { "criterion": "Tool-call workflow threads show summary, not raw first message", "met": false }
+          ],
+          "filesToModify": [
+            "apps/web/src/components/sidebar-nav.tsx",
+            "convex/chat.ts"
+          ],
+          "sessionHistory": []
+        },
+        {
+          "id": "4.5",
+          "title": "Confirm chat panel is docked-collapsible (not floating per PRD §16.2 — superseded)",
+          "status": "pending",
+          "estimatedHours": 4,
+          "acceptanceCriteria": [
+            { "criterion": "Side rail docks to right edge (no 40/40/40/50 floating padding)", "met": false },
+            { "criterion": "Collapses to thin strip with chevron / expand affordance", "met": false },
+            { "criterion": "Expand restores prior width", "met": false },
+            { "criterion": "State persisted to localStorage", "met": false }
+          ],
+          "filesToModify": [
+            "apps/web/src/components/chat-rail.tsx",
+            "apps/web/src/styles.css"
+          ],
+          "sessionHistory": []
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Phase 5 — Estate & Documents",
+      "priority": "HIGH",
+      "status": "pending",
+      "dependsOn": [1],
+      "parallelWith": [2, 3, 4, 6],
+      "issues": [
+        {
+          "id": "5.1",
+          "title": "Smart View expandable rows",
+          "status": "pending",
+          "estimatedHours": 12,
+          "acceptanceCriteria": [
+            { "criterion": "Smart View pulls from documents.summary + per-section breakdown", "met": false },
+            { "criterion": "Sections render as collapsed rows; click expands inline", "met": false },
+            { "criterion": "Provost is working on this... message appears when user prompts deeper analysis; result surfaces in Smart View", "met": false },
+            { "criterion": "Cross-references to related agreements where applicable", "met": false }
+          ],
+          "filesToCreate": ["apps/web/src/features/documents/smart-view.tsx"],
+          "filesToModify": ["convex/documents.ts"],
+          "sessionHistory": []
+        },
+        {
+          "id": "5.2",
+          "title": "Cross-tab document search with highlight",
+          "status": "pending",
+          "estimatedHours": 12,
+          "acceptanceCriteria": [
+            { "criterion": "Search icon in document header toggles search bar (replacing right-side buttons per Figma)", "met": false },
+            { "criterion": "Debounced search → blue highlight on all matches in both tabs", "met": false },
+            { "criterion": "Match count badges per tab; counts equal", "met": false },
+            { "criterion": "Smart View uses 100% exact extracted content (not summary) when searching", "met": false }
+          ],
+          "filesToCreate": ["apps/web/src/features/documents/document-search.tsx"],
+          "filesToModify": ["apps/web/src/features/documents/document-detail.tsx"],
+          "sessionHistory": []
+        },
+        {
+          "id": "5.3",
+          "title": "Wealth Flow multi-agreement selector",
+          "status": "pending",
+          "estimatedHours": 8,
+          "acceptanceCriteria": [
+            { "criterion": "Modal header shows X Agreements dropdown", "met": false },
+            { "criterion": "Dropdown lists all family agreements with radio buttons; toggle includes/excludes from waterfall", "met": false },
+            { "criterion": "Diagram re-renders on selection change", "met": false },
+            { "criterion": "Single-document mode shows only that doc, no dropdown", "met": false },
+            { "criterion": "Share button (2-person icon) for collaborative views", "met": false }
+          ],
+          "filesToCreate": ["apps/web/src/features/estate/agreement-selector.tsx"],
+          "filesToModify": ["apps/web/src/components/waterfall-diagram/wealth-flow-modal.tsx"],
+          "sessionHistory": []
+        },
+        {
+          "id": "5.4",
+          "title": "Estate agreement card metadata (PRO-132)",
+          "status": "pending",
+          "estimatedHours": 4,
+          "linearTicket": "PRO-132",
+          "acceptanceCriteria": [
+            { "criterion": "Each card shows title, document type, executed date, author/preparer", "met": false },
+            { "criterion": "Clicking card opens document detail", "met": false },
+            { "criterion": "Empty fields show — not blank", "met": false }
+          ],
+          "filesToModify": [
+            "apps/web/src/features/estate/agreement-card.tsx",
+            "convex/documents.ts"
+          ],
+          "sessionHistory": []
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Phase 6 — Advisor multi-family + App Shell polish",
+      "priority": "MEDIUM",
+      "status": "pending",
+      "dependsOn": [1],
+      "parallelWith": [2, 3, 4, 5],
+      "issues": [
+        {
+          "id": "6.1",
+          "title": "Advisor cross-family dashboard + family-selector chip",
+          "status": "pending",
+          "estimatedHours": 16,
+          "acceptanceCriteria": [
+            { "criterion": "Advisor login default: /home shows aggregate highlights across all assigned families", "met": false },
+            { "criterion": "Top-left header replaces family name with X Families chip → dropdown lists assigned families", "met": false },
+            { "criterion": "Selecting family scopes entire app to that family", "met": false },
+            { "criterion": "Aggregate view shows total pending observations, member-engagement stats, upcoming events", "met": false },
+            { "criterion": "No cross-family data leakage; aggregate is roll-up only", "met": false }
+          ],
+          "filesToCreate": [
+            "apps/web/src/features/advisor/multi-family-home.tsx",
+            "convex/advisor.ts"
+          ],
+          "filesToModify": [
+            "apps/web/src/components/header.tsx",
+            "apps/web/src/context/family-context.tsx"
+          ],
+          "sessionHistory": []
+        },
+        {
+          "id": "6.2",
+          "title": "Family page Fun Facts / History / Values tabs (PRO-128)",
+          "status": "pending",
+          "estimatedHours": 12,
+          "linearTicket": "PRO-128",
+          "acceptanceCriteria": [
+            { "criterion": "Tabs render under family page center panel", "met": false },
+            { "criterion": "Fun Facts tab uses existing fun-facts route content", "met": false },
+            { "criterion": "History tab shows family timeline (key events, member additions, document executions)", "met": false },
+            { "criterion": "Values tab shows family mission/values statement (free-text editable by family_admin)", "met": false },
+            { "criterion": "New schema: families.values_statement, family_history_events table", "met": false }
+          ],
+          "filesToCreate": [
+            "apps/web/src/features/family/family-tabs.tsx",
+            "apps/web/src/features/family/values-tab.tsx",
+            "apps/web/src/features/family/history-tab.tsx"
+          ],
+          "filesToModify": ["convex/schema_parts/core.ts"],
+          "sessionHistory": []
+        },
+        {
+          "id": "6.3",
+          "title": "Messages 3-column layout (PRO-136)",
+          "status": "pending",
+          "estimatedHours": 8,
+          "linearTicket": "PRO-136",
+          "acceptanceCriteria": [
+            { "criterion": "Left column: inbox/drafts/sent thread list", "met": false },
+            { "criterion": "Middle column: selected thread reading pane with reply composer", "met": false },
+            { "criterion": "Right column: chat rail (existing)", "met": false },
+            { "criterion": "Responsive collapse to 2-col then 1-col", "met": false }
+          ],
+          "filesToCreate": ["apps/web/src/features/messages/messages-layout.tsx"],
+          "filesToModify": ["apps/web/src/app/(app)/messages/page.tsx"],
+          "sessionHistory": []
+        },
+        {
+          "id": "6.4",
+          "title": "Dark mode",
+          "status": "pending",
+          "estimatedHours": 12,
+          "acceptanceCriteria": [
+            { "criterion": "Toggle in profile-modal-context settings", "met": false },
+            { "criterion": "Theme stored on user record + localStorage", "met": false },
+            { "criterion": "All design tokens have dark counterparts in styles.css", "met": false },
+            { "criterion": "Charts, illustrations, PDF viewer respect theme", "met": false }
+          ],
+          "filesToModify": [
+            "apps/web/src/styles.css",
+            "apps/web/src/context/profile-modal-context.tsx",
+            "apps/web/src/app/layout.tsx"
+          ],
+          "sessionHistory": []
+        },
+        {
+          "id": "6.5",
+          "title": "Active users presence dot",
+          "status": "pending",
+          "estimatedHours": 8,
+          "acceptanceCriteria": [
+            { "criterion": "Convex presence table tracks last_seen_at per user; updated on heartbeat", "met": false },
+            { "criterion": "Users with last_seen_at within 60s show green dot", "met": false },
+            { "criterion": "Family members + assigned professionals visible in Active section", "met": false },
+            { "criterion": "No live chat affordance (deferred per ADR)", "met": false }
+          ],
+          "filesToCreate": [
+            "convex/schema_parts/presence.ts",
+            "convex/presence.ts",
+            "apps/web/src/hooks/use-presence-heartbeat.ts"
+          ],
+          "filesToModify": ["apps/web/src/components/sidebar-nav.tsx"],
+          "sessionHistory": []
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Phase 7 — Beta Hardening",
+      "priority": "MEDIUM",
+      "status": "pending",
+      "dependsOn": [2, 3, 4, 5, 6],
+      "issues": [
+        {
+          "id": "7.1",
+          "title": "Audit log coverage on sensitive operations",
+          "status": "pending",
+          "estimatedHours": 4,
+          "acceptanceCriteria": [
+            { "criterion": "Helper withAudit(fn, eventKind) wraps mutations", "met": false },
+            { "criterion": "Coverage: member add/edit/delete, document upload/delete, observation approve/dismiss, learning override, family creation", "met": false },
+            { "criterion": "Audit events viewable in admin UI", "met": false }
+          ],
+          "filesToModify": ["convex/lib/audit.ts"],
+          "sessionHistory": []
+        },
+        {
+          "id": "7.2",
+          "title": "SOC 2 post-launch audit checklist run",
+          "status": "pending",
+          "estimatedHours": 4,
+          "acceptanceCriteria": [
+            { "criterion": "Run through docs/deploy/post-launch-audit.md 9-item checklist", "met": false },
+            { "criterion": "Each item checked or remediation noted in docs/audit-results-2026-04.md", "met": false },
+            { "criterion": "All items pass before April 15", "met": false }
+          ],
+          "filesToCreate": ["docs/audit-results-2026-04.md"],
+          "sessionHistory": []
+        },
+        {
+          "id": "7.3",
+          "title": "Perf budgets in CI + chat TTFT instrumentation",
+          "status": "pending",
+          "estimatedHours": 4,
+          "acceptanceCriteria": [
+            { "criterion": "Vercel Speed Insights enabled", "met": false },
+            { "criterion": "Lighthouse CI on PR with thresholds (perf ≥85, a11y ≥90)", "met": false },
+            { "criterion": "Convex action chat.send instrumented with TTFT metric", "met": false }
+          ],
+          "filesToCreate": [".github/workflows/lighthouse.yml"],
+          "filesToModify": ["apps/web/src/app/status/page.tsx"],
+          "sessionHistory": []
+        },
+        {
+          "id": "7.4",
+          "title": "/status page enrichment",
+          "status": "pending",
+          "estimatedHours": 4,
+          "acceptanceCriteria": [
+            { "criterion": "Reads COMMIT_SHA and COMMIT_TIME env vars", "met": false },
+            { "criterion": "Shows last successful run for each cron in convex/crons.ts", "met": false },
+            { "criterion": "OpenAI ping check with timeout; shows ✓/✗", "met": false }
+          ],
+          "filesToCreate": ["convex/status.ts"],
+          "filesToModify": ["apps/web/src/app/status/page.tsx"],
+          "sessionHistory": []
+        }
+      ]
+    }
+  ],
+  "currentIssue": "Phase 7 (parallel, Option A): 7.1, 7.2, 7.3, 7.4",
+  "phase65RecoveryRebuildAt": "2026-04-30",
+  "phase6CompletedAt": "2026-04-30",
+  "phase6RecoveryBaselineAt": "2026-04-30",
+  "phase5CompletedAt": "2026-04-30",
+  "phase55CompletedAt": "2026-04-30",
+  "phase4CompletedAt": "2026-04-30",
+  "phase0CompletedAt": "2026-04-30",
+  "phase1CompletedAt": "2026-04-30",
+  "phase2CompletedAt": "2026-04-30",
+  "phase3CompletedAt": "2026-04-30",
+  "retroactiveSimplifierAt": "2026-04-30",
+  "completedIssues": [],
+  "blockedIssues": [],
+  "metrics": {
+    "totalIssues": 31,
+    "totalEstimatedHours": 244,
+    "totalEstimatedDays": 30
+  },
+  "executionLog": [],
+  "notes": [
+    "Companion human-readable plan: docs/plans/beta-parity-2026-04.md",
+    "Source gap analysis: docs/gap-analysis-2026-04.md",
+    "Stack reality (NOT what docs prescribe): Convex + Clerk + Vercel + Next.js App Router + OpenAI direct",
+    "345 Succession Advisors artifacts ALREADY ingested in Convex library_sources — no bulk intake required",
+    "Phases 2-6 parallelizable after Phase 1 lands; two engineers compress 6-week sequential plan to 3.5 calendar weeks",
+    "Recommended defaults if Brad doesn't respond: AI chat IN beta, margin notes APPLY, pre-generate lessons",
+    "Run Phase 0 audit first — outcome dictates how much of Phases 2-6 is verification vs greenfield",
+    "Critical-path issues: 0.1 audit, 2.1 New Member chat tool, 5.1-5.3 Estate (highest demo impact)"
+  ]
+}

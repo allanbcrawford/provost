@@ -1,0 +1,42 @@
+[
+  {
+    "id": "obs-pour-over-will-date-mismatch",
+    "document_name": "Revocable Living Trust Agreement of Robert Williams",
+    "severity": "warning",
+    "title": "Pour-Over Will Date Mismatch",
+    "description": "[Severity: warning] The Revocable Living Trust references a Pour-Over Will dated March 2, 2019, but the operative will is dated August 15, 2025. The cross-reference between these instruments is outdated, which could create ambiguity about which will controls the pour-over of probate assets into the Trust.",
+    "why_this_matters": "Mismatched cross-references between a Revocable Living Trust and its Pour-Over Will can create probate ambiguity about which instrument controls the disposition of residual probate assets. If contested, a court may have to determine which document is operative, delaying administration and creating litigation risk for the family.",
+    "recommendation": "Review and re-execute the Trust to reference the operative Will dated August 15, 2025, or amend the Will to align cross-references.",
+    "next_best_actions": [
+      "Schedule a review with estate counsel to reconcile the Trust and Pour-Over Will dates.",
+      "Confirm the August 15, 2025 Will is the operative testamentary instrument.",
+      "Re-execute or amend the Trust so cross-references match the operative Will."
+    ],
+    "suggested_prompts": [
+      "What happens at probate if the Trust references a stale Pour-Over Will?",
+      "Draft a memo for estate counsel summarizing the date mismatch and proposed fix.",
+      "Compare the March 2, 2019 Will and the August 15, 2025 Will."
+    ],
+    "status": "new"
+  },
+  {
+    "id": "obs-grantor-trustee-same-person",
+    "document_name": "Irrevocable Life Insurance Trust Agreement of Robert Williams",
+    "severity": "critical",
+    "title": "Grantor and Trustee Are the Same Person",
+    "description": "[Severity: critical] Robert Williams is listed as both Grantor and Trustee in the Irrevocable Life Insurance Trust. This structure compromises the trust's independence and could cause the insurance proceeds to be included in the taxable estate. Under IRC §2042, the IRS may treat the insured as retaining 'incidents of ownership,' nullifying the intended estate-tax exclusion and risking pulling the $5,000,000 life-insurance proceeds back into the taxable estate.",
+    "why_this_matters": "An ILIT only achieves its estate-tax exclusion when the insured does not retain incidents of ownership over the policy. With Robert serving as both Grantor and Trustee, IRC §2042 risks pulling the full $5,000,000 in death-benefit proceeds back into his taxable estate, potentially costing the family millions in avoidable estate tax.",
+    "recommendation": "Amend the Trust to name an independent Trustee (e.g., Elizabeth Williams Harper) and confirm that the life-insurance policy ownership is properly transferred to the Trust.",
+    "next_best_actions": [
+      "Engage estate counsel to amend the ILIT and appoint an independent Trustee.",
+      "Verify policy ownership records reflect the Trust as owner and beneficiary.",
+      "Document the change-of-trustee in trust records and notify the insurance carrier."
+    ],
+    "suggested_prompts": [
+      "Explain IRC §2042 incidents of ownership in plain language.",
+      "Who would be a suitable independent Trustee for this ILIT?",
+      "What is the estate-tax exposure if the $5M proceeds are pulled back into the estate?"
+    ],
+    "status": "new"
+  }
+]
