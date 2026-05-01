@@ -47,6 +47,10 @@ export const chatTables = {
     visible_state: v.optional(v.any()),
     started_at: v.number(),
     finished_at: v.optional(v.number()),
+    // Phase 7.3: time-to-first-token in milliseconds. Recorded when the first
+    // content_delta event is emitted during a streaming run. Null until that
+    // event fires (e.g. tool-only turns).
+    ttft_ms: v.optional(v.number()),
   })
     .index("by_thread", ["thread_id"])
     .index("by_user", ["user_id"])

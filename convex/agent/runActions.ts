@@ -384,6 +384,11 @@ export const execute = internalAction({
       const openaiTools = toOpenAITools(toolDefs);
       const openai = getOpenAI();
 
+      // Phase 7.3: record wall-clock time just before the first OpenAI call.
+      // Used to compute time-to-first-token (TTFT) when content_delta fires.
+      const startedAt = Date.now();
+      let ttftRecorded = false;
+
       for (let turn = 0; turn < MAX_TURNS; turn++) {
         // Cooperative cancellation: if runs.cancel was called while we were
         // idle, bail before hitting OpenAI again.
@@ -453,6 +458,15 @@ export const execute = internalAction({
               });
             }
             assistantContent += delta.content;
+            // Phase 7.3: record TTFT on the first content_delta across all turns.
+            if (!ttftRecorded) {
+              ttftRecorded = true;
+              const ttftMs = Date.now() - startedAt;
+              await ctx.runMutation(internal.agent.runInternal.recordTtft, {
+                runId: args.runId,
+                ttftMs,
+              });
+            }
             await ctx.runMutation(internal.agent.runInternal.writeEvent, {
               runId: args.runId,
               threadId: thread._id,

@@ -280,6 +280,18 @@ export const patchRunStatus = internalMutation({
   },
 });
 
+// Phase 7.3: persist time-to-first-token on the run row. Called once per run
+// when the first content_delta event fires.
+export const recordTtft = internalMutation({
+  args: {
+    runId: v.id("thread_runs"),
+    ttftMs: v.number(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.runId, { ttft_ms: args.ttftMs });
+  },
+});
+
 export const insertApprovalRequest = internalMutation({
   args: {
     runId: v.id("thread_runs"),
